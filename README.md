@@ -57,7 +57,9 @@ To install all required roles and collections for our playbooks, execute:
   * ignored by git
   * stores installed Ansible collections
 * `inventory`
-  * stores `hosts.ini` which defines our servers and their variables
+  * content ignored by git
+  * stores `hosts.ini` loaded from LastPass
+    * defines our servers and their variables
 * `my-logs`
   * content ignored by git
   * stores logs (playbook branch/commit used, for portal: docker-compose files
