@@ -5,13 +5,17 @@
 - name: Get remote portal repo tag (if set at the current commit)
   ansible.builtin.command:
     chdir: "{{ webportal_dir }}"
-    cmd: git describe --tags --exact-match
-  register: port_git_tag
+    cmd: git tag --points-at HEAD
+  register: port_git_all_tags
   failed_when: False
+
+- name: Set remote portal repo all tags
+  set_fact:
+    portal_repo_all_tags: "{{ port_git_all_tags.stdout | replace('\n', ',') }}"
 
 - name: Set remote portal repo tag
   set_fact:
-    portal_repo_tag: "{{ port_git_tag.stdout }}"
+    portal_repo_tag: "{{ '' if (port_git_all_tags.stdout_lines[-1:] == []) else port_git_all_tags.stdout_lines[-1:][0] }}"
 
 - name: Set remote portal repo version (tag)
   set_fact:
