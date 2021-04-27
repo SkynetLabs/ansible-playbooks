@@ -1,0 +1,7 @@
+---
+
+# Set skynet-webportal, skyd, accounts versions by entering git branch, tag or
+# commit
+portal_repo_version: "..."
+portal_skyd_version: "..."
+portal_accounts_version: "..."

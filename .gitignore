@@ -10,7 +10,7 @@
 # Ansible roles and collections are installed from Ansible Galaxy or Github and
 # should not be part of the git repository
 ansible_collections
-inventory/*
-my-logs/*
-my-vars/*
+# inventory/*
+# my-logs/*
+# my-vars/*
 roles
