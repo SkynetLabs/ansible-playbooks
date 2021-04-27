@@ -8,7 +8,7 @@
 - name: Get modified files
   ansible.builtin.shell:
     cmd: |
-      find \( -path "./.git" -o -path "./docker/data" -o -path "./logs" \) ! -prune -o -type f -newer "{{ logs_dir }}"/$(ls "{{ logs_dir }}" | grep \.status\. | tail -n1)
+      find \( -path "./.git" -o -path "./docker/data" -o -path "./logs" -o -path "./docker/kratos/cr_certs/backup" \) ! -prune -o -type f -newer "{{ logs_dir }}"/$(ls "{{ logs_dir }}" | grep \.status\. | tail -n1)
   args:
     chdir: "{{ webportal_dir }}"
   register: portal_modified_files
