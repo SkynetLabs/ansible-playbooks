@@ -37,8 +37,8 @@ echo "Executing: '$cmd $args' in a docker container..."
 docker run -it --rm \
   --entrypoint $cmd \
   -v ~/.ssh:/root/.ssh:ro \
-  -v $(pwd):/tmp/wd:Z \
+  -v $(pwd):/tmp/playbook:Z \
   -v /tmp:/tmp \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  skynetlabs/ansiblecm \
+  skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.2.0 \
   $args
