@@ -1,0 +1,33 @@
+---
+
+# Get skynet-webportal versions from last status.tested logs
+
+- name: Get last status.tested file prefix
+  shell: "ls {{ logs_dir }} | grep status.tested | tail -n1 | awk -F'.status' '{print $1}'"
+  register:
+    last_tested_prefix
+
+- name: Read last status.tested portal-versions.yml
+  slurp:
+    src: "{{ logs_dir }}/{{ last_tested_prefix.stdout }}.portal-versions.yml"
+  register: last_tested_portal_versions_slurp
+
+- name: Parse last status.tested portal-versions.yml
+  set_fact:
+    last_tested_portal_versions: "{{ last_tested_portal_versions_slurp['content'] | b64decode | from_yaml }}"
+
+- name: Get portal version
+  set_fact:
+    portal_repo_version: "{{ last_tested_portal_versions.portal_repo_version }}"
+
+- name: Get skyd version
+  set_fact:
+    portal_skyd_version: "{{ last_tested_portal_versions.portal_skyd_version }}"
+
+- name: Get accounts version
+  set_fact:
+    portal_accounts_version: "{{ last_tested_portal_versions.portal_accounts_version }}"
+
+- name: Set log filename prefix for updating previous status
+  set_fact:
+    log_filename_prefix: "{{ last_tested_prefix.stdout }}"

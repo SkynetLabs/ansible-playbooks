@@ -1,0 +1,24 @@
+---
+
+- name: Demo serial execution 
+  hosts: webportals
+  gather_facts: False
+  serial: 1
+  vars_files:
+    - vars/common.yml
+
+  tasks:
+
+    # Limit number of hosts that can be targeted by this playbook execution
+    - name: Fail if you are targeting more than 2 hosts
+      include_tasks: tasks/host-limit-check.yml
+
+    - name: Stat skynet-webportal dir
+      stat:
+        path: "{{ webportal_dir }}"
+      register: wds
+    
+    - name: Fail if skynet-webportal dir is not present
+      fail:
+        msg: "skynet-webportal dir is not present"
+      when: wds.stat.isdir is not defined or not wds.stat.isdir

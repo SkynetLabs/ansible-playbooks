@@ -1,0 +1,9 @@
+---
+# Install roles from Ansible Galaxy.
+roles: []
+
+# Install collections from Ansible Galaxy.
+collections:
+  
+  - name: community.docker
+    version: 1.5.0

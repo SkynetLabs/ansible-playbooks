@@ -1,0 +1,51 @@
+---
+
+# Get remote portal branch and commit
+
+- name: Get remote portal repo tag (if set at the current commit)
+  ansible.builtin.command:
+    chdir: "{{ webportal_dir }}"
+    cmd: git describe --tags --exact-match
+  register: port_git_tag
+  failed_when: False
+
+- name: Set remote portal repo tag
+  set_fact:
+    portal_repo_tag: "{{ port_git_tag.stdout }}"
+
+- name: Set remote portal repo version (tag)
+  set_fact:
+    portal_repo_version: "{{ portal_repo_tag }}"
+  when: portal_repo_tag != ''
+
+
+- name: Get remote portal repo branch
+  ansible.builtin.command:
+    chdir: "{{ webportal_dir }}"
+    cmd: git symbolic-ref --short HEAD
+  register: port_git_branch
+  failed_when: False
+
+- name: Set remote portal repo branch
+  set_fact:
+    portal_repo_branch: "{{ port_git_branch.stdout }}"
+
+- name: Set remote portal repo version (branch)
+  set_fact:
+    portal_repo_version: "{{ portal_repo_branch }}"
+  when: (portal_repo_tag == '') and (portal_repo_branch != '')
+
+- name: Get remote portal repo commit
+  ansible.builtin.command:
+    chdir: "{{ webportal_dir }}"
+    cmd: git rev-parse --verify HEAD
+  register: port_git_commit
+
+- name: Set remote portal repo commit
+  set_fact:
+     portal_repo_commit: "{{ port_git_commit.stdout }}"
+
+- name: Set remote portal repo version (commit)
+  set_fact:
+    portal_repo_version: "{{ portal_repo_commit }}"
+  when: (portal_repo_tag == '') and (portal_repo_branch == '')

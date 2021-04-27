@@ -1,0 +1,45 @@
+---
+
+# Run integration tests locally against webportal
+- name: Run integration tests
+  block:
+
+    # Checkout skynet-js repo locally
+    # NOTE: Each portal server has its own repo directory so the tests of
+    # different portals do not clash when they are executed in parallel.
+    - name: Checkout skynet-js repo
+      local_action:
+        module: ansible.builtin.git
+        repo: "{{ skynet_js_repo_url }}"
+        dest: "{{ local_temp_skynetlabs_git_repos_skynet_js }}/{{ inventory_hostname }}"
+        version: "master"
+        update: True
+        force: True
+
+    # Run integration tests locally against the portal
+    # NOTE: Container name should be unique between portals so that portal
+    # tests can be executed in parallel.
+    - name: Run integration tests locally against the portal
+      local_action:
+        module: community.docker.docker_container
+        name: skynet-js-integration-tests-{{ inventory_hostname }}
+        image: "{{ skynet_js_docker_test_image }}"
+        container_default_behavior: no_defaults
+        state: started
+        detach: False
+        volumes:
+          - "{{ local_temp_skynetlabs_git_repos_skynet_js }}:/skynet-js"
+        env:
+          SKYNET_JS_INTEGRATION_TEST_SERVER: "https://{{ ansible_host }}"
+        working_dir: "/skynet-js/{{ inventory_hostname }}"
+        command: /bin/sh -c 'yarn && yarn run jest src/integration.test.ts'
+  
+  always:
+    
+    # Remove test container
+    - name: Remove test container
+      local_action:
+        module: community.docker.docker_container
+        name: skynet-js-integration-tests-{{ inventory_hostname }}
+        container_default_behavior: no_defaults
+        state: absent

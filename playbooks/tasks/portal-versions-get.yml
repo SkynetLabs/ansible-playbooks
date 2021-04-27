@@ -1,0 +1,15 @@
+---
+
+# Get skynet-webportal versions
+
+# Get portal repo branch and commit
+- name: Get portal version (skynet-webportal repo branch and commit)
+  include_tasks: tasks/portal-repo-get-info.yml
+
+# Get skyd version
+- name: Get skyd version
+  include_tasks: tasks/portal-skyd-get-version.yml
+
+# Get accounts version
+- name: Get accounts version
+  include_tasks: tasks/portal-accounts-get-version.yml

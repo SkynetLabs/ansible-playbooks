@@ -1,0 +1,6 @@
+---
+
+# Update portal status in devops/logs dir
+
+- name: Update portal status in devops/logs dir
+  command: mv "{{ logs_dir }}/{{ log_filename_prefix }}.status.{{ tag_from }}" "{{ logs_dir }}/{{ log_filename_prefix }}.status.{{ tag_to }}"

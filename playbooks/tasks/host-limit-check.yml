@@ -1,0 +1,7 @@
+---
+
+# Limit number of hosts that can be targeted by a playbook execution
+- name: Fail if you are targeting more than 2 hosts
+  fail:
+    msg: "Maximum number of hosts to execute a webportal playbook is 2. You are now targeting {{ ansible_play_hosts }}. Use: ... --limit host1,host2"
+  when: num_hosts | int > 2

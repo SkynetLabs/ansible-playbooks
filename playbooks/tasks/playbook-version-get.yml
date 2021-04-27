@@ -1,0 +1,27 @@
+---
+
+# Get local Ansible repo branch and commit
+
+- name: Get Ansible repo branch
+  local_action:
+    module: ansible.builtin.command
+    cmd: git symbolic-ref --short HEAD
+  run_once: True
+  register: ans_git_branch
+
+- name: Set Ansible repo branch
+  set_fact:
+    local_ansible_repo_branch: "{{ ans_git_branch.stdout }}"
+  run_once: True
+
+- name: Get Ansible repo commit
+  local_action:
+    module: ansible.builtin.command
+    cmd: git rev-parse --verify HEAD
+  run_once: True
+  register: ans_git_commit
+
+- name: Set Ansible repo commit
+  set_fact:
+    local_ansible_repo_commit: "{{ ans_git_commit.stdout }}"
+    

@@ -1,0 +1,16 @@
+# Mac files
+.DS_Store
+
+# Ansible execution artifacts
+*.retry
+*/__pycache__
+*.pyc
+*.log
+
+# Ansible roles and collections are installed from Ansible Galaxy or Github and
+# should not be part of the git repository
+ansible_collections
+inventory/*
+my-logs/*
+my-vars/*
+roles

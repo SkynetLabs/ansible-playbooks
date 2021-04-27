@@ -1,0 +1,67 @@
+---
+
+# Start portal docker services
+
+- name: Create timestamped log filename prefix
+  set_fact:
+    log_filename_prefix: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}.{{ portal_action }}.{{ inventory_hostname }}"
+
+# Include getting Ansible repo branch and commit
+- name: Include getting Ansible repo branch and commit
+  include_tasks: tasks/playbook-version-get.yml
+
+# Include logging Ansible version
+- name: Include logging Ansible version
+  include_tasks: tasks/playbook-logs-ansible-log-version.yml
+
+# Include getting portal, Sia, accounts versions
+- name: Include getting portal, Sia, accounts versions
+  include_tasks: tasks/portal-versions-get.yml
+
+# Include logging portal, Sia, accounts versions
+- name: Include logging portal, Sia, accounts versions
+  include_tasks: tasks/portal-logs-portal-log-versions.yml
+
+# Log portal config files (docker-compose.*, .env)
+- name: Log portal config files (docker-compose.*, .env)
+  ansible.builtin.copy:
+    src: "{{ webportal_dir }}/{{ item }}"
+    dest: "{{ logs_dir }}/{{ log_filename_prefix }}.{{ item }}"
+    remote_src: True
+    mode: preserve
+  loop: "{{ webportal_docker_compose_files + webportal_other_config_files }}"
+
+# Log status as 'starting'
+- name: Log status as 'starting'
+  file:
+    path: "{{ logs_dir }}/{{ log_filename_prefix }}.status.starting"
+    state: touch
+
+# Start the docker services (on deploy also build images)
+- name: Start the docker services (on deploy also build images)
+  community.docker.docker_compose:
+    project_src: "{{ webportal_dir }}"
+    files: "{{ webportal_docker_compose_files }}"
+    build: "{{ docker_compose_build }}"
+    nocache: True
+    state: present
+    # xxx parallel
+  become: True
+  become_user: "user"
+
+# xxx status: docker-starting => docker-started => sia-setup-finished => tests-failed/tests-passed
+
+# Wait until Sia finished full setup
+- name: Wait until Sia finished full setup
+  command: docker logs sia
+  register: docker_logs_sia
+  until: docker_logs_sia.stdout.find("Finished full setup in") != -1
+  delay: 1
+  retries: 600
+
+# Update log status to 'started'
+- name: Update log status to 'started'
+  include_tasks: tasks/portal-logs-update-status.yml
+  vars:
+    tag_from: "starting"
+    tag_to: "started"

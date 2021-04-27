@@ -1,0 +1,68 @@
+- name: Rollback Skynet Webportals
+  hosts: webportals
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Load common vars
+  vars_files:
+  - vars/common.yml
+
+  # Playbook specific vars
+  vars:
+    # Rebuild docker services
+    docker_compose_build: True
+    portal_action: "portal-rollback"
+
+  tasks:
+
+    # Include host limit check
+    - name: Include host limit check
+      include_tasks: tasks/host-limit-check.yml
+    
+    # Disable health check
+    - name: Include disabling portal health check
+      include_tasks: tasks/portal-health-check-disable.yml
+    
+    # Stop portal docker services
+    - name: Include stopping portal docker services
+      include_tasks: tasks/portal-docker-services-stop.yml
+    
+    # Get last working config (status.tested)
+    - name: Include getting last working portal versions (status.tested)
+      include_tasks: tasks/portal-versions-get-last-status-tested-versions.yml
+
+    # Update previous status to 'rollback-tested'
+    - name: Include setting previous status to 'rollback-tested'
+      include_tasks: tasks/portal-logs-update-status.yml
+      vars:
+        tag_from: "tested"
+        tag_to: "rollback-tested"
+    
+    # Set portal versions
+    - name: Include setting portal versions (portal, skyd, accounts)
+      include_tasks: tasks/portal-versions-set.yml
+
+    # Rollback config files
+    - name: Include rollback config files
+      include_tasks: tasks/portal-versions-rollback-config-files.yml
+
+    # Rebuild docker images, start the docker services and log activities
+    - name: Include starting portal docker services
+      include_tasks: tasks/portal-docker-services-start.yml
+    
+    # Run portal integration tests
+    - name: Include running portal integration tests
+      include_tasks: tasks/portal-integration-tests-run.yml
+
+    # Update log status to 'tested'
+    - name: Update log status to 'tested'
+      include_tasks: tasks/portal-logs-update-status.yml
+      vars:
+        tag_from: "started"
+        tag_to: "tested"
+    
+    # Enable health check
+    - name: Include enabling portal health check
+      include_tasks: tasks/portal-health-check-enable.yml

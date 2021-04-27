@@ -1,0 +1,20 @@
+---
+
+# Log portal, Sia, accounts versions
+
+- name: Log portal, Sia, accounts versions on server
+  ansible.builtin.template:
+    src: templates/portal-versions.yml.j2
+    dest: "{{ logs_dir }}/{{ log_filename_prefix }}.portal-versions.yml"
+
+- name: Log portal, Sia, accounts versions locally
+  local_action:
+    module: ansible.builtin.template
+    src: templates/portal-versions.yml.j2
+    dest: "{{ local_logs_dir }}/{{ log_filename_prefix }}.portal-versions.yml"
+
+- name: Log portal, Sia, accounts versions locally as 'last-portal-versions.yml'
+  local_action:
+    module: ansible.builtin.template
+    src: templates/portal-versions.yml.j2
+    dest: "{{ local_logs_dir }}/last-portal-versions.yml"

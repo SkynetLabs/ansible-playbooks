@@ -1,0 +1,11 @@
+---
+
+# Rollback portal config files
+
+- name: Rollback portal config files
+  ansible.builtin.copy:
+    src: "{{ logs_dir }}/{{ log_filename_prefix }}.{{ item }}"
+    dest: "{{ webportal_dir }}/{{ item }}"
+    remote_src: True
+    mode: preserve
+  loop: "{{ webportal_docker_compose_files + webportal_other_config_files }}"

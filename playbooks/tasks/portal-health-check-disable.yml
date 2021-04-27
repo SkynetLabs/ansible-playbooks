@@ -1,0 +1,24 @@
+---
+
+# Take portal out of load balancer by stopping healh check
+
+- name: Sleep before portal health check disabling
+  wait_for:
+    timeout: "{{ portal_health_check_disable_delay_secs }}"
+  delegate_to: localhost
+
+- name: Check health check container is running
+  community.docker.docker_container_info:
+    name: health-check
+  register: result
+
+- name: Stop portal healh check to take portal out of load balancer
+  command: docker exec health-check cli/disable
+  become: True
+  become_user: "user"
+  when: result.exists
+
+- name: "Wait given timeout for the load balancer to remove the portal"
+  wait_for:
+    timeout: "{{ portal_load_balancer_timeout_secs }}"
+  delegate_to: localhost

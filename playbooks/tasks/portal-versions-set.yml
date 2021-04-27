@@ -1,0 +1,27 @@
+---
+
+# Set skynet-webportal versions
+
+- name: Set portal version (checkout skynet-webportal repo version)
+  ansible.builtin.git:
+    repo: "{{ webportal_repo_url }}"
+    dest: "{{ webportal_dir }}"
+    version: "{{ portal_repo_version }}"
+    update: True
+    force: True
+
+- name: Set skyd version (in docker-compose.override.yml)
+  ansible.builtin.lineinfile:
+    path: "{{ webportal_dir }}/docker-compose.override.yml"
+    regexp: '^        branch:'
+    insertafter: "^  sia:"
+    firstmatch: True
+    line: "        branch: {{ portal_skyd_version }}"
+
+- name: Set accounts version (in docker-compose.accounts.yml)
+  ansible.builtin.lineinfile:
+    path: "{{ webportal_dir }}/docker-compose.accounts.yml"
+    regexp: '^        branch:'
+    insertafter: "^  accounts:"
+    firstmatch: True
+    line: "        branch: {{ portal_accounts_version }}"
