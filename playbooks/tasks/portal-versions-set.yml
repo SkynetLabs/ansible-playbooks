@@ -10,18 +10,25 @@
     update: True
     force: True
 
-- name: Set skyd version (in docker-compose.override.yml)
-  ansible.builtin.lineinfile:
-    path: "{{ webportal_dir }}/docker-compose.override.yml"
-    regexp: '^        branch:'
-    insertafter: "^  sia:"
-    firstmatch: True
-    line: "        branch: {{ portal_skyd_version }}"
+# Include getting current skyd and accounts versions from
+# docker-compose.override.yml
+- name: Include getting current skyd and accounts versions from docker-compose.override.yml
+  include_tasks: tasks/portal-versions-get-skyd-accounts-versions.yml
 
-- name: Set accounts version (in docker-compose.accounts.yml)
-  ansible.builtin.lineinfile:
-    path: "{{ webportal_dir }}/docker-compose.accounts.yml"
-    regexp: '^        branch:'
-    insertafter: "^  accounts:"
-    firstmatch: True
-    line: "        branch: {{ portal_accounts_version }}"
+# Set skyd version in docker-compose.override.yml
+- name: Set skyd version in docker-compose.override.yml
+  ansible.builtin.replace:
+    path: "{{ webportal_dir }}/docker-compose.override.yml"
+    after: "\n  sia:\n"
+    before: "(?<=branch: {{ portal_skyd_version_used }}).*$"
+    regexp: "^        branch: {{ portal_skyd_version_used }}"
+    replace: "        branch: {{ portal_skyd_version }}"
+
+# Set accounts version in docker-compose.override.yml
+- name: Set accounts version in docker-compose.override.yml
+  ansible.builtin.replace:
+    path: "{{ webportal_dir }}/docker-compose.override.yml"
+    after: "\n  accounts:\n"
+    before: "(?<=branch: {{ portal_accounts_version_used }}).*$"
+    regexp: "^        branch: {{ portal_accounts_version_used }}"
+    replace: "        branch: {{ portal_accounts_version }}"
