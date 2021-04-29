@@ -36,6 +36,7 @@ fi
 echo "Executing: '$cmd $args' in a docker container..."
 docker run -it --rm \
   --entrypoint $cmd \
+  -e ANSIBLE_STDOUT_CALLBACK=debug \
   -v ~/.ssh:/root/.ssh:ro \
   -v $(pwd):/tmp/playbook:Z \
   -v /tmp:/tmp \
