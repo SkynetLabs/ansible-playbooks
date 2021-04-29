@@ -2,9 +2,10 @@
 
 # Get remote portal files modified after last Ansible docker services start
 
-# find all files (excluding files in .git and docker/data directories) that are
-# modified after latest '*.status.*' files (which was saved on latest Ansible
-# docker services re-/start)
+# find all files (excluding files in .git, docker/data and
+# /docker/kratos/cr_certs/backup directories) that are modified after latest
+# '*.status.*' file (which was saved on latest Ansible docker services
+# re-/start)
 - name: Get modified files
   ansible.builtin.shell:
     cmd: |
@@ -12,18 +13,3 @@
   args:
     chdir: "{{ webportal_dir }}"
   register: portal_modified_files
-
-- debug:
-    msg:
-      - "Versions set in portal files:"
-      - "  git tags: {{ portal_repo_all_tags }}"
-      - "  git branch: {{ portal_repo_branch }}"
-      - "  git commit {{ portal_repo_commit }}"
-      - ""
-      - "  portal_repo_version: {{ portal_repo_version }}"
-      - "  portal_skyd_version: {{ portal_skyd_version_used }}"
-      - "  portal_accounts_version: {{ portal_accounts_version_used }}"
-      - ""
-      - "Following files were edited after last Ansible docker services re-/start:"
-      - "{{ portal_modified_files.stdout.split('\n') }}"
-  failed_when: portal_modified_files.stdout != ""
