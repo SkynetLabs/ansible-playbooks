@@ -182,14 +182,14 @@ another host:
 * Start the playbook with `-e @my-logs/last-portal-versions.yml`
 
 To deploy portal at `ger-1` execute:  
-`scripts/portals-deploy.sh --limit ger-1 -e @my-vars/portal-versions.yml`  
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit ger-1`  
 or:  
-`scripts/portals-deploy.sh --limit ger-1 -e @my-logs/last-portal-versions.yml`
+`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit ger-1`
 
 To deploy portal at `ger-1` and `pa-1` execute:  
-`scripts/portals-deploy.sh --limit ger-1,pa-1 -e @my-vars/portal-versions.yml`  
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit ger-1,pa-1`  
 or:  
-`scripts/portals-deploy.sh --limit ger-1.pa-1 -e @my-logs/last-portal-versions.yml`
+`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit ger-1.pa-1`
 
 ### Rollback Skynet Webportal
 
