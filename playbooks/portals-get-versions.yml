@@ -17,7 +17,8 @@
       include_tasks: tasks/portal-repo-get-modified-files.yml
     
     # Report versions and modified files to stdout
-    - debug:
+    - name: Report versions and modified files to stdout
+      debug:
         msg: |
           Versions set in portal files:
           - git tags: {{ portal_repo_all_tags }}
