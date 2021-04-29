@@ -16,7 +16,7 @@
   command: docker exec health-check cli/disable
   become: True
   become_user: "user"
-  when: result.exists
+  when: result.exists and result.container is defined and result.container.State.Running
 
 - name: "Wait given timeout for the load balancer to remove the portal"
   wait_for:
