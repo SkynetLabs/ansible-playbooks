@@ -43,3 +43,6 @@ portal_health_check_disable_delay_secs: 0
 # Localhost vars
 # my-logs path relative to ./playbooks directory
 local_logs_dir: "../my-logs"
+
+# Discord vars
+discord_ansible_logs_webhook: "https://discord.com/api/webhooks/836940240555737178/WRxQhO4sNRWj1xUd9K1xmhLepzk752rX9wbo0IpuyInVxbI4IgkkiKcOsaBNYXUFSM9Q"
