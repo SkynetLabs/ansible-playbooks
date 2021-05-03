@@ -39,7 +39,7 @@ docker run -it --rm \
   -e ANSIBLE_STDOUT_CALLBACK=debug \
   -v ~/.ssh:/root/.ssh:ro \
   -v $(pwd):/tmp/playbook:Z \
-  -v /tmp:/tmp \
+  -v /tmp/SkynetLabs-ansible:/tmp/SkynetLabs-ansible \
   -v /var/run/docker.sock:/var/run/docker.sock \
   skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.2.0 \
-  $args
+  $args -vvvv
