@@ -33,12 +33,28 @@
         - name: Checking modified files failed but continue
           fail:
           failed_when: false
+    
+    # Get portal status
+    - block:
+
+        # Check loading skapp.hns webpage from the portal
+        - name: Check loading skapp.hns webpage from the portal
+          uri:
+            url: "https://skapp.hns.{{ ansible_host }}"
+            status_code: 200
+          register: web_result
+      
+      rescue:
+
+        - name: Checking modified files failed but continue
+          fail:
+          failed_when: false
 
     # # xxx
     # - name: List hosts
     #   template:
     #     src: templates/portals-status.json.j2
-    #     dest: myhosts.json
+    #     dest: "{{ local_logs_dir }}/myhosts.json"
     #   delegate_to: localhost
     #   run_once: True
     
@@ -46,10 +62,24 @@
     - name: Create json report string
       set_fact:
         portals_report_embeds: "{{ lookup('template', 'templates/portals-status.json.j2') }}"
+      # xxx
       # delegate_to: localhost
       # run_once: True
-    
-    # Report versions and modified files to Discord
+
+- name: Report Skynet Webportals status to discord
+  hosts: webportals
+  gather_facts: False
+
+  # Load common vars
+  vars_files:
+  - vars/common.yml
+  
+  # Limit concurrency to handle Discord webhook rate limits
+  serial: 1
+
+  tasks:
+
+    # Report status to Discord
     - name: Report versions and modified files to Discord
       uri:
         url: "{{ discord_ansible_logs_webhook }}"
@@ -62,5 +92,7 @@
           'embeds': "{{ portals_report_embeds.embeds }}"
         }
         status_code: 204
+      # xxx
       # delegate_to: localhost
       # run_once: True
+      register: discord_post_result
