@@ -42,4 +42,5 @@ docker run -it --rm \
   -v /tmp/SkynetLabs-ansible:/tmp/SkynetLabs-ansible \
   -v /var/run/docker.sock:/var/run/docker.sock \
   skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.2.0 \
-  $args -vvvv
+  $args
+  
