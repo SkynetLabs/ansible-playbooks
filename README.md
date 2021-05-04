@@ -4,8 +4,8 @@
 
 - [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
   - [Requirements](#requirements)
-    - [Ansible](#ansible)
-    - [Ansible Hosts](#ansible-hosts)
+    - [Docker](#docker)
+    - [LastPass CLI](#lastpass-cli)
     - [Ansible Roles and Collections](#ansible-roles-and-collections)
   - [Repository organization](#repository-organization)
   - [Playbook Execution](#playbook-execution)
@@ -19,28 +19,32 @@
     - [Rollback Skynet Webportal](#rollback-skynet-webportal)
     - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
   - [Playbook Live Demos](#playbook-live-demos)
+  - [Troubleshooting](#troubleshooting)
+    - [Error: Could not find specified account(s).](#error-could-not-find-specified-accounts)
+    - [Unreachable Host](#unreachable-host)
 
 <!-- /TOC -->
 
 ## Requirements
 
-### Ansible
+### Docker
 
-Ansible (Ansible Control Machine) is usually installed locally, but to ensure
-consistency within our local executions our Ansible scripts do not use local
-installation, but execute Ansible Control Machine from a Docker container. For
-this the requirement is Docker installed locally.
+Docker installation on your local machine is required.
 
-### Ansible Hosts
+Our scripts execute Ansible from a Docker container that is automatically
+pulled from Docker Hub. Local Ansible installation is NOT required.
 
-Ansible inventory (i.e. list of individual servers behind a load balancer with
-their URLs and variables) is not part of this public repository. The
-`hosts.ini` inventory file is loaded from LastPass.
+### LastPass CLI
 
 `lastpass-cli` (https://github.com/lastpass/lastpass-cli) must be installed
-locally. Before or during each Ansible script execution a local user must login
-to his/her lastpass account using `lpass` command-line utility from
-`lastpass-cli`.
+locally. `lastpass-cli` installs `lpass` utility.
+
+You can login via `lpass` before you start the Ansible script. Or, if you are
+not logged via `lpass` or your session timeouts, executing Ansible script will
+trigger `lpass` login and you can login now.
+
+We store sensitive configurations in LastPass, namely the `hosts.ini` inventory
+file with portal URLs behind load balancer.
 
 ### Ansible Roles and Collections
 
@@ -249,3 +253,39 @@ To check `ger-1`, `pa-1` and `va-1` portals:
 * Rollback to the previous portal configuration with passed integration tests
   on xyz:  
   https://asciinema.org/a/miJgwUK806bpxDPBx5PqRX7l3
+
+## Troubleshooting
+
+### Error: Could not find specified account(s).
+```
+Loading hosts.ini from LastPass...
+Error: Could not find specified account(s).
+```
+
+This error means, that your local `lpass` couldn't find the requested account/
+password/configuration file in its database.
+
+It could be caused by account/password/configuration being private, not being
+shared with the team. In this case it should be shared in LastPass web UI.
+
+### Unreachable Host
+
+Example error:
+```
+fatal: [fin-1]: UNREACHABLE! => {
+    "changed": false,
+    "unreachable": true
+}
+
+MSG:
+
+Data could not be sent to remote host "eu-fin-1.siasky.net".
+Make sure this host can be reached over ssh: ...
+```
+
+This error means that your local Ansible Control Machine can't reach the
+specified host. Either the host is not set correctly in `hosts.ini` file in
+LastPass or SSH connection to the host can't be established or was lost.
+
+In the second case, try to rerun the playbook for the affected host, i.e. with
+`--limit <your-failing-host>`.
