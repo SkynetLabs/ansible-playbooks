@@ -1,0 +1,37 @@
+---
+# Setup ufw firewall
+
+- name: Install ufw firewall
+  apt:
+    name: ufw
+    state: present
+
+- name: Set ufw defaults
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: 'incoming', policy: 'deny' }
+    - { direction: 'outgoing', policy: 'allow' }
+  notify:
+    - reload ufw firewall
+
+- name: Set ufw rules
+  community.general.ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - { rule: 'limit', port: '{{ ssh_port | default("22") }}', proto: 'tcp' }
+  notify:
+    - reload ufw firewall
+
+- name: Enable ufw firewall
+  community.general.ufw:
+    state: enabled
+    logging: low
+  notify:
+    - reload ufw firewall
+
+- name: Reload ufw if needed
+  meta: flush_handlers
