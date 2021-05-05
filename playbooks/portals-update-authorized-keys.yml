@@ -13,4 +13,5 @@
       ansible.posix.authorized_key:
         user: "user"
         state: present
+        # TODO: Set a key you want to add
         # key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN6Kcx8yetova4/ALUQHigo/PBMJO33ZTKOsg2jxSO2a user@depl"

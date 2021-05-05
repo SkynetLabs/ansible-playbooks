@@ -5,6 +5,9 @@
   # Limit concurrency
   serial: 1
 
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
   # Load common vars
   vars_files:
   - vars/deploy-machines.yml

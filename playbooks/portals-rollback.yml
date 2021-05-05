@@ -19,10 +19,6 @@
     portal_action: "portal-rollback"
 
   tasks:
-
-    # Include host limit check
-    - name: Include host limit check
-      include_tasks: tasks/host-limit-check.yml
     
     # Disable health check
     - name: Include disabling portal health check
