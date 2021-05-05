@@ -11,7 +11,6 @@
   - [Playbook Execution](#playbook-execution)
     - [LastPass Login](#lastpass-login)
     - [Check access](#check-access)
-    - [Playbook execution protection](#playbook-execution-protection)
   - [Playbooks](#playbooks)
     - [Server Preparation for Ansible](#server-preparation-for-ansible)
     - [Restart Skynet Webportal](#restart-skynet-webportal)
@@ -87,6 +86,9 @@ To install all required roles and collections for our playbooks, execute:
     * stores file templates for playbooks
   * `vars`
     * stores common and playbook specific variables
+* `roles`
+  * ignored by git
+  * stores installed Ansible roles
 * `scripts`
   * stores scripts to be executed
 
@@ -95,7 +97,9 @@ To install all required roles and collections for our playbooks, execute:
 ### LastPass Login
 
 You can login to LastPass using `lpass` before execution of an Ansible command
-e.g. by executing:  
+e.g. by logging to your account:  
+`lpass login <your@email>`  
+or by getting a LastPass secret (on the last used account):  
 `lpass show ansible-dummy`  
 otherwise you have to login to LastPass just after you started Ansible command
 execution.
@@ -103,12 +107,6 @@ execution.
 
 To check that you have access to all portals, execute:   
 `scripts/portals-ping.sh`
-
-### Playbook execution protection
-
-Playbook can be executed against 1 or 2 hosts
-(target servers), when the number of hosts is higher than 2 the playbook stops
-to prevent taking down all Skynet servers in case of mistake or error.
 
 ## Playbooks
 

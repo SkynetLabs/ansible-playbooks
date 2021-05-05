@@ -18,17 +18,6 @@ webportal_docker_compose_files:
 webportal_other_config_files:
   - ".env"
 
-# Portal version log files
-webportal_version_log_files:
-  - ansible-branch
-  - ansible-commit
-  - portal-version
-  - portal-commit
-  - skyd-version
-  - skyd-commit
-  - accounts-version
-  - accounts-commit
-
 # skynet-js vars
 skynet_js_repo_url: "https://github.com/SkynetLabs/skynet-js.git"
 skynet_js_docker_test_image: "node:14-buster-slim"

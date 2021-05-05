@@ -1,0 +1,7 @@
+---
+
+# Overriding defaults for geerlingguy.security role
+security_sudoers_passworded:
+  - "user"
+security_autoupdate_enabled: False
+security_fail2ban_enabled: True
