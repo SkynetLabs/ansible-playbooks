@@ -13,6 +13,7 @@
     - [Check access](#check-access)
   - [Playbooks](#playbooks)
     - [Server Preparation for Ansible](#server-preparation-for-ansible)
+    - [Get Webportal Status](#get-webportal-status)
     - [Restart Skynet Webportal](#restart-skynet-webportal)
     - [Deploy Skynet Webportal](#deploy-skynet-webportal)
     - [Rollback Skynet Webportal](#rollback-skynet-webportal)
@@ -121,6 +122,18 @@ against the host only once (from any Ansible control machine).
 
 If there are new requirements, this script will be updated and should be re-
 executed against all portal servers again.
+
+### Get Webportal Status
+
+Playbook:
+* Gets `skynet-webportal` repository version (git tag, branch or commit).
+* Gets Sia version from `docker-compose.override.yml`.
+* Gets Accounts version from `docker-compose.override.yml`.
+* Gets list of all files in `skynet-webportal` directory modified after the
+  last Ansible deployment.
+* Checks that URL `https://skapp.hns.<portal domain>` returns status code 200.
+* Sends the result to Skynet Labs Discord channel `#ansible-logs` defined by
+  `discord_ansible_logs_webhook` webhook variable.
 
 ### Restart Skynet Webportal
 

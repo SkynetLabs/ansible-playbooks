@@ -50,21 +50,10 @@
           fail:
           failed_when: false
 
-    # # xxx
-    # - name: List hosts
-    #   template:
-    #     src: templates/portals-status.json.j2
-    #     dest: "{{ local_logs_dir }}/myhosts.json"
-    #   delegate_to: localhost
-    #   run_once: True
-    
     # Create json report data
     - name: Create json report string
       set_fact:
         portals_report_embeds: "{{ lookup('template', 'templates/portals-status.json.j2') }}"
-      # xxx
-      # delegate_to: localhost
-      # run_once: True
 
 - name: Report Skynet Webportals status to discord
   hosts: webportals
@@ -92,7 +81,4 @@
           'embeds': "{{ portals_report_embeds.embeds }}"
         }
         status_code: 204
-      # xxx
-      # delegate_to: localhost
-      # run_once: True
       register: discord_post_result
