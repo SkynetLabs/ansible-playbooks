@@ -20,6 +20,10 @@
 
   tasks:
 
+    # Check/install Ansible prerequisities
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
+
     # Disable health check
     - name: Include disabling portal health check
       include_tasks: tasks/portal-health-check-disable.yml

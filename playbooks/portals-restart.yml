@@ -18,6 +18,10 @@
     portal_action: "portal-restart"
 
   tasks:
+
+    # Check/install Ansible prerequisities
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
     
     # Disable health check
     - name: Include disabling portal health check
