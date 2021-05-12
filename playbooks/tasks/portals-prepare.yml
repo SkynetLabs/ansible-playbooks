@@ -2,12 +2,13 @@
 
 # Prepare Skynet Webportals for our Ansible playbooks
 
-# Install python3-pip
-- name: Install python3-pip
-  apt:
-    name: "python3-pip"
-    state: latest
-  become: True
+# xxx requires sudo pass
+# # Install python3-pip
+# - name: Install python3-pip
+#   apt:
+#     name: "python3-pip"
+#     state: latest
+#   become: True
 
 # Install Docker and docker-compose SDKs for Python
 - name: Install Docker and docker-compose SDKs for Python
