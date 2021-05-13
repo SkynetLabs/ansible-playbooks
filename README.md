@@ -13,7 +13,6 @@
     - [LastPass Login](#lastpass-login)
     - [Check access](#check-access)
   - [Playbooks](#playbooks)
-    - [Server Preparation for Ansible](#server-preparation-for-ansible)
     - [Get Webportal Status](#get-webportal-status)
     - [Restart Skynet Webportal](#restart-skynet-webportal)
     - [Deploy Skynet Webportal](#deploy-skynet-webportal)
@@ -113,18 +112,6 @@ To check that you have access to all portals, execute:
 `scripts/portals-ping.sh`
 
 ## Playbooks
-
-### Server Preparation for Ansible
-
-To prepare a portal server (e.g. `ger-1`) for Ansible execution (installs
-Docker SDK and docker-compose SDK for Python, creates devops/logs dir), execute:  
-`scripts/portals-prepare.sh --limit ger-1`
-
-If there are no more changes in requirements, this script can be executed
-against the host only once (from any Ansible control machine).
-
-If there are new requirements, this script will be updated and should be re-
-executed against all portal servers again.
 
 ### Get Webportal Status
 
