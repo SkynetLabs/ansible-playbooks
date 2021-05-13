@@ -2,6 +2,6 @@
 
 # Set command and arguments
 cmd=ansible
-args="--inventory inventory/hosts.ini deploy_machines -m ping $@"
+args="--inventory /tmp/ansible-private/inventory/hosts.ini deploy_machines -m ping $@"
 
 source $(dirname "$0")/lib/ansible-executor.sh

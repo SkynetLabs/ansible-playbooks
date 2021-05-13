@@ -4,6 +4,7 @@
 
 - [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
   - [Requirements](#requirements)
+    - [Git repository ansible-private](#git-repository-ansible-private)
     - [Docker](#docker)
     - [LastPass CLI](#lastpass-cli)
     - [Ansible Roles and Collections](#ansible-roles-and-collections)
@@ -26,6 +27,12 @@
 <!-- /TOC -->
 
 ## Requirements
+
+### Git repository ansible-private
+
+Git repository `ansible-private` must be sibling of this repository
+`ansible-playbooks`. `ansible-private` contains `inventory/hosts.ini` file
+which defines a list of our servers which we target with our Ansible scripts.
 
 ### Docker
 
@@ -60,10 +67,6 @@ To install all required roles and collections for our playbooks, execute:
 * `ansible_collections`
   * ignored by git
   * stores installed Ansible collections
-* `inventory`
-  * content ignored by git
-  * stores `hosts.ini` loaded from LastPass
-    * defines our servers and their variables
 * `my-logs`
   * content ignored by git
   * stores logs (playbook branch/commit used, for portal: docker-compose files
