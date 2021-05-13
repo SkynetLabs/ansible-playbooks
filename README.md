@@ -4,6 +4,7 @@
 
 - [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
   - [Requirements](#requirements)
+    - [Git repository ansible-private](#git-repository-ansible-private)
     - [Docker](#docker)
     - [LastPass CLI](#lastpass-cli)
     - [Ansible Roles and Collections](#ansible-roles-and-collections)
@@ -12,6 +13,7 @@
     - [LastPass Login](#lastpass-login)
     - [Check access](#check-access)
   - [Playbooks](#playbooks)
+    - [Get Webportal Status](#get-webportal-status)
     - [Restart Skynet Webportal](#restart-skynet-webportal)
     - [Deploy Skynet Webportal](#deploy-skynet-webportal)
     - [Rollback Skynet Webportal](#rollback-skynet-webportal)
@@ -24,6 +26,12 @@
 <!-- /TOC -->
 
 ## Requirements
+
+### Git repository ansible-private
+
+Git repository `ansible-private` must be sibling of this repository
+`ansible-playbooks`. `ansible-private` contains `inventory/hosts.ini` file
+which defines a list of our servers which we target with our Ansible scripts.
 
 ### Docker
 
@@ -58,10 +66,6 @@ To install all required roles and collections for our playbooks, execute:
 * `ansible_collections`
   * ignored by git
   * stores installed Ansible collections
-* `inventory`
-  * content ignored by git
-  * stores `hosts.ini` loaded from LastPass
-    * defines our servers and their variables
 * `my-logs`
   * content ignored by git
   * stores logs (playbook branch/commit used, for portal: docker-compose files
@@ -108,6 +112,18 @@ To check that you have access to all portals, execute:
 `scripts/portals-ping.sh`
 
 ## Playbooks
+
+### Get Webportal Status
+
+Playbook:
+* Gets `skynet-webportal` repository version (git tag, branch or commit).
+* Gets Sia version from `docker-compose.override.yml`.
+* Gets Accounts version from `docker-compose.override.yml`.
+* Gets list of all files in `skynet-webportal` directory modified after the
+  last Ansible deployment.
+* Checks that URL `https://skapp.hns.<portal domain>` returns status code 200.
+* Sends the result to Skynet Labs Discord channel `#ansible-logs` defined by
+  `discord_ansible_logs_webhook` webhook variable.
 
 ### Restart Skynet Webportal
 

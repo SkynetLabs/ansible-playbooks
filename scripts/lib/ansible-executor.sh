@@ -26,12 +26,6 @@ on_exit() {
 ans_dir=$(dirname "$0")/..
 pushd $ans_dir
 
-# Load inventory from LastPass
-if [[ "$load_hosts" != "false" ]]; then
-  echo Loading hosts.ini from LastPass...
-  lpass show --notes hosts.ini > inventory/hosts.ini
-fi
-
 # Execute the playbook from Ansible CM in Docker container
 echo "Executing: '$cmd $args' in a docker container..."
 docker run -it --rm \
@@ -39,6 +33,7 @@ docker run -it --rm \
   -e ANSIBLE_STDOUT_CALLBACK=debug \
   -v ~/.ssh:/root/.ssh:ro \
   -v $(pwd):/tmp/playbook:Z \
+  -v $(pwd)/../ansible-private:/tmp/ansible-private \
   -v /tmp/SkynetLabs-ansible:/tmp/SkynetLabs-ansible \
   -v /var/run/docker.sock:/var/run/docker.sock \
   skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.2.0 \
