@@ -13,6 +13,7 @@ logs_dir: "{{ devops_dir }}/logs"
 webportal_docker_compose_files:
   - "docker-compose.yml"
   - "docker-compose.accounts.yml"
+  - "docker-compose.jaeger.yml"
   - "docker-compose.override.yml"
 
 webportal_other_config_files:
