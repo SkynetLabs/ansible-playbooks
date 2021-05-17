@@ -6,11 +6,9 @@
   - [Requirements](#requirements)
     - [Git repository ansible-private](#git-repository-ansible-private)
     - [Docker](#docker)
-    - [LastPass CLI](#lastpass-cli)
     - [Ansible Roles and Collections](#ansible-roles-and-collections)
   - [Repository organization](#repository-organization)
   - [Playbook Execution](#playbook-execution)
-    - [LastPass Login](#lastpass-login)
     - [Check access](#check-access)
   - [Playbooks](#playbooks)
     - [Get Webportal Status](#get-webportal-status)
@@ -30,8 +28,13 @@
 ### Git repository ansible-private
 
 Git repository `ansible-private` must be sibling of this repository
-`ansible-playbooks`. `ansible-private` contains `inventory/hosts.ini` file
+`ansible-playbooks`.
+
+`ansible-private` contains `inventory/hosts.ini` file
 which defines a list of our servers which we target with our Ansible scripts.
+`hosts.ini` definition is quite flexible, we can e.g. define server subgroups
+if needed etc. Also if you need a short term change in the `hosts.ini` you can
+edit the file locally according to your needs.
 
 ### Docker
 
@@ -39,18 +42,6 @@ Docker installation on your local machine is required.
 
 Our scripts execute Ansible from a Docker container that is automatically
 pulled from Docker Hub. Local Ansible installation is NOT required.
-
-### LastPass CLI
-
-`lastpass-cli` (https://github.com/lastpass/lastpass-cli) must be installed
-locally. `lastpass-cli` installs `lpass` utility.
-
-You can login via `lpass` before you start the Ansible script. Or, if you are
-not logged via `lpass` or your session timeouts, executing Ansible script will
-trigger `lpass` login and you can login now.
-
-We store sensitive configurations in LastPass, namely the `hosts.ini` inventory
-file with portal URLs behind load balancer.
 
 ### Ansible Roles and Collections
 
@@ -97,15 +88,6 @@ To install all required roles and collections for our playbooks, execute:
 
 ## Playbook Execution
 
-### LastPass Login
-
-You can login to LastPass using `lpass` before execution of an Ansible command
-e.g. by logging to your account:  
-`lpass login <your@email>`  
-or by getting a LastPass secret (on the last used account):  
-`lpass show ansible-dummy`  
-otherwise you have to login to LastPass just after you started Ansible command
-execution.
 ### Check access
 
 To check that you have access to all portals, execute:   
@@ -256,18 +238,6 @@ To check `ger-1`, `pa-1` and `va-1` portals:
   https://asciinema.org/a/miJgwUK806bpxDPBx5PqRX7l3
 
 ## Troubleshooting
-
-### Error: Could not find specified account(s).
-```
-Loading hosts.ini from LastPass...
-Error: Could not find specified account(s).
-```
-
-This error means, that your local `lpass` couldn't find the requested account/
-password/configuration file in its database.
-
-It could be caused by account/password/configuration being private, not being
-shared with the team. In this case it should be shared in LastPass web UI.
 
 ### Unreachable Host
 
