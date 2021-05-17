@@ -44,6 +44,7 @@
     files: "{{ webportal_docker_compose_files }}"
     build: "{{ docker_compose_build }}"
     nocache: True
+    pull: True
     state: present
     # xxx parallel
   become: True
