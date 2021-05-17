@@ -133,13 +133,13 @@ You can see logs in `./my-logs`
 * `last-portal-versions.yml` which can be used for portal deployment on another
   host (more info below at: Playbook: Deploy Skynet Portal)
 
-To restart `ger-1` server execute:  
+To restart `eu-ger-1` server execute:  
 `scripts/portals-restart.sh --limit ger-1`
 
-To restart `ger-1` and `pa-1` server execute:  
-`scripts/portals-restart.sh --limit ger-1,pa-1`
+To restart `eu-ger-1` and `us-pa-1` server execute:  
+`scripts/portals-restart.sh --limit eu-ger-1,us-pa-1`
 
-Server aliases (`ger-1`, `pa-1`, ...) are stored in `inventory/hosts.ini`.
+Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 
 ### Deploy Skynet Webportal
 
@@ -162,21 +162,23 @@ How to set portal, skyd, accounts versions:
 
 * Go to `my-vars`.
 * Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
+* Set `skynet-webportal`, `skyd` and `accounts` versions you want to deploy in
+  `portal-versions.yml` (or whatever you named the file).
 * Start the playbook with `-e @my-vars/portal-versions.yml` (see below).
 
 Alternatively you can use settings from the last playbook execution on
 another host:
 * Start the playbook with `-e @my-logs/last-portal-versions.yml`
 
-To deploy portal at `ger-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit ger-1`  
+To deploy portal at `eu-ger-1` execute:  
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1`  
 or:  
-`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit ger-1`
+`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1`
 
 To deploy portal at `ger-1` and `pa-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit ger-1,pa-1`  
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1,us-pa-1`  
 or:  
-`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit ger-1.pa-1`
+`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1.us-pa-1`
 
 ### Rollback Skynet Webportal
 
@@ -203,11 +205,11 @@ For logs see above Playbook: Restart Skynet Webportal.
 Playbook chooses last webportal configuration (incl. `.env` file) which passed
 integration tests, i.e. status is `status.tested`.
 
-To rollback portal on `ger-1` execute:  
-`scripts/portal-rollback.sh --limit ger-1`
+To rollback portal on `eu-ger-1` execute:  
+`scripts/portal-rollback.sh --limit eu-ger-1`
 
-To rollback portal on `ger-1` and `pa-1` execute:  
-`scripts/portal-rollback.sh --limit ger-1,pa-1`
+To rollback portal on `eu-ger-1` and `us-pa-1` execute:  
+`scripts/portal-rollback.sh --limit eu-ger-1,us-pa-1`
 
 ### Get Skynet Webportal Versions
 
@@ -219,11 +221,11 @@ Playbook:
 To check all portals:
 `scripts/portals-get-versions.sh`
 
-To check `ger-1` portal:
-`scripts/portals-get-versions.sh --limit ger-1`
+To check `eu-ger-1` portal:
+`scripts/portals-get-versions.sh --limit eu-ger-1`
 
-To check `ger-1`, `pa-1` and `va-1` portals:
-`scripts/portals-get-versions.sh --limit ger-1,pa-1,va-1`
+To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
+`scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
 
 ## Playbook Live Demos
 
