@@ -175,12 +175,17 @@ To deploy portal at `eu-ger-1` execute:
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1`
 
-To deploy portal at `ger-1` and `pa-1` execute:  
+To deploy portal at `eu-ger-1` and `us-pa-1` execute:  
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1,us-pa-1`  
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1.us-pa-1`
 
 ### Rollback Skynet Webportal
+
+!!! WARNING:  
+Using this playbook is DANGEROUS, because you might try to rollback to
+versions that crossed compatibility border. Use only if you know what are you
+doing!!!
 
 Playbook:
 * Disables health check.
