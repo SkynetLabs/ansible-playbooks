@@ -14,11 +14,16 @@
 
   # Playbook specific vars
   vars:
+    max_hosts: "{{ groups['webportals'] | length }}"
     # Rebuild docker services
     docker_compose_build: True
     portal_action: "portal-rollback"
 
   tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
     
     # Disable health check
     - name: Include disabling portal health check
