@@ -43,9 +43,10 @@
     - name: Ensure configured user
       ansible.builtin.user:
         name: "{{ item }}"
+        shell: "/bin/bash"
         groups:
-          - sudo
-          - docker
+          - "sudo"
+          - "docker"
       loop: "{{ users_to_add }}"
     
     # Add SSH authorized keys
