@@ -5,3 +5,6 @@ security_sudoers_passworded:
   - "user"
 security_autoupdate_enabled: False
 security_fail2ban_enabled: True
+
+# ufw settings
+ufw_deny_outgoing_to_local_network: True
