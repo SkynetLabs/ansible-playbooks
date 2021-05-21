@@ -50,8 +50,6 @@
   become: True
   become_user: "user"
 
-# xxx status: docker-starting => docker-started => sia-setup-finished => tests-failed/tests-passed
-
 # Wait until Sia finished full setup
 - name: Wait until Sia finished full setup
   command: docker logs sia
@@ -59,6 +57,10 @@
   until: docker_logs_sia.stdout.find("Finished full setup in") != -1
   delay: 1
   retries: 600
+
+# Prune docker
+- name: Prune docker
+  command: docker system prune
 
 # Update log status to 'started'
 - name: Update log status to 'started'
