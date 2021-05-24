@@ -2,6 +2,9 @@
 
 # Start portal docker services
 
+- name: Include getting present docker-compose files
+  include_tasks: tasks/portal-docker-compose-files-get-present.yml
+
 - name: Create timestamped log filename prefix
   set_fact:
     log_filename_prefix: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}.{{ portal_action }}.{{ inventory_hostname }}"
@@ -29,7 +32,7 @@
     dest: "{{ logs_dir }}/{{ log_filename_prefix }}.{{ item }}"
     remote_src: True
     mode: preserve
-  loop: "{{ webportal_docker_compose_files + webportal_other_config_files }}"
+  loop: "{{ webportal_docker_compose_files_present + webportal_other_config_files }}"
 
 # Log status as 'starting'
 - name: Log status as 'starting'
@@ -41,12 +44,12 @@
 - name: Start the docker services (on deploy also build images)
   community.docker.docker_compose:
     project_src: "{{ webportal_dir }}"
-    files: "{{ webportal_docker_compose_files }}"
+    files: "{{ webportal_docker_compose_files_present }}"
     build: "{{ docker_compose_build }}"
     nocache: True
     pull: True
     state: present
-    # xxx parallel
+    # TODO: Build in parallel, when Ansible support is added
   become: True
   become_user: "user"
 

@@ -2,13 +2,13 @@
 
 # Stop portal docker services
 
-# TODO: After Ansible is used to start docker services, stop docker using
-# latest 'started' or 'tested' docker-compose files which were used to
-# start services
+- name: Include getting present docker-compose files
+  include_tasks: tasks/portal-docker-compose-files-get-present.yml
+
 - name : Stop portal docker services
   community.docker.docker_compose:
     project_src: "{{ webportal_dir }}"
-    files: "{{ webportal_docker_compose_files }}"
+    files: "{{ webportal_docker_compose_files_present }}"
     state: absent
   become: True
   become_user: "user"

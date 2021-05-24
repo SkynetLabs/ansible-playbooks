@@ -22,3 +22,4 @@
 - name: Get accounts version from docker-compose.override.yml
   set_fact:
     portal_accounts_version_used: "{{ docker_compose_override_data.services.accounts.build.args.branch }}"
+  when: docker_compose_override_data.services.accounts.build.args.branch is defined

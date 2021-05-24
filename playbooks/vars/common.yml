@@ -10,8 +10,10 @@ devops_dir: "/home/user/devops"
 logs_dir: "{{ devops_dir }}/logs"
 
 # Portal config files (docker-compose.*, .env)
-webportal_docker_compose_files:
+webportal_docker_compose_files_mandatory:
   - "docker-compose.yml"
+
+webportal_docker_compose_files_optional:
   - "docker-compose.accounts.yml"
   - "docker-compose.jaeger.yml"
   - "docker-compose.override.yml"
