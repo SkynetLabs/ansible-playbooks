@@ -32,3 +32,4 @@
     before: "(?<=branch: {{ portal_accounts_version_used }}).*$"
     regexp: "^        branch: {{ portal_accounts_version_used }}"
     replace: "        branch: {{ portal_accounts_version }}"
+  when: portal_accounts_version_used is defined

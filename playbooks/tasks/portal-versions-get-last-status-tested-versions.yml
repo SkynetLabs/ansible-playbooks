@@ -7,9 +7,13 @@
   register:
     last_tested_prefix
 
+- name: Set last log filename prefix
+  set_fact:
+    log_filename_prefix: "{{ last_tested_prefix.stdout }}"
+
 - name: Read last status.tested portal-versions.yml
   slurp:
-    src: "{{ logs_dir }}/{{ last_tested_prefix.stdout }}.portal-versions.yml"
+    src: "{{ logs_dir }}/{{ log_filename_prefix }}.portal-versions.yml"
   register: last_tested_portal_versions_slurp
 
 - name: Parse last status.tested portal-versions.yml
@@ -27,7 +31,4 @@
 - name: Get accounts version
   set_fact:
     portal_accounts_version: "{{ last_tested_portal_versions.portal_accounts_version }}"
-
-- name: Set log filename prefix for updating previous status
-  set_fact:
-    log_filename_prefix: "{{ last_tested_prefix.stdout }}"
+  when: last_tested_portal_versions.portal_accounts_version is defined
