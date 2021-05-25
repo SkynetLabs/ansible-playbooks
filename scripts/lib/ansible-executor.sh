@@ -63,7 +63,7 @@ else
   echo "    docker stop <container name>"
   echo
   docker run -it --rm \
-    --entrypoint lpass \
+    --entrypoint /bin/sh \
     -e ANSIBLE_STDOUT_CALLBACK=debug \
     -v ~/.ssh:/root/.ssh:ro \
     -v $(pwd):/tmp/playbook:Z \
@@ -72,12 +72,12 @@ else
     -v /var/run/docker.sock:/var/run/docker.sock \
     --name ansiblecm \
     $ansible_image \
-    login $lpass_login && sleep infinity
+    -c "lpass login $lpass_login && sleep infinity"
 fi
 
 # # xxx switch from firyx to skynetlabs
 # # Execute the playbook from Ansible CM in Docker container
 # echo "Executing: '$cmd $args' in a docker container..."
 
-docker exec -it ansiblecm $cmd $args
+# docker exec -it ansiblecm $cmd $args
   
