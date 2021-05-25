@@ -6,6 +6,10 @@
   vars_files:
   - vars/common.yml
 
+  # Playbook specific vars
+  vars:
+    portal_action: "portal-get-status"
+
   tasks:
 
     - name: Include getting portal status

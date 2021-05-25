@@ -59,3 +59,11 @@
     # Enable health check
     - name: Include enabling portal health check
       include_tasks: tasks/portal-health-check-enable.yml
+    
+    # Get portal status
+    - name: Include getting portal status
+      include_tasks: tasks/portal-status-get-status.yml
+    
+    # Report portal status to Discord
+    - name: Include reporting status to Discord
+      include_tasks: tasks/portal-status-report-to-discord.yml
