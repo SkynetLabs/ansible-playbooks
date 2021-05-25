@@ -70,21 +70,14 @@ else
     -v $(pwd)/../ansible-private:/tmp/ansible-private \
     -v /tmp/SkynetLabs-ansible:/tmp/SkynetLabs-ansible \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    --name ansiblecm \
     $ansible_image \
-    login $lpass_login
+    login $lpass_login && sleep infinity
 fi
 
 # # xxx switch from firyx to skynetlabs
 # # Execute the playbook from Ansible CM in Docker container
 # echo "Executing: '$cmd $args' in a docker container..."
-# docker run -it --rm \
-#   --entrypoint $cmd \
-#   -e ANSIBLE_STDOUT_CALLBACK=debug \
-#   -v ~/.ssh:/root/.ssh:ro \
-#   -v $(pwd):/tmp/playbook:Z \
-#   -v $(pwd)/../ansible-private:/tmp/ansible-private \
-#   -v /tmp/SkynetLabs-ansible:/tmp/SkynetLabs-ansible \
-#   -v /var/run/docker.sock:/var/run/docker.sock \
-#   $ansible_image \
-#   $args
+
+docker exec -it ansiblecm $cmd $args
   
