@@ -262,8 +262,8 @@ Make sure this host can be reached over ssh: ...
 ```
 
 This error means that your local Ansible Control Machine can't reach the
-specified host. Either the host is not set correctly in `hosts.ini` file in
-LastPass or SSH connection to the host can't be established or was lost.
+specified host. Either the host is not set correctly in `hosts.ini` file SSH
+connection to the host can't be established or was lost.
 
 In the second case, try to rerun the playbook for the affected host, i.e. with
 `--limit <your-failing-host>`.
