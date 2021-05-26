@@ -1,0 +1,14 @@
+- name: Get Skynet Webportals versions
+  hosts: webportals
+  gather_facts: False
+
+  # Load common vars
+  vars_files:
+  - vars/common.yml
+
+  tasks:
+
+    - name: Download portal .env file to my-logs
+      ansible.builtin.fetch:
+        src: "{{ webportal_dir }}/.env"
+        dest: "{{ local_logs_dir }}"
