@@ -5,8 +5,8 @@
 
 portal_repo_version: "{{ portal_repo_version }}"
 portal_skyd_version: "{{ portal_skyd_version_used }}"
-{% if portal_accounts_version is defined -%}
-    portal_accounts_version: "{{ portal_accounts_version_used }}"
+{% if portal_accounts_version_used is defined -%}
+    portal_accounts_version: "{{ portal_accounts_version }}"
 {%- else -%}
     # portal_accounts_version: is not defined
 {%- endif %}
