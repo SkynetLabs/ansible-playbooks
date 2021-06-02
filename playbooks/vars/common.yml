@@ -18,6 +18,12 @@ webportal_docker_compose_files_optional:
   - "docker-compose.jaeger.yml"
   - "docker-compose.override.yml"
 
+# Dictionary of optional portal modules defining which docker-compose files
+# should be added to docker-compose build/up command.
+webportal_docker_compose_files_dict:
+  a: "docker-compose.accounts.yml"
+  j: "docker-compose.jaeger.yml"
+
 webportal_other_config_files:
   - ".env"
 
@@ -31,6 +37,13 @@ local_temp_skynetlabs_git_repos_skynet_js: "{{ local_temp_skynetlabs_git_repos }
 
 # Health check disabling delay
 portal_health_check_disable_delay_secs: 0
+
+# docker-compose.override.yml cleaning vars
+keep_accounts_services:
+  - "nginx"
+  - "health-check"
+keep_jaeger_services:
+  - "sia"
 
 # Localhost vars
 # my-logs path relative to ./playbooks directory

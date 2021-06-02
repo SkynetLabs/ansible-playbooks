@@ -16,6 +16,7 @@
   vars:
     max_hosts: "{{ groups['webportals'] | length }}"
     docker_compose_build: False
+    set_portal_versions: False
     portal_action: "portal-restart"
 
   tasks:

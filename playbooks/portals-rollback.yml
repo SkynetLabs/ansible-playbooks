@@ -17,6 +17,7 @@
     max_hosts: "{{ groups['webportals'] | length }}"
     # Rebuild docker services
     docker_compose_build: True
+    set_portal_versions: False
     portal_action: "portal-rollback"
 
   tasks:

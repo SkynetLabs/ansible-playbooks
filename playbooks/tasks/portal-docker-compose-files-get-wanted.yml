@@ -1,0 +1,67 @@
+---
+
+# Get present docker-compose files
+
+- name: Create list with mandatory docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: "{{ webportal_docker_compose_files_mandatory }}"
+
+# Get PORTAL_MODULES from .env file
+# If PORTAL_MODULES is not defined in .env, this task returns empty string,
+# which is our default value same as if PORTAL_MODULES=''.
+- name: Get PORTAL_MODULES from .env file
+  ansible.builtin.shell: grep '^PORTAL_MODULES=' .env | cut -d "=" -f 2
+  args:
+    chdir: "{{ webportal_dir }}"
+  register: portal_modules_result
+
+- name: Set portal modules var
+  set_fact:
+    portal_modules: "{{ portal_modules_result.stdout }}"
+
+- name: Set flag for accounts module
+  set_fact:
+    accounts_on: "{{ 'a' in portal_modules }}"
+
+- name: Set flag for Jaeger module
+  set_fact:
+    jaeger_on: "{{ 'j' in portal_modules }}"
+
+- name: Stat docker-compose.accounts.yml
+  stat:
+    path: "{{ webportal_dir }}/docker-compose.accounts.yml"
+  register: docker_compose_accounts_stat
+
+- name: Stat docker-compose.jaeger.yml
+  stat:
+    path: "{{ webportal_dir }}/docker-compose.jaeger.yml"
+  register: docker_compose_jaeger_stat
+
+- name: Check docker-compose.accounts.yml exists
+  fail:
+    msg: Accounts are wanted but docker-compose.accounts.yml file is missing
+  when: accounts_on and not docker_compose_accounts_stat.stat.exists
+
+- name: Check docker-compose.jaeger.yml exists
+  fail:
+    msg: Jaeger is wanted but docker-compose.jaeger.yml file is missing
+  when: jaeger_on and not docker_compose_jaeger_stat.stat.exists
+
+- name: Check webportal_docker_compose_files_dict contains all wanted portal modules
+  assert:
+    that:
+      - "'{{ item }}' in {{ webportal_docker_compose_files_dict }}"
+    fail_msg: "Module {{ item }} is not defined in webportal_docker_compose_files_dict"
+  loop: "{{ portal_modules | list }}"
+
+- name: Add optional docker-compose files in order defined by PORTAL_MODULES
+  set_fact:
+    webportal_docker_compose_files_wanted: "{{ webportal_docker_compose_files_wanted + [webportal_docker_compose_files_dict[item]] }}"
+  loop: "{{ portal_modules | list }}"
+
+- name: Add docker-compose.override.yml file to the list
+  set_fact:
+    webportal_docker_compose_files_wanted: "{{ webportal_docker_compose_files_wanted + ['docker-compose.override.yml'] }}"
+
+- debug:
+    msg: "Ordered list of wanted docker-compose files:\n{{ webportal_docker_compose_files_wanted }}"
