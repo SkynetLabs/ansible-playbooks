@@ -6,7 +6,7 @@
   set_fact:
     webportal_docker_compose_files_present: "{{ webportal_docker_compose_files_mandatory }}"
 
-- name: Get list of all webportal root files
+- name: Get list of all webportal root files (full paths)
   ansible.builtin.find:
     file_type: file
     recurse: False
@@ -14,7 +14,14 @@
     patterns: "{{ webportal_docker_compose_files_optional }}"
   register: webportal_root_files
 
+- name: Get list of all webportal root filenames
+  vars:
+    webportal_root_filenames: []
+  set_fact:
+    webportal_root_filenames: "{{ webportal_root_filenames + [item | basename] }}"
+  loop: "{{ webportal_root_files.files | map(attribute='path') }}"
+
 - name: Add present docker-compose files to the list
   set_fact:
-    webportal_docker_compose_files_present: "{{ webportal_docker_compose_files_present + ([item | basename] | intersect(webportal_docker_compose_files_optional)) }}"
-  loop: "{{ webportal_root_files.files | map(attribute='path') }}"
+    webportal_docker_compose_files_present: "{{ webportal_docker_compose_files_present + ([item] | intersect(webportal_root_filenames)) }}"
+  loop: "{{ webportal_docker_compose_files_optional }}"

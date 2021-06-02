@@ -17,6 +17,7 @@
     max_hosts: "{{ groups['webportals'] | length }}"
     # Rebuild docker services
     docker_compose_build: True
+    set_portal_versions: False
     portal_action: "portal-rollback"
 
   tasks:
@@ -75,3 +76,11 @@
     # Enable health check
     - name: Include enabling portal health check
       include_tasks: tasks/portal-health-check-enable.yml
+    
+    # Get portal status
+    - name: Include getting portal status
+      include_tasks: tasks/portal-status-get-status.yml
+    
+    # Report portal status to Discord
+    - name: Include reporting status to Discord
+      include_tasks: tasks/portal-status-report-to-discord.yml

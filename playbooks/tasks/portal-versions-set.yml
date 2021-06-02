@@ -1,7 +1,8 @@
 ---
 
-# Set skynet-webportal versions
+# Set portal versions (portal, skyd, accounts)
 
+# Checkout skynet-webportal
 - name: Set portal version (checkout skynet-webportal repo version)
   ansible.builtin.git:
     repo: "{{ webportal_repo_url }}"
@@ -10,26 +11,78 @@
     update: True
     force: True
 
-# Include getting current skyd and accounts versions from
-# docker-compose.override.yml
-- name: Include getting current skyd and accounts versions from docker-compose.override.yml
-  include_tasks: tasks/portal-versions-get-skyd-accounts-versions.yml
-
-# Set skyd version in docker-compose.override.yml
-- name: Set skyd version in docker-compose.override.yml
-  ansible.builtin.replace:
+# Create docker-compose.override.yml if missing
+- name: Check if docker-compose.override.yml exists
+  stat:
     path: "{{ webportal_dir }}/docker-compose.override.yml"
-    after: "\n  sia:\n"
-    before: "(?<=branch: {{ portal_skyd_version_used }}).*$"
-    regexp: "^        branch: {{ portal_skyd_version_used }}"
-    replace: "        branch: {{ portal_skyd_version }}"
+  register: docker_compose_override_stat
 
-# Set accounts version in docker-compose.override.yml
-- name: Set accounts version in docker-compose.override.yml
-  ansible.builtin.replace:
+- name: Create docker-compose.override.yml if not exists
+  ansible.builtin.template:
+    src: templates/docker-compose.override.yml.new.j2
+    dest: "{{ webportal_dir }}/docker-compose.override.yml"
+  when: not docker_compose_override_stat.stat.exists
+
+# Load data from docker-compose.override.yml
+- name: Read docker-compose.override.yml
+  slurp:
     path: "{{ webportal_dir }}/docker-compose.override.yml"
-    after: "\n  accounts:\n"
-    before: "(?<=branch: {{ portal_accounts_version_used }}).*$"
-    regexp: "^        branch: {{ portal_accounts_version_used }}"
-    replace: "        branch: {{ portal_accounts_version }}"
-  when: portal_accounts_version_used is defined
+  register: docker_compose_override_slurped
+
+- name: Parse docker-compose.override.yml
+  set_fact:
+    docker_compose_override_data: "{{ docker_compose_override_slurped['content'] | b64decode | from_yaml }}"
+
+# Set skyd version in data
+- name: Update skyd version
+  set_fact:
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'sia': {'build': {'args': {'branch': portal_skyd_version}}}}}, recursive=True) }}"
+
+# Set accounts version in data
+- name: Update accounts version when accounts are on
+  set_fact:
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'accounts': {'build': {'args': {'branch': portal_accounts_version}}}}}, recursive=True) }}"
+  when: accounts_on
+
+# Get accounts only services
+- name: Read docker-compose.accounts.yml
+  slurp:
+    path: "{{ webportal_dir }}/docker-compose.accounts.yml"
+  register: docker_compose_accounts_slurped
+
+- name: Parse docker-compose.accounts.yml
+  set_fact:
+    docker_compose_accounts_data: "{{ docker_compose_accounts_slurped['content'] | b64decode | from_yaml }}"
+
+- name: Get accounts only services
+  vars:
+    accounts_only_services: []
+  set_fact:
+    accounts_only_services: "{{ accounts_only_services + [item] }}"
+  when: item not in keep_accounts_services
+  loop: "{{ docker_compose_accounts_data.services.keys() | list }}"
+
+# Get jaeger only services
+- name: Read docker-compose.jaeger.yml
+  slurp:
+    path: "{{ webportal_dir }}/docker-compose.jaeger.yml"
+  register: docker_compose_jaeger_slurped
+
+- name: Parse docker-compose.jaeger.yml
+  set_fact:
+    docker_compose_jaeger_data: "{{ docker_compose_jaeger_slurped['content'] | b64decode | from_yaml }}"
+
+- name: Get jaeger only services
+  vars:
+    jaeger_only_services: []
+  set_fact:
+    jaeger_only_services: "{{ jaeger_only_services + [item] }}"
+  when: item not in keep_jaeger_services
+  loop: "{{ docker_compose_jaeger_data.services.keys() | list }}"
+
+# Render docker-compose.override.yml with our data, remove accounts/jaeger only
+# services if these are turned off.
+- name: Save final docker-compose.override.yml file
+  ansible.builtin.template:
+    src: templates/docker-compose.override.yml.final.j2
+    dest: "{{ webportal_dir }}/docker-compose.override.yml"

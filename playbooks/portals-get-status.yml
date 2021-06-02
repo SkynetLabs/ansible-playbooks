@@ -6,54 +6,14 @@
   vars_files:
   - vars/common.yml
 
+  # Playbook specific vars
+  vars:
+    portal_action: "portal-get-status"
+
   tasks:
 
-    # Get versions files
-    - block:
-
-        # Include getting portal, Sia, accounts versions
-        - name: Include getting portal, Sia, accounts versions
-          include_tasks: tasks/portal-versions-get.yml
-      
-      rescue:
-
-        - name: Getting versions failed but continue
-          fail:
-          failed_when: false
-    
-    # Get modified files
-    - block:
-
-        # Include checking for modified files after last Ansible docker services start
-        - name: Include checking for modified files after last Ansible docker services start
-          include_tasks: tasks/portal-repo-get-modified-files.yml
-      
-      rescue:
-
-        - name: Checking modified files failed but continue
-          fail:
-          failed_when: false
-    
-    # Get portal status
-    - block:
-
-        # Check loading skapp.hns webpage from the portal
-        - name: Check loading skapp.hns webpage from the portal
-          uri:
-            url: "https://skapp.hns.{{ ansible_host }}"
-            status_code: 200
-          register: web_result
-      
-      rescue:
-
-        - name: Checking modified files failed but continue
-          fail:
-          failed_when: false
-
-    # Create json report data
-    - name: Create json report string
-      set_fact:
-        portals_report_embeds: "{{ lookup('template', 'templates/portals-status.json.j2') }}"
+    - name: Include getting portal status
+      include_tasks: tasks/portal-status-get-status.yml
 
 - name: Report Skynet Webportals status to discord
   hosts: webportals
@@ -68,17 +28,5 @@
 
   tasks:
 
-    # Report status to Discord
-    - name: Report versions and modified files to Discord
-      uri:
-        url: "{{ discord_ansible_logs_webhook }}"
-        method: 'POST'
-        body_format: json
-        headers:
-          Content-Type: 'application/json'
-        body: {
-          'content': 'Ansible Get Status',
-          'embeds': "{{ portals_report_embeds.embeds }}"
-        }
-        status_code: 204
-      register: discord_post_result
+    - name: Include reporting status to Discord
+      include_tasks: tasks/portal-status-report-to-discord.yml
