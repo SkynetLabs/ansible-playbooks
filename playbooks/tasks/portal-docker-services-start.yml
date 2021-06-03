@@ -66,7 +66,11 @@
   register: docker_logs_sia
   until: docker_logs_sia.stdout.find("Finished full setup in") != -1
   delay: 1
-  retries: 600
+  retries: "{{ sia_full_setup_timeout_secs }}"
+
+# Include waiting for sia daemon/ready
+- name: Include waiting for sia daemon/ready
+  include_tasks: tasks/portal-wait-for-sia-daemon-ready.yml
 
 # Prune docker
 - name: Prune docker

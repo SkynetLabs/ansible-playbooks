@@ -38,6 +38,12 @@ local_temp_skynetlabs_git_repos_skynet_js: "{{ local_temp_skynetlabs_git_repos }
 # Health check disabling delay
 portal_health_check_disable_delay_secs: 0
 
+# Waiting for sia full setup and /daemon/ready
+sia_full_setup_timeout_secs: 600
+sia_daemon_ready_timeout_secs: 600
+curl_docker_image: "curlimages/curl:7.77.0"
+sia_endpoint_not_available_msg: "491 Module disabled - Refer to API.md"
+
 # docker-compose.override.yml cleaning vars
 keep_accounts_services:
   - "nginx"
