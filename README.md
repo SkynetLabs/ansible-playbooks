@@ -3,23 +3,23 @@
 <!-- TOC -->
 
 - [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
-  - [Requirements](#requirements)
-    - [Git repository ansible-private](#git-repository-ansible-private)
-    - [Docker](#docker)
-    - [Ansible Roles and Collections](#ansible-roles-and-collections)
-  - [Repository organization](#repository-organization)
-  - [Playbook Execution](#playbook-execution)
-    - [Check access](#check-access)
-  - [Playbooks](#playbooks)
-    - [Get Webportal Status](#get-webportal-status)
-    - [Restart Skynet Webportal](#restart-skynet-webportal)
-    - [Deploy Skynet Webportal](#deploy-skynet-webportal)
-    - [Rollback Skynet Webportal](#rollback-skynet-webportal)
-    - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
-  - [Playbook Live Demos](#playbook-live-demos)
-  - [Troubleshooting](#troubleshooting)
-    - [Error: Could not find specified account(s).](#error-could-not-find-specified-accounts)
-    - [Unreachable Host](#unreachable-host)
+    - [Requirements](#requirements)
+        - [Git repository ansible-private](#git-repository-ansible-private)
+        - [Docker](#docker)
+        - [Ansible Roles and Collections](#ansible-roles-and-collections)
+    - [Repository organization](#repository-organization)
+    - [Playbook Execution](#playbook-execution)
+        - [Check access](#check-access)
+    - [Playbooks](#playbooks)
+        - [Get Webportal Status](#get-webportal-status)
+        - [Restart Skynet Webportal](#restart-skynet-webportal)
+        - [Deploy Skynet Webportal](#deploy-skynet-webportal)
+        - [Rollback Skynet Webportal](#rollback-skynet-webportal)
+        - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
+        - [Set Allowance](#set-allowance)
+    - [Playbook Live Demos](#playbook-live-demos)
+    - [Troubleshooting](#troubleshooting)
+        - [Unreachable Host](#unreachable-host)
 
 <!-- /TOC -->
 
@@ -231,6 +231,20 @@ To check `eu-ger-1` portal:
 
 To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
 `scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
+
+### Set Allowance
+
+Playbook:
+* Sets allowance defined in `playbooks/portals-set-allowance.yml` > `vars` >
+  `allowance` on the portal server(s).
+
+Note: `--limit` must be used, it's not possible to set allowance on all
+`portals_dev` and `portals_prod` servers at once.
+
+To run:  
+`scripts/portals-set-allowance.sh --limit portals_prod`  
+`scripts/portals-set-allowance.sh --limit portals_prod`  
+`scripts/portals-set-allowance.sh --limit eu-ger-3`
 
 ## Playbook Live Demos
 

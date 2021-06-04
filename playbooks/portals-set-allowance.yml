@@ -1,0 +1,32 @@
+- name: Deploy Skynet Webportals
+  hosts: webportals
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Load common vars
+  vars_files:
+  - vars/common.yml
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length }}"
+    allowance: "150SC"
+
+  tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Check/install Ansible prerequisities
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
+
+    # Set allowance
+    - name: Set allowance
+      command: "docker exec sia siac renter setallowance --max-storage-price {{ allowance }}"
