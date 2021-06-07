@@ -17,6 +17,7 @@
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
         - [Set Allowance](#set-allowance)
+        - [Run Integration Tests](#run-integration-tests)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
         - [Unreachable Host](#unreachable-host)
@@ -242,9 +243,21 @@ Note: `--limit` must be used, it's not possible to set allowance on all
 `portals_dev` and `portals_prod` servers at once.
 
 To run:  
-`scripts/portals-set-allowance.sh --limit portals_prod`  
-`scripts/portals-set-allowance.sh --limit portals_prod`  
+`scripts/portals-set-allowance.sh --limit portals_prod`   
 `scripts/portals-set-allowance.sh --limit eu-ger-3`
+
+### Run Integration Tests
+
+Playbook:
+* Checks out `skynet-js` repo locally.
+* Runs integration tests from local docker container against portal.
+
+Note: `--limit` must be used, it's not possible to set allowance on all
+`portals_dev` and `portals_prod` servers at once.
+
+To run:  
+`scripts/portals-run-integration-tests.sh --limit portals_prod`  
+`scripts/portals-run-integration-tests.sh --limit eu-ger-3`
 
 ## Playbook Live Demos
 
