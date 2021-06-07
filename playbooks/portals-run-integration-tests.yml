@@ -1,0 +1,31 @@
+- name: Deploy Skynet Webportals
+  hosts: webportals
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Load common vars
+  vars_files:
+  - vars/common.yml
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length }}"
+
+  tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Check/install Ansible prerequisities
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
+
+    # Run integration tests
+    - name: Include running integration tests
+      include_tasks: tasks/portal-integration-tests-run.yml
