@@ -2,6 +2,11 @@
 
 # Start portal docker services
 
+# Include getting wanted docker-compose files
+- name: Include getting wanted docker-compose files
+  include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
+
+# Create timestamped log filename prefix
 - name: Create timestamped log filename prefix
   set_fact:
     log_filename_prefix: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}.{{ portal_action }}.{{ inventory_hostname }}"
@@ -14,13 +19,18 @@
 - name: Include logging Ansible version
   include_tasks: tasks/playbook-logs-ansible-log-version.yml
 
+# Include setting portal versions (portal, skyd, accounts)
+- name: Include setting portal versions (portal, skyd, accounts)
+  include_tasks: tasks/portal-versions-set.yml
+  when: set_portal_versions
+
 # Include getting portal, Sia, accounts versions
 - name: Include getting portal, Sia, accounts versions
   include_tasks: tasks/portal-versions-get.yml
 
 # Include logging portal, Sia, accounts versions
 - name: Include logging portal, Sia, accounts versions
-  include_tasks: tasks/portal-logs-portal-log-versions.yml
+  include_tasks: tasks/portal-logs-log-versions.yml
 
 # Log portal config files (docker-compose.*, .env)
 - name: Log portal config files (docker-compose.*, .env)
@@ -29,7 +39,7 @@
     dest: "{{ logs_dir }}/{{ log_filename_prefix }}.{{ item }}"
     remote_src: True
     mode: preserve
-  loop: "{{ webportal_docker_compose_files + webportal_other_config_files }}"
+  loop: "{{ webportal_docker_compose_files_wanted + webportal_other_config_files }}"
 
 # Log status as 'starting'
 - name: Log status as 'starting'
@@ -41,15 +51,14 @@
 - name: Start the docker services (on deploy also build images)
   community.docker.docker_compose:
     project_src: "{{ webportal_dir }}"
-    files: "{{ webportal_docker_compose_files }}"
+    files: "{{ webportal_docker_compose_files_wanted }}"
     build: "{{ docker_compose_build }}"
     nocache: True
+    pull: True
     state: present
-    # xxx parallel
+    # TODO: Build in parallel, when Ansible support is added
   become: True
   become_user: "user"
-
-# xxx status: docker-starting => docker-started => sia-setup-finished => tests-failed/tests-passed
 
 # Wait until Sia finished full setup
 - name: Wait until Sia finished full setup
@@ -57,7 +66,15 @@
   register: docker_logs_sia
   until: docker_logs_sia.stdout.find("Finished full setup in") != -1
   delay: 1
-  retries: 600
+  retries: "{{ sia_full_setup_timeout_secs }}"
+
+# Include waiting for sia daemon/ready
+- name: Include waiting for sia daemon/ready
+  include_tasks: tasks/portal-wait-for-sia-daemon-ready.yml
+
+# Prune docker
+- name: Prune docker
+  command: docker system prune
 
 # Update log status to 'started'
 - name: Update log status to 'started'

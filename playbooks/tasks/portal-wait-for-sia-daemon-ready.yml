@@ -1,0 +1,25 @@
+---
+
+# Wait for Sia /daemon/ready
+
+- name: Pull curl docker image
+  community.docker.docker_image:
+    name: "{{ curl_docker_image }}"
+    source: pull
+
+# Some servers have blocked outgoing traffic to local networks so curl sia from
+# host will refuse connection, we have to curl inside docker compose network.
+- name: Get sia service IP inside docker compose network
+  command: docker inspect -f "{% raw %}{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}{% endraw %}" sia
+  register: sia_ip_result
+
+- name: Wait for sia /daemon/ready ready==true if the endpoint is available
+  command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/daemon/ready"
+  register: daemon_ready_result
+  until: (daemon_ready_result.stdout | from_json).ready|default(false) or (daemon_ready_result.stdout | from_json).message == sia_endpoint_not_available_msg
+  delay: 1
+  retries: "{{ sia_daemon_ready_timeout_secs }}"
+
+- name: Waiting finished
+  debug:
+    msg: "{{ 'Waiting for /daemon/ready finished successfully' if (daemon_ready_result.stdout | from_json).ready|default(false) else 'We are not waiting, because /daemon/ready endpoint is not available in this sia version' }}"

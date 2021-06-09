@@ -14,11 +14,17 @@
 
   # Playbook specific vars
   vars:
+    max_hosts: "{{ groups['webportals'] | length }}"
     # Rebuild docker services
     docker_compose_build: True
+    set_portal_versions: False
     portal_action: "portal-rollback"
 
   tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
     
     # Disable health check
     - name: Include disabling portal health check
@@ -39,14 +45,19 @@
         tag_from: "tested"
         tag_to: "rollback-tested"
     
-    # Set portal versions
-    - name: Include setting portal versions (portal, skyd, accounts)
-      include_tasks: tasks/portal-versions-set.yml
+    # Set portal version (checkout skynet-webportal repo version)
+    - name: Set portal version (checkout skynet-webportal repo version)
+      ansible.builtin.git:
+        repo: "{{ webportal_repo_url }}"
+        dest: "{{ webportal_dir }}"
+        version: "{{ portal_repo_version }}"
+        update: True
+        force: True
 
     # Rollback config files
     - name: Include rollback config files
       include_tasks: tasks/portal-versions-rollback-config-files.yml
-
+    
     # Rebuild docker images, start the docker services and log activities
     - name: Include starting portal docker services
       include_tasks: tasks/portal-docker-services-start.yml
@@ -65,3 +76,11 @@
     # Enable health check
     - name: Include enabling portal health check
       include_tasks: tasks/portal-health-check-enable.yml
+    
+    # Get portal status
+    - name: Include getting portal status
+      include_tasks: tasks/portal-status-get-status.yml
+    
+    # Report portal status to Discord
+    - name: Include reporting status to Discord
+      include_tasks: tasks/portal-status-report-to-discord.yml

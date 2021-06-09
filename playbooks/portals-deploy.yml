@@ -14,11 +14,18 @@
 
   # Playbook specific vars
   vars:
+    max_hosts: "{{ groups['webportals'] | length }}"
     # Rebuild docker services
     docker_compose_build: True
+    # Set portal, skyd, accounts versions
+    set_portal_versions: True
     portal_action: "portal-deploy"
 
   tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
 
     # Check/install Ansible prerequisities
     - name: Include preparing portal prerequisities
@@ -31,10 +38,6 @@
     # Stop portal docker services
     - name: Include stopping portal docker services
       include_tasks: tasks/portal-docker-services-stop.yml
-    
-    # Set portal versions
-    - name: Include setting portal versions (portal, skyd, accounts)
-      include_tasks: tasks/portal-versions-set.yml
 
     # Rebuild docker images, start the docker services and log activities
     - name: Include starting portal docker services
@@ -54,3 +57,11 @@
     # Enable health check
     - name: Include enabling portal health check
       include_tasks: tasks/portal-health-check-enable.yml
+    
+    # Get portal status
+    - name: Include getting portal status
+      include_tasks: tasks/portal-status-get-status.yml
+    
+    # Report portal status to Discord
+    - name: Include reporting status to Discord
+      include_tasks: tasks/portal-status-report-to-discord.yml

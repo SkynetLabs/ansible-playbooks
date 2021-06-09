@@ -6,11 +6,12 @@
   serial: 1
   vars_files:
     - vars/common.yml
+  vars:
+    max_hosts: "{{ groups['webportals'] | length }}"
 
   tasks:
 
-    # Limit number of hosts that can be targeted by this playbook execution
-    - name: Fail if you are targeting more than 2 hosts
+    - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
     - name: Stat skynet-webportal dir

@@ -3,25 +3,24 @@
 <!-- TOC -->
 
 - [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
-  - [Requirements](#requirements)
-    - [Git repository ansible-private](#git-repository-ansible-private)
-    - [Docker](#docker)
-    - [LastPass CLI](#lastpass-cli)
-    - [Ansible Roles and Collections](#ansible-roles-and-collections)
-  - [Repository organization](#repository-organization)
-  - [Playbook Execution](#playbook-execution)
-    - [LastPass Login](#lastpass-login)
-    - [Check access](#check-access)
-  - [Playbooks](#playbooks)
-    - [Get Webportal Status](#get-webportal-status)
-    - [Restart Skynet Webportal](#restart-skynet-webportal)
-    - [Deploy Skynet Webportal](#deploy-skynet-webportal)
-    - [Rollback Skynet Webportal](#rollback-skynet-webportal)
-    - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
-  - [Playbook Live Demos](#playbook-live-demos)
-  - [Troubleshooting](#troubleshooting)
-    - [Error: Could not find specified account(s).](#error-could-not-find-specified-accounts)
-    - [Unreachable Host](#unreachable-host)
+    - [Requirements](#requirements)
+        - [Git repository ansible-private](#git-repository-ansible-private)
+        - [Docker](#docker)
+        - [Ansible Roles and Collections](#ansible-roles-and-collections)
+    - [Repository organization](#repository-organization)
+    - [Playbook Execution](#playbook-execution)
+        - [Check access](#check-access)
+    - [Playbooks](#playbooks)
+        - [Get Webportal Status](#get-webportal-status)
+        - [Restart Skynet Webportal](#restart-skynet-webportal)
+        - [Deploy Skynet Webportal](#deploy-skynet-webportal)
+        - [Rollback Skynet Webportal](#rollback-skynet-webportal)
+        - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
+        - [Set Allowance](#set-allowance)
+        - [Run Integration Tests](#run-integration-tests)
+    - [Playbook Live Demos](#playbook-live-demos)
+    - [Troubleshooting](#troubleshooting)
+        - [Unreachable Host](#unreachable-host)
 
 <!-- /TOC -->
 
@@ -30,8 +29,13 @@
 ### Git repository ansible-private
 
 Git repository `ansible-private` must be sibling of this repository
-`ansible-playbooks`. `ansible-private` contains `inventory/hosts.ini` file
+`ansible-playbooks`.
+
+`ansible-private` contains `inventory/hosts.ini` file
 which defines a list of our servers which we target with our Ansible scripts.
+`hosts.ini` definition is quite flexible, we can e.g. define server subgroups
+if needed etc. Also if you need a short term change in the `hosts.ini` you can
+edit the file locally according to your needs.
 
 ### Docker
 
@@ -39,18 +43,6 @@ Docker installation on your local machine is required.
 
 Our scripts execute Ansible from a Docker container that is automatically
 pulled from Docker Hub. Local Ansible installation is NOT required.
-
-### LastPass CLI
-
-`lastpass-cli` (https://github.com/lastpass/lastpass-cli) must be installed
-locally. `lastpass-cli` installs `lpass` utility.
-
-You can login via `lpass` before you start the Ansible script. Or, if you are
-not logged via `lpass` or your session timeouts, executing Ansible script will
-trigger `lpass` login and you can login now.
-
-We store sensitive configurations in LastPass, namely the `hosts.ini` inventory
-file with portal URLs behind load balancer.
 
 ### Ansible Roles and Collections
 
@@ -97,15 +89,6 @@ To install all required roles and collections for our playbooks, execute:
 
 ## Playbook Execution
 
-### LastPass Login
-
-You can login to LastPass using `lpass` before execution of an Ansible command
-e.g. by logging to your account:  
-`lpass login <your@email>`  
-or by getting a LastPass secret (on the last used account):  
-`lpass show ansible-dummy`  
-otherwise you have to login to LastPass just after you started Ansible command
-execution.
 ### Check access
 
 To check that you have access to all portals, execute:   
@@ -151,13 +134,13 @@ You can see logs in `./my-logs`
 * `last-portal-versions.yml` which can be used for portal deployment on another
   host (more info below at: Playbook: Deploy Skynet Portal)
 
-To restart `ger-1` server execute:  
+To restart `eu-ger-1` server execute:  
 `scripts/portals-restart.sh --limit ger-1`
 
-To restart `ger-1` and `pa-1` server execute:  
-`scripts/portals-restart.sh --limit ger-1,pa-1`
+To restart `eu-ger-1` and `us-pa-1` server execute:  
+`scripts/portals-restart.sh --limit eu-ger-1,us-pa-1`
 
-Server aliases (`ger-1`, `pa-1`, ...) are stored in `inventory/hosts.ini`.
+Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 
 ### Deploy Skynet Webportal
 
@@ -180,23 +163,30 @@ How to set portal, skyd, accounts versions:
 
 * Go to `my-vars`.
 * Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
+* Set `skynet-webportal`, `skyd` and `accounts` versions you want to deploy in
+  `portal-versions.yml` (or whatever you named the file).
 * Start the playbook with `-e @my-vars/portal-versions.yml` (see below).
 
 Alternatively you can use settings from the last playbook execution on
 another host:
 * Start the playbook with `-e @my-logs/last-portal-versions.yml`
 
-To deploy portal at `ger-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit ger-1`  
+To deploy portal at `eu-ger-1` execute:  
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1`  
 or:  
-`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit ger-1`
+`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1`
 
-To deploy portal at `ger-1` and `pa-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit ger-1,pa-1`  
+To deploy portal at `eu-ger-1` and `us-pa-1` execute:  
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1,us-pa-1`  
 or:  
-`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit ger-1.pa-1`
+`scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1.us-pa-1`
 
 ### Rollback Skynet Webportal
+
+!!! WARNING:  
+Using this playbook is DANGEROUS, because you might try to rollback to
+versions that crossed compatibility border. Use only if you know what are you
+doing!!!
 
 Playbook:
 * Disables health check.
@@ -221,11 +211,11 @@ For logs see above Playbook: Restart Skynet Webportal.
 Playbook chooses last webportal configuration (incl. `.env` file) which passed
 integration tests, i.e. status is `status.tested`.
 
-To rollback portal on `ger-1` execute:  
-`scripts/portal-rollback.sh --limit ger-1`
+To rollback portal on `eu-ger-1` execute:  
+`scripts/portal-rollback.sh --limit eu-ger-1`
 
-To rollback portal on `ger-1` and `pa-1` execute:  
-`scripts/portal-rollback.sh --limit ger-1,pa-1`
+To rollback portal on `eu-ger-1` and `us-pa-1` execute:  
+`scripts/portal-rollback.sh --limit eu-ger-1,us-pa-1`
 
 ### Get Skynet Webportal Versions
 
@@ -237,11 +227,37 @@ Playbook:
 To check all portals:
 `scripts/portals-get-versions.sh`
 
-To check `ger-1` portal:
-`scripts/portals-get-versions.sh --limit ger-1`
+To check `eu-ger-1` portal:
+`scripts/portals-get-versions.sh --limit eu-ger-1`
 
-To check `ger-1`, `pa-1` and `va-1` portals:
-`scripts/portals-get-versions.sh --limit ger-1,pa-1,va-1`
+To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
+`scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
+
+### Set Allowance
+
+Playbook:
+* Sets allowance defined in `playbooks/portals-set-allowance.yml` > `vars` >
+  `allowance` on the portal server(s).
+
+Note: `--limit` must be used, it's not possible to set allowance on all
+`portals_dev` and `portals_prod` servers at once.
+
+To run:  
+`scripts/portals-set-allowance.sh --limit portals_prod`   
+`scripts/portals-set-allowance.sh --limit eu-ger-3`
+
+### Run Integration Tests
+
+Playbook:
+* Checks out `skynet-js` repo locally.
+* Runs integration tests from local docker container against portal.
+
+Note: `--limit` must be used, it's not possible to set allowance on all
+`portals_dev` and `portals_prod` servers at once.
+
+To run:  
+`scripts/portals-run-integration-tests.sh --limit portals_prod`  
+`scripts/portals-run-integration-tests.sh --limit eu-ger-3`
 
 ## Playbook Live Demos
 
@@ -256,18 +272,6 @@ To check `ger-1`, `pa-1` and `va-1` portals:
   https://asciinema.org/a/miJgwUK806bpxDPBx5PqRX7l3
 
 ## Troubleshooting
-
-### Error: Could not find specified account(s).
-```
-Loading hosts.ini from LastPass...
-Error: Could not find specified account(s).
-```
-
-This error means, that your local `lpass` couldn't find the requested account/
-password/configuration file in its database.
-
-It could be caused by account/password/configuration being private, not being
-shared with the team. In this case it should be shared in LastPass web UI.
 
 ### Unreachable Host
 
@@ -285,8 +289,8 @@ Make sure this host can be reached over ssh: ...
 ```
 
 This error means that your local Ansible Control Machine can't reach the
-specified host. Either the host is not set correctly in `hosts.ini` file in
-LastPass or SSH connection to the host can't be established or was lost.
+specified host. Either the host is not set correctly in `hosts.ini` file SSH
+connection to the host can't be established or was lost.
 
 In the second case, try to rerun the playbook for the affected host, i.e. with
 `--limit <your-failing-host>`.
