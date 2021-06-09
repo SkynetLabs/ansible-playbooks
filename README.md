@@ -9,7 +9,8 @@
         - [Ansible Roles and Collections](#ansible-roles-and-collections)
     - [Repository organization](#repository-organization)
     - [Playbook Execution](#playbook-execution)
-        - [Check access](#check-access)
+        - [Check Access](#check-access)
+        - [LastPass Login](#lastpass-login)
     - [Playbooks](#playbooks)
         - [Get Webportal Status](#get-webportal-status)
         - [Restart Skynet Webportal](#restart-skynet-webportal)
@@ -89,10 +90,21 @@ To install all required roles and collections for our playbooks, execute:
 
 ## Playbook Execution
 
-### Check access
+### Check Access
 
 To check that you have access to all portals, execute:   
 `scripts/portals-ping.sh`
+
+### LastPass Login
+
+Some playbooks require you to login to LastPass. If you get error message:
+```
+Your LastPass session is not active.
+Execute:
+
+    scripts/lastpass-login.sh
+```
+execute `scripts/lastpass-login.sh` and follow the instructions.
 
 ## Playbooks
 
