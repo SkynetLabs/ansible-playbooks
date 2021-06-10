@@ -7,7 +7,7 @@
         - [Git repository ansible-private](#git-repository-ansible-private)
         - [Docker](#docker)
         - [Ansible Roles and Collections](#ansible-roles-and-collections)
-    - [Repository organization](#repository-organization)
+    - [Repository Organization](#repository-organization)
     - [Playbook Execution](#playbook-execution)
         - [Check Access](#check-access)
         - [LastPass Login](#lastpass-login)
@@ -15,7 +15,7 @@
         - [Get Webportal Status](#get-webportal-status)
         - [Restart Skynet Webportal](#restart-skynet-webportal)
         - [Deploy Skynet Webportal](#deploy-skynet-webportal)
-            - [Playbook:](#playbook)
+            - [Deploy Playbook Actions:](#deploy-playbook-actions)
             - [How to set portal, skyd, accounts versions:](#how-to-set-portal-skyd-accounts-versions)
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
@@ -56,7 +56,7 @@ To install all required roles and collections for our playbooks, execute:
 
 `scripts/install-ansible-roles-and-collections.sh`
 
-## Repository organization
+## Repository Organization
 
 * `ansible_collections`
   * ignored by git
@@ -158,7 +158,7 @@ Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 
 ### Deploy Skynet Webportal
 
-#### Playbook:
+#### Deploy Playbook Actions:
 * Disables health check.
 * Waits 5 minutes for load balancer (with dev servers it doesn't wait).
 * Stops docker compose services.
