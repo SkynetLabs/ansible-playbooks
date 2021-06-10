@@ -15,6 +15,8 @@
         - [Get Webportal Status](#get-webportal-status)
         - [Restart Skynet Webportal](#restart-skynet-webportal)
         - [Deploy Skynet Webportal](#deploy-skynet-webportal)
+            - [Playbook:](#playbook)
+            - [How to set portal, skyd, accounts versions:](#how-to-set-portal-skyd-accounts-versions)
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
         - [Set Allowance](#set-allowance)
@@ -156,7 +158,7 @@ Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 
 ### Deploy Skynet Webportal
 
-Playbook:
+#### Playbook:
 * Disables health check.
 * Waits 5 minutes for load balancer (with dev servers it doesn't wait).
 * Stops docker compose services.
@@ -166,12 +168,14 @@ Playbook:
   * Selects account version in `docker-compose.accounts.yml`.
 * Builds docker images.
 * Starts docker compose services.
+* Waits for Sia full setup finished.
+* Waits for Sia `/daemon/ready` (if the endpoint is available).
 * Runs portal integration tests.
 * Enables health check.
 
 For logs see above Playbook: Restart Skynet Webportal.
 
-How to set portal, skyd, accounts versions:
+#### How to set portal, skyd, accounts versions:
 
 * Go to `my-vars`.
 * Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
