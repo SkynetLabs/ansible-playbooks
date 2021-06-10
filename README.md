@@ -23,6 +23,7 @@
         - [Run Integration Tests](#run-integration-tests)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
+        - [Role Not Installed](#role-not-installed)
         - [Unreachable Host](#unreachable-host)
 
 <!-- /TOC -->
@@ -288,6 +289,20 @@ To run:
   https://asciinema.org/a/miJgwUK806bpxDPBx5PqRX7l3
 
 ## Troubleshooting
+
+### Role Not Installed
+
+Example error:
+```
+ERROR! the role 'geerlingguy.docker' was not found in /tmp/playbook/playbooks/roles:/tmp/playbook/roles:/tmp/playbook/playbooks
+```
+
+Cause:  
+The role the playbook is using is not installed.
+
+Fix:  
+Install the role by executing:  
+`scripts/install-ansible-roles-and-collections.sh`
 
 ### Unreachable Host
 
