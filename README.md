@@ -317,7 +317,7 @@ Cause:
 The role the playbook is using is not installed.
 
 Fix:  
-Install the role by executing:  
+Install all required roles and collections by executing:  
 `scripts/install-ansible-roles-and-collections.sh`
 
 ### Unreachable Host
