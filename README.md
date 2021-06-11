@@ -116,7 +116,7 @@ execute `scripts/lastpass-login.sh` and follow the instructions.
 
 Playbook:
 * Gets `skynet-webportal` repository version (git tag, branch or commit).
-* Gets Sia version from `docker-compose.override.yml`.
+* Gets skyd version from `docker-compose.override.yml`.
 * Gets Accounts version from `docker-compose.override.yml`.
 * Gets list of all files in `skynet-webportal` directory modified after the
   last Ansible deployment.
