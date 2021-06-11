@@ -16,6 +16,7 @@
         - [Restart Skynet Webportal](#restart-skynet-webportal)
         - [Deploy Skynet Webportal](#deploy-skynet-webportal)
             - [Deploy Playbook Actions:](#deploy-playbook-actions)
+            - [Portal Modules](#portal-modules)
             - [How to set portal, skyd, accounts versions:](#how-to-set-portal-skyd-accounts-versions)
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
@@ -143,7 +144,7 @@ You can see logs in `/home/user/devops/logs` on the server:
   * started: docker compose up started without error, integration tests started
   * tested: portal intagration tests passed
 
-You can see logs in `./my-logs`
+You can see logs locally in `./my-logs`
 * Ansible playbook version
 * skynet-webportal, skyd, accounts versions
 * `last-portal-versions.yml` which can be used for portal deployment on another
@@ -175,6 +176,21 @@ Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 * Enables health check.
 
 For logs see above Playbook: Restart Skynet Webportal.
+
+#### Portal Modules
+
+Deployment of portal modules (Jaeger, Accounts) depends on `PORTAL_MODULES`
+setting in `.env` file in `skynet-webportal` directory.
+
+When `PORTAL_MODULES` setting is missing or is set to empty string, only base
+portal services defined in `docker-compose.yml` and in (if the file is present)
+`docker-compose.override.yml` are deployed.
+
+`PORTAL_MODULES` can contain flags `a` or `j` to include deployment of Accounts
+or Jaeger defined in `docker-compose.accounts.yml` or
+`docker-compose.override.yml`files. Order of flags is significant, i.e.
+Accounts and Jaeger docker compose files will be loaded according to the flag
+order in `PORTAL_MODULES`.
 
 #### How to set portal, skyd, accounts versions:
 
