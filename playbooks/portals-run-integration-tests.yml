@@ -1,4 +1,4 @@
-- name: Deploy Skynet Webportals
+- name: Run integration tests against Skynet Webportals
   hosts: webportals
   gather_facts: False
 

@@ -1,4 +1,4 @@
-- name: Update SSH Authorized keys to Webportals
+- name: Update SSH Authorized keys on Webportals
   hosts: webportals
   gather_facts: False
 
