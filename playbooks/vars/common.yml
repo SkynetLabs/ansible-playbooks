@@ -1,8 +1,5 @@
 ---
 
-# Get number of hosts that the running playbook targets
-num_hosts: "{{ ansible_play_hosts | length }}"
-
 # Portal
 webportal_repo_url: "https://github.com/SkynetLabs/skynet-webportal.git"
 webportal_dir: "/home/user/skynet-webportal"

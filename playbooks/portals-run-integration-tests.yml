@@ -14,7 +14,7 @@
 
   # Playbook specific vars
   vars:
-    max_hosts: "{{ groups['webportals'] | length }}"
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
 
   tasks:
 
