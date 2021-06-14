@@ -1,4 +1,4 @@
-- name: Get Skynet Webportals versions
+- name: Fetch files from Skynet Webportals
   hosts: webportals
   gather_facts: False
 

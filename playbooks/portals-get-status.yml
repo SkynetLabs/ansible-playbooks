@@ -1,4 +1,4 @@
-- name: Get Skynet Webportals versions
+- name: Get Skynet Webportals status
   hosts: webportals
   gather_facts: False
 
