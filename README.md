@@ -102,14 +102,25 @@ To check that you have access to all portals, execute:
 
 ### LastPass Login
 
-Some playbooks require you to login to LastPass. If you get error message:
+Some playbooks might use variables stored in LastPass or you can store and
+reference variables in LastPass yourself (e.g. in vars files).
+
+Execution of playbooks using variables stored in LastPass requires you to login
+to LastPass prior to the playbooks execution.
+
+You will know, that the playbook requires active LastPass session if you get
+the following error message:
 ```
 Your LastPass session is not active.
 Execute:
 
     scripts/lastpass-login.sh
 ```
-execute `scripts/lastpass-login.sh` and follow the instructions.
+To fix this, execute `scripts/lastpass-login.sh` and follow the instructions to
+login to LastPass.
+
+After the login is successful, your LastPass session is active and
+you can execute playbooks as usually.
 
 ## Playbooks
 
