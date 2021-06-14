@@ -20,7 +20,7 @@
             - [How to set portal, skyd, accounts versions:](#how-to-set-portal-skyd-accounts-versions)
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
-        - [Set Allowance](#set-allowance)
+        - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
         - [Run Integration Tests](#run-integration-tests)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
@@ -278,18 +278,24 @@ To check `eu-ger-1` portal:
 To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
 `scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
 
-### Set Allowance
+### Set Allowance Max Storage Price
 
 Playbook:
-* Sets allowance defined in `playbooks/portals-set-allowance.yml` > `vars` >
-  `allowance` on the portal server(s).
+* Sets allowance defined in
+  `playbooks/portals-set-allowance-max-storage-price.yml` > `vars` >
+  `max_storage_price`
+  on the portal server(s).
 
-Note: `--limit` must be used, it's not possible to set allowance on all
+Notes:  
+* `--limit` must be used, it's not possible to set allowance on all
 `portals_dev` and `portals_prod` servers at once.
+* Format of `max_storage_price` value must be same as is expected by executing
+  `docker exec sia siac renter setallowance --max-storage-price`
+
 
 To run:  
-`scripts/portals-set-allowance.sh --limit portals_prod`   
-`scripts/portals-set-allowance.sh --limit eu-ger-3`
+`scripts/portals-set-allowance-max-storage-price.sh --limit portals_prod`   
+`scripts/portals-set-allowance-max-storage-price.sh --limit eu-ger-3`
 
 ### Run Integration Tests
 

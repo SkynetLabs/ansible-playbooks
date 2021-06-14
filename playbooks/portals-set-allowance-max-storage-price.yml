@@ -15,7 +15,7 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    allowance: "150SC"
+    max_storage_price: "150SC"
 
   tasks:
 
@@ -29,4 +29,4 @@
 
     # Set allowance
     - name: Set allowance
-      command: "docker exec sia siac renter setallowance --max-storage-price {{ allowance }}"
+      command: "docker exec sia siac renter setallowance --max-storage-price {{ max_storage_price }}"
