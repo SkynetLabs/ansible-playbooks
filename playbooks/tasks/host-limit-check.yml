@@ -1,7 +1,10 @@
 ---
 
 # Limit number of hosts that can be targeted by a playbook execution
-- name: Fail if you are targeting max_hosts or more
+- name: Fail if you are targeting more then max_hosts
+  vars:
+    # Get number of hosts that the running playbook targets
+    num_hosts: "{{ ansible_play_hosts | length }}"
   fail:
-    msg: "Maximum number of hosts to execute a playbook must be less then {{ max_hosts }}.\nE.g. you can't target all dev and prod webportals.\nYou are now targeting {{ num_hosts }}. Use: ... --limit host1,host2"
-  when: num_hosts | int >= max_hosts | int
+    msg: "You are executing the playbook on {{ num_hosts }} hosts\nwhich is more than maximum allowed {{ max_hosts }} hosts for this playbook.\nE.g. you can't target all dev and prod webportals at once.\nUse: ... --limit host1,host2"
+  when: num_hosts | int > max_hosts
