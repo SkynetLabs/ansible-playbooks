@@ -52,9 +52,10 @@ pulled from Docker Hub. Local Ansible installation is NOT required.
 ### Ansible Roles and Collections
 
 Ansible playbooks can use libraries (roles and collections) deployed to Ansible
-Galaxy or just to Github.
+Galaxy or just to Github. The roles and collections a playbook uses must be
+installed prior to the playbook execution.
 
-To install all required roles and collections for our playbooks, execute:
+To install all roles and collections required for Skynet Labs playbooks, execute:
 
 `scripts/install-ansible-roles-and-collections.sh`
 
