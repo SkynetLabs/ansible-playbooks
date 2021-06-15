@@ -26,6 +26,7 @@
     - [Troubleshooting](#troubleshooting)
         - [Role Not Installed](#role-not-installed)
         - [Unreachable Host](#unreachable-host)
+        - [LastPass Session Not Active](#lastpass-session-not-active)
 
 <!-- /TOC -->
 
@@ -109,15 +110,11 @@ Execution of playbooks using variables stored in LastPass requires you to login
 to LastPass prior to the playbooks execution.
 
 You will know, that the playbook requires active LastPass session if you get
-the following error message:
-```
-Your LastPass session is not active.
-Execute:
+one of the error messages mentioned in
+[Troubleshooting > LastPass Session Not Active](#lastpass-session-not-active).
 
-    scripts/lastpass-login.sh
-```
-To fix this, execute `scripts/lastpass-login.sh` and follow the instructions to
-login to LastPass.
+To login to LastPass, execute `scripts/lastpass-login.sh` and follow the
+instructions to login to LastPass.
 
 After the login is successful, your LastPass session is active and
 you can execute playbooks as usually.
@@ -359,3 +356,27 @@ connection to the host can't be established or was lost.
 
 In the second case, try to rerun the playbook for the affected host, i.e. with
 `--limit <your-failing-host>`.
+
+### LastPass Session Not Active
+
+Example error 1:
+```
+Your LastPass session is not active.
+Execute:
+
+    scripts/lastpass-login.sh
+```
+
+Example error 2:
+```
+Error: Could not find decryption key. Perhaps you need to login with `lpass login`.
+```
+
+Description:  
+This error means that the playbook tries to read data from LastPass, but you
+didn't login to LastPass or your LastPass session expired.
+
+Fix:  
+Execute `scripts/lastpass-login.sh`.
+
+For more details see: [Playbook Execution > LastPass Login](#lastpass-login).
