@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-read -p "Enter your LastPass username: " lpass_username
+read -p "Enter your LastPass username (email): " lpass_username
 read -p "Enter desired LastPass timeout in seconds: " lpass_timeout
 
 # Set command and arguments
