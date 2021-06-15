@@ -40,14 +40,16 @@
         state: present
     
     # Ensure configured users
-    - name: Ensure configured user
+    - name: Ensure configured users
       ansible.builtin.user:
-        name: "{{ item }}"
+        name: "{{ item.username }}"
+        password: "{{ item.password_hash }}"
+        state: present
         shell: "/bin/bash"
         groups:
           - "sudo"
           - "docker"
-      loop: "{{ users_to_add }}"
+      loop: "{{ passworded_users }}"
     
     # Add SSH authorized keys
     - name: Add SSH authorized keys
