@@ -10,6 +10,7 @@ ssh_keys_to_add:
     key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINbAhwjJNAud7YIJvLth2bmeUg3kO20xl7ZfqBTvoXn8 fil@siasky.net"
 
 # geerlingguy.security role vars
-security_sudoers_passworded: "{{ passworded_users }}"
+# List of usernames from passworded_users
+security_sudoers_passworded: "{{ passworded_users | map(attribute='username') }}"
 security_autoupdate_enabled: False
 security_fail2ban_enabled: True
