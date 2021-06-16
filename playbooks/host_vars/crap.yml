@@ -14,3 +14,8 @@ ssh_keys_to_add:
 security_sudoers_passworded: "{{ passworded_users | map(attribute='username') }}"
 security_autoupdate_enabled: False
 security_fail2ban_enabled: True
+
+# Custom ufw rules
+ufw_rules:
+  # Vagrant SSH port
+  - { rule: 'limit', port: '2222', proto: 'tcp' }

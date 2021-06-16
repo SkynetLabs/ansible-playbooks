@@ -17,12 +17,14 @@
     - reload ufw firewall
 
 - name: Set ufw rules
+  vars:
+    default_ufw_rule: { rule: 'limit', port: '{{ ssh_port | default("22") }}', proto: 'tcp' }
   community.general.ufw:
     rule: "{{ item.rule }}"
     port: "{{ item.port }}"
     proto: "{{ item.proto }}"
   loop:
-    - { rule: 'limit', port: '{{ ssh_port | default("22") }}', proto: 'tcp' }
+    "{{ [default_ufw_rule] + (ufw_rules | default([])) }}"
   notify:
     - reload ufw firewall
 
