@@ -1,0 +1,13 @@
+---
+
+# Run webportal health checks
+
+# Run critical health checks
+- name: Run critical health checks
+  command: docker exec health-check cli/run critical
+  changed_when: False
+
+# Run extended health checks
+- name: Run extended health checks
+  command: docker exec health-check cli/run extended
+  changed_when: False
