@@ -65,6 +65,10 @@
     # Run portal integration tests
     - name: Include running portal integration tests
       include_tasks: tasks/portal-integration-tests-run.yml
+    
+    # Include running portal health checks
+    - name: Include running portal health checks
+      include_tasks: tasks/portal-health-checks-run.yml
 
     # Update log status to 'tested'
     - name: Update log status to 'tested'
