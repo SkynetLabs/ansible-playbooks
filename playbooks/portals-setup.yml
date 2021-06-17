@@ -1,6 +1,6 @@
 - name: Setup Skynet Webportals
   hosts: webportals
-  gather_facts: False
+  gather_facts: True
 
   # Limit concurrency
   serial: 1
@@ -28,6 +28,8 @@
         fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
 
     # Server setup
+    - name: Include server setup
+      include_tasks: tasks/portal-setup-server.yml
 
     # User setup
 

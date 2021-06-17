@@ -17,6 +17,11 @@
     - sudo
     - python3-pip
 
+# Install Docker
+- name: Include role to install Docker
+  include_role:
+    name: geerlingguy.docker
+
 # Install latest Docker SDK and docker-compose SDK for Python
 - name: Install latest Docker SDK and docker-compose SDK for Python
   pip:
