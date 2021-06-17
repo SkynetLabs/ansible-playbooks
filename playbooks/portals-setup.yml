@@ -32,6 +32,8 @@
       include_tasks: tasks/portal-setup-server.yml
 
     # User setup
+    - name: Include user setup
+      include_tasks: tasks/portal-setup-user.yml
 
     # Securing server
 

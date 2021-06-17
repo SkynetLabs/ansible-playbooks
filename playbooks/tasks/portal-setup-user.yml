@@ -1,0 +1,21 @@
+---
+
+# Prepeare user for portal setup
+
+# Create user
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ webportal_user }}"
+    password: "{{ webportal_user_pass_hash }}"
+    state: present
+    shell: "/bin/bash"
+    groups:
+      - "sudo"
+      - "docker"
+
+# Add SSH authorized keys
+- name: Add SSH authorized keys
+  ansible.posix.authorized_key:
+    user: "{{ webportal_user }}"
+    state: present
+    key: "{{ webportal_ssh_authorized_keys }}"
