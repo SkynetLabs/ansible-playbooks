@@ -2,6 +2,7 @@
 
 - name: Demo serial execution 
   hosts: webportals
+  remote_user: "{{ webportal_user }}"
   gather_facts: False
   serial: 1
   vars:

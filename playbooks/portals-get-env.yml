@@ -1,5 +1,6 @@
 - name: Get Skynet Webportals .env files
   hosts: webportals
+  remote_user: "{{ webportal_user }}"
   gather_facts: False
 
   tasks:

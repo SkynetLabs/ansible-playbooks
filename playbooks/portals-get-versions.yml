@@ -1,6 +1,7 @@
 - name: Get Skynet Webportals versions
   hosts: webportals
   gather_facts: False
+  remote_user: "{{ webportal_user }}"
 
   tasks:
 
