@@ -51,3 +51,6 @@ keep_jaeger_services:
 # Localhost vars
 # my-logs path relative to ./playbooks directory
 local_logs_dir: "../my-logs"
+
+# Discord webhook to Skynet Labs #ansible-logs channel
+discord_ansible_logs_webhook: "https://discord.com/api/webhooks/836940240555737178/WRxQhO4sNRWj1xUd9K1xmhLepzk752rX9wbo0IpuyInVxbI4IgkkiKcOsaBNYXUFSM9Q"
