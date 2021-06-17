@@ -1,5 +1,6 @@
 - name: Get Skynet Webportals status
   hosts: webportals
+  remote_user: "{{ webportal_user }}"
   gather_facts: False
 
   # Playbook specific vars
@@ -13,6 +14,7 @@
 
 - name: Report Skynet Webportals status to discord
   hosts: webportals
+  remote_user: "{{ webportal_user }}"
   gather_facts: False
   
   # Limit concurrency to handle Discord webhook rate limits

@@ -1,0 +1,19 @@
+---
+# subcrap dev machine vars
+
+passworded_users:
+  - username: "user"
+    password_hash: "{{ lookup('community.general.lastpass', 'user@subcrap.siasky.net', field='password') | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
+
+ssh_authorized_keys: "https://github.com/SkynetLabs/skynet-webportal/blob/master/setup-scripts/support/authorized_keys"
+
+# geerlingguy.security role vars
+# List of usernames from passworded_users
+security_sudoers_passworded: "{{ passworded_users | map(attribute='username') }}"
+security_autoupdate_enabled: False
+security_fail2ban_enabled: True
+
+# Custom ufw rules
+ufw_rules:
+  # Vagrant SSH port
+  - { rule: 'limit', port: '2222', proto: 'tcp' }

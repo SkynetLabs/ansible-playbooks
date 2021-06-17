@@ -1,0 +1,33 @@
+---
+
+# Prepeare server for portal setup
+
+# Update apt
+- name: Run apt-get update
+  apt:
+    update_cache: yes
+    cache_valid_time: 900
+
+# Install latest sudo, python3-pip
+- name: Install sudo, python3-pip
+  apt:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - sudo
+    - python3-pip
+
+# Install latest Docker SDK and docker-compose SDK for Python
+- name: Install latest Docker SDK and docker-compose SDK for Python
+  pip:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - docker
+    - docker-compose
+
+# Set timezone
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ webportal_server_timezone }}"
+  when: webportal_server_set_timezone | default(False)
