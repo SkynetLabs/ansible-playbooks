@@ -2,10 +2,6 @@
   hosts: webportals
   gather_facts: False
 
-  # Load common vars
-  vars_files:
-  - vars/common.yml
-
   tasks:
 
     - name: Download portal .env file to my-logs

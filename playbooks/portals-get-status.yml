@@ -2,10 +2,6 @@
   hosts: webportals
   gather_facts: False
 
-  # Load common vars
-  vars_files:
-  - vars/common.yml
-
   # Playbook specific vars
   vars:
     portal_action: "portal-get-status"
@@ -18,10 +14,6 @@
 - name: Report Skynet Webportals status to discord
   hosts: webportals
   gather_facts: False
-
-  # Load common vars
-  vars_files:
-  - vars/common.yml
   
   # Limit concurrency to handle Discord webhook rate limits
   serial: 1

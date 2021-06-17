@@ -4,8 +4,6 @@
   hosts: webportals
   gather_facts: False
   serial: 1
-  vars_files:
-    - vars/common.yml
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1}}"
 
