@@ -1,41 +1,49 @@
-- name: Setup Skynet Webportals
+- name: Setup Skynet Webportals > Check root connection
   hosts: webportals
-  gather_facts: True
-
-  # Limit concurrency
-  serial: 1
-
-  # Stop on first error, do not execute on the next host
-  any_errors_fatal: True
-  
-  # Playbook specific vars
-  vars:
+  gather_facts: False
+  serial: 1 # Limit concurrency
+  any_errors_fatal: True # Stop on first error, do not execute on the next host  
+  vars: # Playbook specific vars
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
 
   tasks:
-
-    # Checks
 
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
+    
+    # Check root SSH connection
+    # Root SSH connection is disabled once basic security is executed
+    - name: Check root SSH connection
+      wait_for_connection:
+      timeout: 10
+      register: root_ssh_connection_check
+      ignore_errors: True
+    
+    - name: Set root connection flag
+      set_fact:
+        root_ssh_connection: "{{ not root_ssh_connection_check.failed }}"
 
-    # Check host OS version
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
+    # # Check host OS version
+    # - name: Check supported OS and version
+    #   assert:
+    #     that:
+    #       - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
+    #     fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
 
-    # Server setup
-    - name: Include server setup
-      include_tasks: tasks/portal-setup-server.yml
+    # # Server setup
+    # - name: Include server setup
+    #   include_tasks: tasks/portal-setup-server.yml
 
-    # User setup
-    - name: Include user setup
-      include_tasks: tasks/portal-setup-user.yml
+    # # User setup
+    # - name: Include user setup
+    #   include_tasks: tasks/portal-setup-user.yml
 
-    # Securing server
+    # # Security setup
+    # - name: Include role to secure server
+    #   include_role:
+    #     name: geerlingguy.security
 
     # Firewall
 
