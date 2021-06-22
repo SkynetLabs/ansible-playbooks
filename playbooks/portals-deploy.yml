@@ -1,5 +1,19 @@
-- name: Deploy Skynet Webportals
+- name: Get Deploy Hosts for the Current Batch
   hosts: webportals
+  gather_facts: False
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  tasks:
+    
+    - name: Filter hosts by batch size and batch number
+      ansible.builtin.group_by:
+        key: batch_hosts
+      when: ansible_play_hosts_all.index(inventory_hostname) % batch_size == batch_number - 1
+
+- name: Deploy Skynet Webportals to Current Batch Hosts
+  hosts: batch_hosts
   remote_user: "{{ webportal_user }}"
   gather_facts: False
 

@@ -18,6 +18,7 @@
             - [Deploy Playbook Actions:](#deploy-playbook-actions)
             - [Portal Modules](#portal-modules)
             - [How to set portal, skyd, accounts versions:](#how-to-set-portal-skyd-accounts-versions)
+            - [How to Set Deploy Batch](#how-to-set-deploy-batch)
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
         - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
@@ -222,6 +223,48 @@ To deploy portal at `eu-ger-1` and `us-pa-1` execute:
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1,us-pa-1`  
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1.us-pa-1`
+
+#### How to Set Deploy Batch
+
+We can split deployment into several batches, so we can deploy e.g. in 3
+batches during 3 days where we target 1/3 of hosts in each batch. To set batch
+size (how many deployment subgroups of the hosts we want to create) and batch
+number (which of the subgroup we want to deploy to), edit your portal versions
+file (described above) which you reference during playbook execution.
+
+Example of settings with 3 batches, day 1 execution:
+```yaml
+<portal versions settings>...
+
+batch_size: 3
+batch_number: 1
+```
+
+Day 2 execution:
+```yaml
+<portal versions settings>...
+
+batch_size: 3
+batch_number: 2
+```
+
+Day 3 execution:
+```yaml
+<portal versions settings>...
+
+batch_size: 3
+batch_number: 3
+```
+
+When you want to target all hosts defined with `--limit` argument and don't
+want to divide deployment into batches, set:
+
+```yaml
+<portal versions settings>...
+
+batch_size: 1
+batch_number: 1
+```
 
 ### Rollback Skynet Webportal
 
