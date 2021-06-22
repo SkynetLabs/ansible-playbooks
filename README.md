@@ -232,6 +232,11 @@ size (how many deployment subgroups of the hosts we want to create) and batch
 number (which of the subgroup we want to deploy to), edit your portal versions
 file (described above) which you reference during playbook execution.
 
+Technical note: Hosts from the selected inventory group are assigned to the
+batches based on modulo of their index divided by batch size, so in one batch we
+target just a part of hosts in the same region (when they are ordered by region
+in the selected inventory group).
+
 Example of settings with 3 batches, day 1 execution:
 ```yaml
 <portal versions settings>...
