@@ -1,0 +1,31 @@
+- name: Set vm.max_map_count on Skynet Webportals
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+    vm_max_map_count: 262144
+
+  tasks:
+
+    # Set vm.max_map_count directly
+    - name: Set vm.max_map_count directly
+      command: "sysctl -w vm.max_map_count={{ vm_max_map_count }}"
+      become: True
+    
+    # Set vm.max_map_count in /etc/sysctl.conf
+    - name: Set vm.max_map_count in /etc/sysctl.conf
+      ansible.builtin.blockinfile:
+        path: /etc/sysctl.conf
+        block: "vm.max_map_count={{ vm_max_map_count }}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK for ELK"
+      become: True
