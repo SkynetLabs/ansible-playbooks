@@ -4,7 +4,13 @@
 
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True
-
+  
+  vars:
+    # Default batch config (one batch with all selected hosts will be created),
+    # can be overriden with cli flag --extra-vars/-e
+    batch_size: 1
+    batch_number: 1
+  
   tasks:
     
     - name: Filter hosts by batch size and batch number
