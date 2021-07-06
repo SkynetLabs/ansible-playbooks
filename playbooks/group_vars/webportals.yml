@@ -47,7 +47,7 @@ webportal_other_config_files:
 
 # skynet-js vars
 skynet_js_repo_url: "https://github.com/SkynetLabs/skynet-js.git"
-skynet_js_docker_test_image: "node:14-buster-slim"
+skynet_js_docker_test_image: "node:16.3.0-alpine"
 
 # Local git checkouts
 local_temp_skynetlabs_git_repos: "/tmp/SkynetLabs-ansible/git-repos"
