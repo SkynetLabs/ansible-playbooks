@@ -2,37 +2,41 @@
 
 # Prepeare server for portal setup
 
-# Update apt
-- name: Run apt-get update
-  apt:
-    update_cache: yes
-    cache_valid_time: 900
-
-# Install latest sudo, python3-pip
-- name: Install sudo, python3-pip
+# Install required packages
+- name: Install required packages
   apt:
     name: "{{ item }}"
     state: latest
   loop:
-    - sudo
     - python3-pip
+    - git
+  become: True
 
 # Install Docker
 - name: Include role to install Docker
   include_role:
     name: geerlingguy.docker
+    apply:
+      become: True
 
-# Install latest Docker SDK and docker-compose SDK for Python
-- name: Install latest Docker SDK and docker-compose SDK for Python
+# Reset SSH connection to reload new user groups (docker)
+- name: Reset SSH connection to reload new user groups (docker)
+  ansible.builtin.meta:
+    reset_connection
+
+# Install required Python modules
+- name: Install required Python modules
   pip:
     name: "{{ item }}"
     state: latest
   loop:
     - docker
     - docker-compose
+    - pexpect
 
 # Set timezone
 - name: Set timezone
   community.general.timezone:
     name: "{{ webportal_server_timezone }}"
+  become: True
   when: webportal_server_set_timezone | default(False)

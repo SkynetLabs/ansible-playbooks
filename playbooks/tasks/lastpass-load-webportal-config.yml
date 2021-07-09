@@ -1,0 +1,15 @@
+---
+
+- name: Check if LastPass record exists
+  local_action:
+    module: ansible.builtin.command
+    cmd: "lpass ls {{ webportal_config_lastpass_path }}"
+  register: lastpass_ls_result
+
+- name: Get LastPass record data
+  set_fact:
+    lastpass_data: "{{ {} if (lastpass_ls_result.stdout_lines | length == 0 or lookup('community.general.lastpass', webportal_config_lastpass_path, field='notes') == '') else lookup('community.general.lastpass', webportal_config_lastpass_path, field='notes') }}"
+
+- name: Load LastPass record data to variable
+  set_fact:
+    webportal_config: "{{ lastpass_data | from_yaml }}"

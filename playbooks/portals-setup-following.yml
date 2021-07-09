@@ -1,0 +1,69 @@
+- name: Setup Portal by user
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: True
+  serial: 1              # Limit concurrency
+  any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:                  # Playbook specific vars
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+
+  tasks:
+    
+    - name: Check '--limit' is used
+      include_tasks: tasks/host-limit-check.yml
+    
+    - name: Check supported OS and version
+      assert:
+        that:
+          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
+        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
+
+    - name: Include basic security setup
+      include_tasks: tasks/basic-security-setup.yml
+      args:
+        apply:
+          become: True
+    
+    - name: Include firewall setup
+      include_tasks: tasks/firewall-ufw-setup.yml
+      args:
+        apply:
+          become: True
+    
+    - name: Include server setup
+      include_tasks: tasks/portal-setup-server.yml
+    
+
+
+
+
+    # TODO
+    # - setup-server.sh
+    #   - tmux
+    #   - bashrc
+    #   - sudo apt-get -y install ufw tmux ranger htop nload gcc g++ make git vim unzip curl awscli
+    #   - terminfo for alacritty
+    # - Setting up Portal
+    #   - Step 2: Set up the environment (optional)
+    # - setup-health-check-scripts.sh
+    # - log ansible version
+      
+    - name: Include role to setup Skynet Webportal
+      include_role:
+        name: skynetlabs.skynet_webportal
+      vars:
+        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
+        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+    
+    # xxx remove these after moved to role
+    - set_fact:
+        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
+    - set_fact:
+        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+    - name: xxx include role task
+      include_tasks: tasks/xxx-move-to-portal-role.yml
+
+  handlers:
+    
+    - import_tasks: handlers/main.yml

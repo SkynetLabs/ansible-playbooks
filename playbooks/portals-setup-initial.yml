@@ -1,0 +1,26 @@
+- name: Setup basic security by root
+  hosts: webportals
+  remote_user: root
+  gather_facts: True
+  serial: 1              # Limit concurrency
+  any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:                  # Playbook specific vars
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+
+  tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Check host OS version
+    - name: Check supported OS and version
+      assert:
+        that:
+          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
+        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
+    
+    # Basic security
+    - name: Include basic security setup
+      include_tasks: tasks/basic-security-setup.yml

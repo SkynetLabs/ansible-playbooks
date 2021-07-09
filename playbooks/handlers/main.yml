@@ -1,0 +1,8 @@
+---
+
+# Handlers
+
+- name: reload ufw firewall
+  community.general.ufw:
+    state: reloaded
+  become: True
