@@ -43,6 +43,11 @@
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
+    
+    # Print timestamp
+    - name: Print timestamp
+      debug:
+        msg: "{{ inventory_hostname + ' deployment start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
 
     # Check/install Ansible prerequisities
     - name: Include preparing portal prerequisities
