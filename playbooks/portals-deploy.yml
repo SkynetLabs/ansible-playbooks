@@ -1,7 +1,10 @@
 - name: Get Deploy Hosts for the Current Batch
   hosts: webportals
   gather_facts: False
-
+  
+  # Limit concurrency to keep batch_hosts order deterministic
+  serial: 1
+  
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True
   
