@@ -20,9 +20,10 @@
 
 - name: Set portal config missing variables to default values
   set_fact:
-    webportal_config: "{{ webportal_config | combine({item.key: item.value}) }}"
-  when: webportal_config[item.key] is not defined
-  loop: "{{ webportal_config_defaults | dict2items }}"
+    webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}) }}"
+  when: webportal_server_config[item.key] is not defined
+  loop: "{{ webportal_server_config_defaults | dict2items }}"
+  #xxx disable logs (contains hsd api key)
 
 - name: Include saving portal config
   include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
@@ -35,7 +36,7 @@
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
 
-# Init, unlock wallet, create address
+# Init, unlock wallet
 
 # Don't rebuild sia container (keep it running)
 
@@ -85,11 +86,9 @@
   # Don't rebuild when initializing sia with existing seed is in progress
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
+# xxx use community.docker.docker_prune (requires community.docker upgrade) with long timeout
 - name: Prune docker
-  ansible.builtin.expect:
-    command: docker system prune
-    responses:
-      Are you sure you want to continue: y
+  command: docker system prune --force
 
 - name: Check wallet
   command: docker exec sia siac wallet
@@ -110,13 +109,13 @@
 
 - name: Set Sia wallet seed defined
   set_fact:
-    sia_wallet_seed_defined: "{{ webportal_config.sia_wallet_seed is defined }}"
+    sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined }}"
 
 #xxx
 - debug:
     msg: "inited: {{ sia_wallet_initialized }}, seed defd: {{ sia_wallet_seed_defined }}"
 - debug:
-    var: webportal_config
+    var: webportal_server_config
 - debug:
     msg: "use ex se: {{ not sia_wallet_initialized and sia_wallet_seed_defined and use_existing_sia_seed_if_exists }}"
 - debug:
@@ -160,7 +159,7 @@
       ansible.builtin.expect:
         command: docker exec -it sia siac wallet init-seed
         responses:
-          Seed: "{{ webportal_config.sia_wallet_seed }}"
+          Seed: "{{ webportal_server_config.sia_wallet_seed }}"
       # xxx could be removed?
       # no_log: True
       register: sia_init_seed_result
@@ -189,7 +188,7 @@
     
     - name: Update portal config with new seed
       set_fact:
-        webportal_config: "{{ webportal_config | combine(updated) }}"
+        webportal_server_config: "{{ webportal_server_config | combine(updated) }}"
       vars:
         updated:
           sia_wallet_seed: "{{ new_sia_wallet_seed }}"
@@ -204,6 +203,10 @@
   
   when: not sia_wallet_initialized and not (sia_wallet_seed_defined and use_existing_sia_seed_if_exists)
 
+- name: Check wallet
+  command: docker exec sia siac wallet
+  register: sia_wallet_result
+
 - name: Set Sia wallet is locked
   set_fact:
     sia_wallet_locked: "{{ 'Unlocked' not in sia_wallet_result.stdout }}"
@@ -216,14 +219,18 @@
   ansible.builtin.expect:
     command: docker exec -it sia siac wallet unlock
     responses:
-      Wallet password: "{{ webportal_config.sia_wallet_seed }}"
+      Wallet password: "{{ webportal_server_config.sia_wallet_seed }}"
   # xxx could be removed?
   # no_log: True
   when: sia_wallet_locked
   register: sia_wallet_unlock_result
   ignore_errors: True
-  # Fail on all errors except rescan in progress, which is handled later.
-  failed_when: sia_wallet_unlock_result.rc != 0 and 'another wallet rescan is already underway' not in sia_wallet_unlock_result.stdout
+
+- name: Fail on all wallet unlock errors except rescan in progress, which is handled later
+  fail:
+    msg: "Error unlocking Sia wallet:\n\n{{ sia_wallet_unlock_result }}"
+  when: sia_wallet_unlock_result.rc | default(0) != 0 and 'another wallet rescan is already underway' not in sia_wallet_unlock_result.stdout
+  
 
 #xxx
 - debug:
@@ -244,6 +251,12 @@
       get the following message:
       
         Could not unlock wallet: [... another wallet rescan is already underway]
+      
+      Alternatively execute (on the server):
+      
+        docker logs sia && echo
+      
+      to check wallet scan progress.
   when: sia_wallet_unlock_result.rc | default(0) != 0 and 'another wallet rescan is already underway' in sia_wallet_unlock_result.stdout
 
 - name: Reset portal setup status
@@ -257,18 +270,38 @@
 #   register: wallet_address_result
 # xxx log address
 
-- name: Set allowance
-  ansible.builtin.command: >
-    docker exec sia siac renter setallowance
-      --amount {{ webportal_allowance.amount }}
-      --expected-storage {{ webportal_allowance.expected_storage }}
-      --expected-upload {{ webportal_allowance.expected_upload }}
-      --expected-download {{ webportal_allowance.expected_download }}
-      --expected-redundancy {{ webportal_allowance.expected_redundancy }}
-      --max-storage-price {{ webportal_allowance.max_storage_price }}
-      --payment-contract-initial-funding {{ webportal_allowance.payment_contract_initial_funding }}
-      --period {{ webportal_allowance.period }}
-  register: set_allowance_result
-  # Verify result to prevent mistakes and misconfiguration, because
-  # setallowance might not fail but just switch to interactive mode.
-  failed_when: set_allowance_result.stdout.find("Allowance updated. 8 setting(s) changed.") == -1
+# # xxx: Should we setup allowance just once?
+# - name: Set allowance
+#   ansible.builtin.command: >
+#     docker exec sia siac renter setallowance
+#       --amount {{ webportal_allowance.amount }}
+#       --expected-storage {{ webportal_allowance.expected_storage }}
+#       --expected-upload {{ webportal_allowance.expected_upload }}
+#       --expected-download {{ webportal_allowance.expected_download }}
+#       --expected-redundancy {{ webportal_allowance.expected_redundancy }}
+#       --max-storage-price {{ webportal_allowance.max_storage_price }}
+#       --payment-contract-initial-funding {{ webportal_allowance.payment_contract_initial_funding }}
+#       --period {{ webportal_allowance.period }}
+#   register: set_allowance_result
+#   # Verify result to prevent mistakes and misconfiguration, because
+#   # setallowance might not fail but just switch to interactive mode.
+#   failed_when: set_allowance_result.stdout.find("Allowance updated. 8 setting(s) changed.") == -1
+
+# Setup health checks
+# xxx move to role task file
+- block:
+    
+    - name: Install Python modules for health checks
+      pip:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - discord-webhook
+        - python-dotenv
+        - requests
+        - elasticsearch-curator
+    
+    - name: Add health checks cron entries to user crontab
+      command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
+
+  when: webportal_setup_health_checks

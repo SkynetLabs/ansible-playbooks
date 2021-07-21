@@ -16,7 +16,7 @@
 - name: Wait for sia /daemon/ready ready==true if the endpoint is available
   command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/daemon/ready"
   register: daemon_ready_result
-  until: (daemon_ready_result.stdout | from_json).ready|default(false) or (daemon_ready_result.stdout | from_json).message == sia_endpoint_not_available_msg
+  until: ((daemon_ready_result.stdout | from_json).message is defined and (daemon_ready_result.stdout | from_json).message == sia_endpoint_not_available_msg) or (daemon_ready_result.stdout | from_json).ready|default(false)
   delay: 1
   retries: "{{ sia_daemon_ready_timeout_secs }}"
 

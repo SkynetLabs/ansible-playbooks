@@ -3,7 +3,7 @@
 - name: Check if LastPass record exists
   local_action:
     module: ansible.builtin.command
-    cmd: "lpass ls {{ webportal_config_lastpass_path }}"
+    cmd: "lpass ls {{ webportal_server_config_lastpass_path }}"
   register: lastpass_ls_result
 
 - name: Set LastPass command add or edit
@@ -14,6 +14,6 @@
   local_action:
     module: shell
     cmd: >
-      printf '{{ webportal_config | to_nice_yaml(width=2048) }}'
-      | lpass {{ lastpass_command }} --notes --non-interactive {{ webportal_config_lastpass_path }}
+      printf '{{ webportal_server_config | to_nice_yaml(width=2048) }}'
+      | lpass {{ lastpass_command }} --notes --non-interactive {{ webportal_server_config_lastpass_path }}
   no_log: True

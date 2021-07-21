@@ -46,8 +46,57 @@
     #   - terminfo for alacritty
     # - Setting up Portal
     #   - Step 2: Set up the environment (optional)
-    # - setup-health-check-scripts.sh
     # - log ansible version
+
+
+
+
+    
+    # Setup dev tools and environment (dotfiles)
+    - block:
+
+        # Setup dev tools
+        # xxxqqq
+        
+        # Setup environment (dotfiles)
+
+        - name: Set dotfiles git dir
+          set_fact:
+            dotfiles_git_dir: "{{ webportal_user_home_dir }}/.dotfiles.git"
+        
+        - name: Delete dotfile git directory
+          ansible.builtin.file:
+            path: "{{ dotfiles_git_dir }}"
+            state: absent
+        
+        - name: Set dotfiles git temporary directory
+          set_fact:
+            dotfiles_git_tmp_dir: "{{ webportal_user_home_dir }}/dotfilegit-tmp"
+        
+        - name: Checkout SkynetLabs dotfiles
+          ansible.builtin.git:
+            repo: "{{ dotfiles_repo_url }}"
+            dest: "{{ dotfiles_git_tmp_dir }}"
+            version: init
+            separate_git_dir: "{{ dotfiles_git_dir }}"
+            force: True
+        
+        - name: Delete dotfile git temporary directory
+          ansible.builtin.file:
+            path: "{{ dotfiles_git_tmp_dir }}"
+            state: absent
+        
+        - name: Set dotfiles command
+          set_fact:
+            dotfiles_command: /usr/bin/git --git-dir={{ dotfiles_git_dir }} --work-tree={{ webportal_user_home_dir }}
+        
+        - name: Config dotfiles
+          command: "{{ dotfiles_command }} config status.showUntrackedFiles no"
+        
+        - name: Load dotfiles to user home
+          command: "{{ dotfiles_command }} reset --hard HEAD"
+
+      when: webportal_setup_dotfiles
       
     - name: Include role to setup Skynet Webportal
       include_role:
