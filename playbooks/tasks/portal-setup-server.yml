@@ -2,7 +2,6 @@
 
 # Prepeare server for portal setup
 
-# Install required packages
 - name: Install required packages
   apt:
     name: "{{ item }}"
@@ -12,19 +11,16 @@
     - git
   become: True
 
-# Install Docker
 - name: Include role to install Docker
   include_role:
     name: geerlingguy.docker
     apply:
       become: True
 
-# Reset SSH connection to reload new user groups (docker)
 - name: Reset SSH connection to reload new user groups (docker)
   ansible.builtin.meta:
     reset_connection
 
-# Install required Python modules
 - name: Install required Python modules
   pip:
     name: "{{ item }}"
@@ -34,9 +30,13 @@
     - docker-compose
     - pexpect
 
-# Set timezone
 - name: Set timezone
   community.general.timezone:
     name: "{{ webportal_server_timezone }}"
   become: True
   when: webportal_server_set_timezone | default(False)
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  become: True

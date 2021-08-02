@@ -16,7 +16,6 @@
   
   tasks:
     
-    # xxxqqq make the order deterministic
     - name: Filter hosts by batch size and batch number
       ansible.builtin.group_by:
         key: batch_hosts
