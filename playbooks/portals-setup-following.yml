@@ -25,11 +25,13 @@
         apply:
           become: True
     
-    - name: Include firewall setup
-      include_tasks: tasks/firewall-ufw-setup.yml
-      args:
-        apply:
-          become: True
+    # xxxqqq-ufw
+    # - name: Include firewall setup
+    #   include_tasks: tasks/firewall-ufw-setup.yml
+    #   args:
+    #     apply:
+    #       become: True
+
     
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml

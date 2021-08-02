@@ -28,7 +28,7 @@
   notify:
     - reload ufw firewall
 
-# xxxqqq
+# xxxqqq-ufw
 # - name: Deny outgoing traffic to local network 
 #   community.general.ufw:
 #     rule: "deny"
