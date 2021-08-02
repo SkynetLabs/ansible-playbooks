@@ -19,6 +19,11 @@
             - [Portal Modules](#portal-modules)
             - [How to set portal, skyd, accounts versions:](#how-to-set-portal-skyd-accounts-versions)
             - [How to Set Deploy Batch](#how-to-set-deploy-batch)
+        - [Takedown Skynet Webportal](#takedown-skynet-webportal)
+            - [Playbook Actions](#playbook-actions)
+            - [Preparation](#preparation)
+            - [Execution](#execution)
+            - [Following Portal Deployments and Restarts](#following-portal-deployments-and-restarts)
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
         - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
@@ -270,6 +275,41 @@ want to divide deployment into batches, set:
 batch_size: 1
 batch_number: 1
 ```
+
+### Takedown Skynet Webportal
+
+#### Playbook Actions
+
+* Disables health check.
+* Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+* Stops docker compose services.
+* Starts only sia docker service.
+
+#### Preparation
+
+Before executing takedown of a portal a `webportals_takedown` group must be
+present in inventory `hosts.ini` file and the portal must be added to this
+group.
+
+#### Execution
+
+To takedown portal on `eu-ger-1` execute:  
+`scripts/portal-takedown.sh --limit eu-ger-1`
+
+To takedown portal on `eu-ger-1` and `us-pa-1` execute:  
+`scripts/portal-takedown.sh --limit eu-ger-1,us-pa-1`
+
+#### Following Portal Deployments and Restarts
+
+Once the portal host is included in `webportals_takedown` inventory group,
+portal deployment and portal restart playbooks ignore this host, deployments
+and restarts are not performed on this host even if the portal is included in
+an inventory group you are deploying to.
+
+If you want to restart or deploy portal, remove the host from
+`webportals_takedown` group and execute either portal restart playbook to start
+the portal with the last deployed versions of the portal or portal deploy
+playbook to deploy configured versions of the portal.
 
 ### Rollback Skynet Webportal
 

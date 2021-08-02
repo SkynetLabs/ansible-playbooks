@@ -19,7 +19,9 @@
     - name: Filter hosts by batch size and batch number
       ansible.builtin.group_by:
         key: batch_hosts
-      when: ansible_play_hosts_all.index(inventory_hostname) % batch_size == batch_number - 1
+      # add hosts according to batch size and batch number
+      # do not add (deploy to) hosts from webportals_takedown group
+      when: (ansible_play_hosts_all.index(inventory_hostname) % batch_size == batch_number - 1) and ('webportals_takedown' not in group_names)
 
 - name: Deploy Skynet Webportals to Current Batch Hosts
   hosts: batch_hosts
