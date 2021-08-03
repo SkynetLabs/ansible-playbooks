@@ -18,32 +18,54 @@
 
 - name: Set ufw rules
   vars:
-    default_ufw_rule: { rule: 'limit', port: '{{ ssh_port | default("22") }}', proto: 'tcp' }
+    default_ufw_rule: { rule: 'limit', port: '{{ ssh_port | default("22") }}', proto: 'tcp', direction: "in" }
   community.general.ufw:
     rule: "{{ item.rule }}"
     port: "{{ item.port }}"
     proto: "{{ item.proto }}"
+    direction: "{{ item.direction }}"
   loop:
-    "{{ [default_ufw_rule] + (ufw_rules | default([])) }}"
+    "{{ [default_ufw_rule] + (host_ufw_rules | default([])) + (group_ufw_rules | default([])) }}"
   notify:
     - reload ufw firewall
 
-# xxxqqq-ufw
-# - name: Deny outgoing traffic to local network 
-#   community.general.ufw:
-#     rule: "deny"
-#     proto: "any"
-#     to_ip: "{{ item }}"
-#   loop:
-#     - "10.0.0.0/8"
-#     - "172.16.0.0/12"
-#     - "192.168.0.0/16"
-#     - "100.64.0.0/10"
-#     - "198.18.0.0/15"
-#     - "169.254.0.0/16"
-#   notify:
-#     - reload ufw firewall
-#   when: ufw_deny_outgoing_to_local_network | default(False)
+# Allow outgoing http, https traffic to local networks (needed for health checks)
+# Deny rest of outgoing traffic to local networks
+- block:
+    
+    - name: Allow outgoing http traffic to local networks
+      community.general.ufw:
+        rule: "allow"
+        proto: "tcp"
+        direction: "out"
+        to_ip: "{{ item }}"
+        to_port: "80"
+      loop: "{{ local_networks }}"
+      notify:
+        - reload ufw firewall
+    
+    - name: Allow outgoing https traffic to local networks
+      community.general.ufw:
+        rule: "allow"
+        proto: "tcp"
+        direction: "out"
+        to_ip: "{{ item }}"
+        to_port: "443"
+      loop: "{{ local_networks }}"
+      notify:
+        - reload ufw firewall
+    
+    - name: Deny non-http, non-https outgoing traffic to local networks
+      community.general.ufw:
+        rule: "deny"
+        proto: "any"
+        direction: "out"
+        to_ip: "{{ item }}"
+      loop: "{{ local_networks }}"
+      notify:
+        - reload ufw firewall
+
+  when: ufw_deny_outgoing_to_local_network | default(False)
 
 - name: Enable ufw firewall
   community.general.ufw:

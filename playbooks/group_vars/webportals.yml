@@ -22,15 +22,24 @@ security_fail2ban_enabled: True
 # Timezone
 webportal_server_set_timezone: True
 webportal_server_timezone: "UTC"
+# Update server hostname to inventory hostname
+webportal_update_hostname: True
 
 # geerlingguy.docker role vars
 docker_users: "{{ [webportal_user] }}"
 
 # UFW firewall settings
-ufw_rules:
-  - { rule: 'allow', port: '80', proto: 'tcp' }
-  - { rule: 'allow', port: '443', proto: 'tcp' }
+group_ufw_rules:
+  - { rule: 'allow', port: '80', proto: 'tcp', direction: "in" }
+  - { rule: 'allow', port: '443', proto: 'tcp', direction: "in" }
 ufw_deny_outgoing_to_local_network: True
+local_networks:
+  - "10.0.0.0/8"
+  - "172.16.0.0/12"
+  - "192.168.0.0/16"
+  - "100.64.0.0/10"
+  - "198.18.0.0/15"
+  - "169.254.0.0/16"
 
 # LastPass settings
 webportal_server_config_lastpass_path: "Shared-Configurations/portal-vars-{{ inventory_hostname }}.yml"
@@ -72,7 +81,7 @@ webportal_allowance:
   expected_upload: 4TB
   expected_download: 2TB
   expected_redundancy: 5
-  max_storage_price: 150SC
+  max_storage_price: 300SC
   payment_contract_initial_funding: 10SC
   period: 8640b
 

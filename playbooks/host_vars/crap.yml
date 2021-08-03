@@ -16,6 +16,6 @@ security_autoupdate_enabled: False
 security_fail2ban_enabled: True
 
 # Custom ufw rules
-ufw_rules:
+host_ufw_rules:
   # Vagrant SSH port
-  - { rule: 'limit', port: '2222', proto: 'tcp' }
+  - { rule: 'limit', port: '2222', proto: 'tcp', direction: 'in' }
