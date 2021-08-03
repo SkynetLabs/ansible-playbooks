@@ -36,7 +36,25 @@
   become: True
   when: webportal_server_set_timezone | default(False)
 
-- name: Set hostname
-  ansible.builtin.hostname:
-    name: "{{ inventory_hostname }}"
-  become: True
+# Set hostname
+
+- name: Set update hostname flag
+  set_fact:
+    update_hostname: webportal_update_hostname and ansible_hostname != inventory_hostname
+  changed_when: False
+
+- block:
+    
+    - name: Update /etc/hosts with new hostname
+      ansible.builtin.replace:
+        path: /etc/hosts
+        regexp: "(\\s+){{ ansible_hostname }}(\\s+.*)?$"
+        replace: "\\1{{ inventory_hostname }}\\2"
+      become: True
+    
+    - name: Set new hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+      become: True
+
+  when: update_hostname
