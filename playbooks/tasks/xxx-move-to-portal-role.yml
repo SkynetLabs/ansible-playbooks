@@ -23,7 +23,7 @@
     webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}) }}"
   when: webportal_server_config[item.key] is not defined
   loop: "{{ webportal_server_config_defaults | dict2items }}"
-  #xxx disable logs (contains hsd api key)
+  no_log: True
 
 - name: Include saving portal config
   include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
@@ -160,8 +160,6 @@
         command: docker exec -it sia siac wallet init-seed
         responses:
           Seed: "{{ webportal_server_config.sia_wallet_seed }}"
-      # xxx could be removed?
-      # no_log: True
       register: sia_init_seed_result
       ignore_errors: True
       # Fail on unknown errors, timeout is expected and is handled later.
@@ -220,8 +218,6 @@
     command: docker exec -it sia siac wallet unlock
     responses:
       Wallet password: "{{ webportal_server_config.sia_wallet_seed }}"
-  # xxx could be removed?
-  # no_log: True
   when: sia_wallet_locked
   register: sia_wallet_unlock_result
   ignore_errors: True
