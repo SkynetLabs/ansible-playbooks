@@ -97,7 +97,6 @@ webportal_server_config_defaults:
 
 # xxx move to role default vars
 # xxx default to: False
-# xxx: Requires exact '/home/user/skynet-webportal' directory structure
 webportal_setup_health_checks: True
 
 # =============================================================================

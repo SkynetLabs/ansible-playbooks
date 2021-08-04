@@ -301,6 +301,12 @@
         - requests
         - elasticsearch-curator
     
+    - name: Update hardcoded username in cron file
+      ansible.builtin.replace:
+        path: "{{ webportal_cron_file }}"
+        regexp: "/home/user/"
+        replace: "{{ webportal_user_home_dir }}/"
+    
     - name: Add health checks cron entries to user crontab
       command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
 
