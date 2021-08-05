@@ -1,0 +1,36 @@
+---
+# Update apt
+- name: Run apt-get update
+  apt:
+    update_cache: yes
+    cache_valid_time: 900
+
+# Install latest sudo
+- name: Install sudo
+  apt:
+    name: sudo
+    state: latest
+
+# Create user
+- name: Create users
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    password: "{{ item.password_hash }}"
+    state: present
+    shell: /bin/bash
+    groups:
+      - sudo
+  loop: "{{ initial_users }}"
+
+# Add SSH authorized keys
+- name: Add SSH authorized keys
+  ansible.posix.authorized_key:
+    user: "{{ item.username }}"
+    state: present
+    key: "{{ item.authorized_keys }}"
+  loop: "{{ initial_users }}"
+
+# Basic security
+- name: Include basic security setup
+  include_role:
+    name: geerlingguy.security

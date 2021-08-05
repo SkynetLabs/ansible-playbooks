@@ -92,7 +92,4 @@
   
   handlers:
 
-    - name: reload ufw firewall
-      community.general.ufw:
-        state: reloaded
-      become: True
+    - import_tasks: handlers/main.yml

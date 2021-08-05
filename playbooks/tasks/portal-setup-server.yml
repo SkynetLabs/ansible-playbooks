@@ -2,37 +2,59 @@
 
 # Prepeare server for portal setup
 
-# Update apt
-- name: Run apt-get update
-  apt:
-    update_cache: yes
-    cache_valid_time: 900
-
-# Install latest sudo, python3-pip
-- name: Install sudo, python3-pip
+- name: Install required packages
   apt:
     name: "{{ item }}"
     state: latest
   loop:
-    - sudo
     - python3-pip
+    - git
+  become: True
 
-# Install Docker
 - name: Include role to install Docker
   include_role:
     name: geerlingguy.docker
+    apply:
+      become: True
 
-# Install latest Docker SDK and docker-compose SDK for Python
-- name: Install latest Docker SDK and docker-compose SDK for Python
+- name: Reset SSH connection to reload new user groups (docker)
+  ansible.builtin.meta:
+    reset_connection
+
+- name: Install required Python modules
   pip:
     name: "{{ item }}"
     state: latest
   loop:
     - docker
     - docker-compose
+    - pexpect
 
-# Set timezone
 - name: Set timezone
   community.general.timezone:
     name: "{{ webportal_server_timezone }}"
+  become: True
   when: webportal_server_set_timezone | default(False)
+
+# Set hostname
+
+- name: Set update hostname flag
+  set_fact:
+    update_hostname: webportal_update_hostname and ansible_hostname != inventory_hostname
+  changed_when: False
+
+- block:
+    
+    - name: Update /etc/hosts with new hostname
+      ansible.builtin.replace:
+        path: /etc/hosts
+        regexp: "(\\s+){{ ansible_hostname }}(\\s+.*)?$"
+        replace: "\\1{{ inventory_hostname }}\\2"
+      become: True
+    
+    - name: Set new hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+      become: True
+
+  when: update_hostname

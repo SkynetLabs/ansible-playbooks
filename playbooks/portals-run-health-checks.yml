@@ -1,0 +1,28 @@
+- name: Run integration tests against Skynet Webportals
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+
+  tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Check/install Ansible prerequisities
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
+
+    # Run health checks
+    - name: Include running health checks
+      include_tasks: tasks/portal-health-checks-run.yml
