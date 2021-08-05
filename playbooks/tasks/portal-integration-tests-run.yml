@@ -12,7 +12,7 @@
         module: ansible.builtin.git
         repo: "{{ skynet_js_repo_url }}"
         dest: "{{ local_temp_skynetlabs_git_repos_skynet_js }}/{{ inventory_hostname }}"
-        version: "master"
+        version: "{{ skynet_js_repo_version }}"
         update: True
         force: True
 
