@@ -1,0 +1,58 @@
+- name: Takedown Skynet Webportals
+  hosts: webportals
+  gather_facts: False
+  
+  # Limit concurrency to keep batch_hosts order deterministic
+  serial: 1
+  
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+
+  tasks:
+
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+    
+    # Print timestamp
+    - name: Print timestamp
+      debug:
+        msg: "{{ inventory_hostname + ' takedown start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
+    
+    # Check portal is added to webportals_takedown inventory group
+    - name: Fail if portal is not added to webportals_takedown inventory group
+      fail:
+        msg: |
+          Before takedown the portal must be added to 'webportals_takedown'
+          inventory group in hosts.ini file to prevent starting portal during
+          deployments and restarts later.
+      when: "'webportals_takedown' not in group_names"
+    
+    # Disable health check
+    - name: Include disabling portal health check
+      include_tasks: tasks/portal-health-check-disable.yml
+    
+    # Stop portal docker services
+    - name: Include stopping portal docker services
+      include_tasks: tasks/portal-docker-services-stop.yml
+    
+    # Include getting wanted docker-compose files
+    - name: Include getting wanted docker-compose files
+      include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
+    
+    # Start just sia docker service
+    - name: Start just sia docker service
+      community.docker.docker_compose:
+        project_src: "{{ webportal_dir }}"
+        files: "{{ webportal_docker_compose_files_wanted }}"
+        build: False
+        nocache: True
+        pull: True
+        services: sia
+        state: present
+      become: True
+      become_user: "user"
