@@ -30,8 +30,9 @@
         - [Run Integration Tests](#run-integration-tests)
         - [Run Health Checks](#run-health-checks)
         - [Setup Portal from Scratch](#setup-portal-from-scratch)
-            - [portals-setup-initial](#portals-setup-initial)
-            - [portals-setup-following](#portals-setup-following)
+            - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
+            - [Playbook portals-setup-following](#playbook-portals-setup-following)
+            - [Playbook portals-deploy](#playbook-portals-deploy)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
         - [Role Not Installed](#role-not-installed)
@@ -422,7 +423,7 @@ Setup process requires 3 playbooks:
 * `portals-setup-following.sh`
 * `portals-deploy.sh`
 
-#### portals-setup-initial
+#### Playbook portals-setup-initial
 
 Requires:
 * Server side
@@ -446,7 +447,7 @@ This playbook can be run successfully just once, then root access is disabled.
 Execute (e.g. on `eu-fin-5`):  
 `scripts/portals-setup-initial.sh --limit eu-fin-5`
 
-#### portals-setup-following
+#### Playbook portals-setup-following
 
 Requires:
 * Active LastPass session (see `LastPass Login` section above)
@@ -488,6 +489,11 @@ playbook when ready.
 
 Execute (e.g. on `eu-fin-5`):
 `scripts/portals-setup-following.sh -e @my-vars/portal-versions.yml --limit eu-fin-5`
+
+#### Playbook portals-deploy
+
+To finish portal setup and deployment execute portal deploy playbook (see
+separate section above).
 
 ## Playbook Live Demos
 
