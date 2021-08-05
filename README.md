@@ -28,6 +28,11 @@
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
         - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
         - [Run Integration Tests](#run-integration-tests)
+        - [Run Health Checks](#run-health-checks)
+        - [Setup Portal from Scratch](#setup-portal-from-scratch)
+            - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
+            - [Playbook portals-setup-following](#playbook-portals-setup-following)
+            - [Playbook portals-deploy](#playbook-portals-deploy)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
         - [Role Not Installed](#role-not-installed)
@@ -388,12 +393,107 @@ Playbook:
 * Checks out `skynet-js` repo locally.
 * Runs integration tests from local docker container against portal.
 
-Note: `--limit` must be used, it's not possible to set allowance on all
+Note: `--limit` must be used, it's not possible to run integration tests on all
 `portals_dev` and `portals_prod` servers at once.
 
 To run:  
 `scripts/portals-run-integration-tests.sh --limit portals_prod`  
 `scripts/portals-run-integration-tests.sh --limit eu-ger-3`
+
+### Run Health Checks
+
+Playbook:
+* Runs health checks on portal.
+
+Note: `--limit` must be used, it's not possible to run health checks on all
+`portals_dev` and `portals_prod` servers at once.
+
+To run:  
+`scripts/portals-run-health-checks.sh --limit portals_prod`  
+`scripts/portals-run-health-checks.sh --limit eu-ger-3`
+
+### Setup Portal from Scratch
+
+Work in progress:  
+The setup playbooks currently setup single portal without Jaeger, Accounts and
+cluster.
+
+Setup process requires 3 playbooks:
+* `portals-setup-initial.sh` (run once)
+* `portals-setup-following.sh`
+* `portals-deploy.sh`
+
+#### Playbook portals-setup-initial
+
+Requires:
+* Server side
+  * Fresh `Debian 10 minimal` server
+  * SSH key added to `root` authorized keys
+* Ansible inventory
+  * Ansible hostname (e.g. `eu-fin-5`) added to (one of) `webportals` group
+* LastPass
+  * Desired password added for the user `user`
+  * Active LastPass session (see `LastPass Login` section above)
+
+Playbook (as `root`):
+* Installs `sudo`
+* Creates passworded user
+* Adds SSH keys from `skynet-webportal` repo
+* Performs basic security setup
+  * Disables `root` access, ...
+
+This playbook can be run successfully just once, then root access is disabled.
+
+Execute (e.g. on `eu-fin-5`):  
+`scripts/portals-setup-initial.sh --limit eu-fin-5`
+
+#### Playbook portals-setup-following
+
+Requires:
+* Active LastPass session (see `LastPass Login` section above)
+* Portal versions
+  * See `How to set portal, skyd, accounts versions` section above
+  * Portal versions should be the same or lower than portal versions that will
+  be later deployed to the portal
+  * It is recommended to use the same portal versions yml file during setup and then
+  during the first deployment
+
+Playbook:
+* Prepares the server
+  * Performs basic security setup
+  * Performs ufw firewall setup
+  * Installs python3-pip, git, docker, Python modules
+  * Sets timezone
+  * Updates hostname
+* Sets dev tools
+  * Setup dotfiles
+  * TBD: Setup dev tools
+* Sets portal (simplified)
+  * Checkout `skynet-webportal` repo
+  * Load existing portal config (if exists) from LastPass otherwise generate
+  portal config and save it to LastPass
+  * Always recreate `.env` file from `.env.j2` template and portal config
+  * Start sia container if not running, restart if config changed
+  * Init new wallet (if not done previously)
+  * Wait for sia blockchain synced (takes time, can timeout)
+  * Init wallet (with existing seed if exists, takes time, can timeout)
+  * Unlock wallet
+  * Set default allowance
+  * Setup health checks
+
+Timeouts:  
+This playbook is expected to fail with a timeout (might be a couple of times).
+Timeouts are handled gracefully and next steps are described in ansible logs
+onscreen. Follow the instructions from the onscreen logs and restart the
+playbook when ready.
+
+Execute (e.g. on `eu-fin-5`):
+`scripts/portals-setup-following.sh -e @my-vars/portal-versions.yml --limit eu-fin-5`
+
+#### Playbook portals-deploy
+
+To finish portal setup and deployment execute portal deploy playbook (see
+separate section above).
 
 ## Playbook Live Demos
 
