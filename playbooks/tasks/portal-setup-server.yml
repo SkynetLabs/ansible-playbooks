@@ -58,3 +58,19 @@
       become: True
 
   when: update_hostname
+
+# Disable swap
+
+- name: Disable swap (current server session, non-persistent)
+  command: swapoff -a
+  become: True
+
+- name: Disable swap in /etc/fstab (persistent, active after reboot)
+  replace:
+    path: /etc/fstab
+    # Need to target 'swap\s+' (not 'swap\s+sw\s+'), because some servers
+    # have ' swap ' or ' swap swap ' entries, not the expected ' swap sw '.
+    regexp: '^([^#].*?\sswap\s+.*)$'
+    replace: '# \1'
+    backup: yes
+  become: True
