@@ -1,0 +1,16 @@
+---
+
+# Portal server config
+- name: Check if LastPass portal server config exists
+  local_action:
+    module: ansible.builtin.command
+    cmd: "lpass ls {{ webportal_server_config_lastpass_path }}"
+  register: lastpass_ls_result
+
+- name: Get LastPass portal server config data
+  set_fact:
+    lastpass_data: "{{ {} if (lastpass_ls_result.stdout_lines | length == 0 or lookup('community.general.lastpass', webportal_server_config_lastpass_path, field='notes') == '') else lookup('community.general.lastpass', webportal_server_config_lastpass_path, field='notes') }}"
+
+- name: Load LastPass portal server config data to variable
+  set_fact:
+    webportal_server_config: "{{ lastpass_data | from_yaml }}"

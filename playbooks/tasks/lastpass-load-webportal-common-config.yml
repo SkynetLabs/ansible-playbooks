@@ -1,0 +1,10 @@
+---
+
+# Portal common config
+- name: Get LastPass portal common config data
+  set_fact:
+    lastpass_data: "{{ lookup('community.general.lastpass', webportal_common_config_lastpass_path, field='notes') }}"
+
+- name: Load LastPass portal common config data to variable
+  set_fact:
+    webportal_common_config: "{{ lastpass_data | from_yaml }}"

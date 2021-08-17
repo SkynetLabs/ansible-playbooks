@@ -55,6 +55,17 @@
       notify:
         - reload ufw firewall
     
+    # Needed for serverlist script in cron
+    - name: Allow outgoing 9980/tcp traffic to 10.0.0.0/8
+      community.general.ufw:
+        rule: "allow"
+        proto: "tcp"
+        direction: "out"
+        to_ip: "10.0.0.0/8"
+        to_port: "9980"
+      notify:
+        - reload ufw firewall
+    
     - name: Deny non-http, non-https outgoing traffic to local networks
       community.general.ufw:
         rule: "deny"
