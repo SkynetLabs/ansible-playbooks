@@ -52,6 +52,7 @@ devops_dir: "{{ webportal_user_home_dir }}/devops"
 logs_dir: "{{ devops_dir }}/logs"
 setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
+devops_scripts_dir: "{{ devops_dir }}/scripts"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
 
 # Sia setup settings
