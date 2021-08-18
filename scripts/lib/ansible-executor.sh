@@ -29,7 +29,6 @@ pushd $ans_dir > /dev/null
 # Configs
 # Current Ansible Control Machine image
 ansible_image='skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.5.0'
-default_lpass_timeout_secs=3600
 
 # Set LastPass session timeout
 if [ -z "$lpass_timeout" ]; then
