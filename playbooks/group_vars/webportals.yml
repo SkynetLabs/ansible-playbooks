@@ -72,8 +72,8 @@ webportal_git_config:
   - name: user.email
     value: "{{ skynetlabs_devs_email }}"
 
-# xxx default: False
-webportal_setup_dotfiles: True
+# xxx default in role: False
+webportal_setup_dotfiles_and_dev_tools: True
 
 # xxx move to role default vars
 webportal_allowance:

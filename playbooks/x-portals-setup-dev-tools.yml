@@ -1,0 +1,68 @@
+- name: Deploy Skynet Webportals to Current Batch Hosts
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+
+  tasks:
+    
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+    
+    # Tmux config (from dotfiles repo) should already be set by
+    # portals-setup-following playbook.
+
+    - name: Run apt-get update
+      apt:
+        update_cache: yes
+        cache_valid_time: 900
+      become: True
+    
+    - name: Install dev tools
+      apt:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - tmux
+        - screen
+        - ranger
+        - htop
+        - nload
+        - gcc
+        - g++
+        - make
+        - vim
+        - unzip
+        - curl
+        - awscli
+      become: True
+    
+    # Setup terminfo for alacritty terminal via ssh
+
+    - name: Download alacritty.info
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info
+        dest: "{{ webportal_user_home_dir }}/alacritty.info"
+        force: True
+    
+    - name: Compile allacrity
+      ansible.builtin.command:
+        cmd: tic -xe alacritty,alacritty-direct alacritty.info
+        chdir: "{{ webportal_user_home_dir }}"
+      become: True
+    
+    - name: Remove alacritty.info
+      ansible.builtin.file:
+        path: "{{ webportal_user_home_dir }}/alacritty.info"
+        state: absent
