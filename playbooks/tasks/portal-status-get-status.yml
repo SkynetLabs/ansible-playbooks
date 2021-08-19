@@ -39,6 +39,7 @@
       uri:
         url: "https://skapp.hns.{{ ansible_host }}"
         status_code: 200
+        timeout: 60
       register: web_result
   
   rescue:
