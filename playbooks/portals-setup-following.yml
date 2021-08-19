@@ -52,11 +52,8 @@
 
 
     
-    # Setup dev tools and environment (dotfiles)
+    # Setup environment (dotfiles) and dev tools
     - block:
-
-        # Setup dev tools
-        # xxx dev tools
         
         # Setup environment (dotfiles)
 
@@ -95,8 +92,54 @@
         
         - name: Load dotfiles to user home
           command: "{{ dotfiles_command }} reset --hard HEAD"
+        
+        # Setup dev tools
 
-      when: webportal_setup_dotfiles
+        - name: Run apt-get update
+          apt:
+            update_cache: yes
+            cache_valid_time: 900
+          become: True
+        
+        - name: Install dev tools
+          apt:
+            name: "{{ item }}"
+            state: latest
+          loop:
+            - tmux
+            - screen
+            - ranger
+            - htop
+            - nload
+            - gcc
+            - g++
+            - make
+            - vim
+            - unzip
+            - curl
+            - awscli
+          become: True
+        
+        # Setup terminfo for alacritty terminal via ssh
+
+        - name: Download alacritty.info
+          ansible.builtin.get_url:
+            url: https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info
+            dest: "{{ webportal_user_home_dir }}/alacritty.info"
+            force: True
+        
+        - name: Compile allacrity
+          ansible.builtin.command:
+            cmd: tic -xe alacritty,alacritty-direct alacritty.info
+            chdir: "{{ webportal_user_home_dir }}"
+          become: True
+        
+        - name: Remove alacritty.info
+          ansible.builtin.file:
+            path: "{{ webportal_user_home_dir }}/alacritty.info"
+            state: absent
+
+      when: webportal_setup_dotfiles_and_dev_tools
       
     - name: Include role to setup Skynet Webportal
       include_role:
