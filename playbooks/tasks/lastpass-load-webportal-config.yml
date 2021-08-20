@@ -7,3 +7,6 @@
 
 - name: Include loading LastPass portal common config
   include_tasks: tasks/lastpass-load-webportal-common-config.yml
+
+- name: Include loading LastPass portal cluster config
+  include_tasks: tasks/lastpass-load-webportal-cluster-config.yml
