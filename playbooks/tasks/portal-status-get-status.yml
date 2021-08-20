@@ -44,7 +44,7 @@
   
   rescue:
 
-    - name: Checking modified files failed but continue
+    - name: Recover if checking loading skapp.hns webpage from the portal failed
       fail:
       failed_when: false
 
