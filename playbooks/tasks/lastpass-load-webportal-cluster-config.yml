@@ -1,0 +1,16 @@
+---
+
+# Portal cluster config
+
+- name: Get LastPass portal cluster config data
+  set_fact:
+    lastpass_data: "{{ lookup('community.general.lastpass', webportal_cluster_config_lastpass_path, field='notes') }}"
+  when: portal_cluster_id is defined
+
+# webportal_cluster_config will stay undefined if the host is not a part of a
+# cluster (i.e. portal_cluster_id var is not set for this host in hosts.ini).
+
+- name: Load LastPass portal cluster config data to variable
+  set_fact:
+    webportal_cluster_config: "{{ lastpass_data | from_yaml }}"
+  when: portal_cluster_id is defined

@@ -43,6 +43,7 @@ local_networks:
 
 # LastPass settings
 webportal_server_config_lastpass_path: "Shared-Configurations/portal-vars-{{ inventory_hostname }}.yml"
+webportal_cluster_config_lastpass_path: "Shared-Configurations/portal-cluster-vars-{{ portal_cluster_id }}.yml"
 webportal_common_config_lastpass_path: "Shared-Configurations/portal-common-vars.yml"
 
 # Portal settings
