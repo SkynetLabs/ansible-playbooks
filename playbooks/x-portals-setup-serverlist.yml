@@ -74,6 +74,7 @@
     
     - name: Test servers script runs successfully (before adding to crontab)
       command: "{{ serverlist_command }}"
+      changed_when: False
     
     - name: Ensure serverlist script is in crontab
       ansible.builtin.cron:
