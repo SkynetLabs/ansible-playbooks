@@ -1,5 +1,8 @@
 ---
 
+- name: Include getting skynet-js repository latest valid semver version
+  include_tasks: tasks/portal-skynet-js-repo-get-latest-version.yml
+
 # Run integration tests locally against webportal
 - name: Run integration tests
   block:
@@ -12,7 +15,7 @@
         module: ansible.builtin.git
         repo: "{{ skynet_js_repo_url }}"
         dest: "{{ local_temp_skynetlabs_git_repos_skynet_js }}/{{ inventory_hostname }}"
-        version: "{{ skynet_js_repo_version }}"
+        version: "{{ skynet_js_latest_version }}"
         update: True
         force: True
 

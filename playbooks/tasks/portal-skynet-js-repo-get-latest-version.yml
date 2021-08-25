@@ -1,0 +1,58 @@
+---
+
+# Get skynet-js repository latest valid semver version
+
+- name: Download skynet-js tags via Github API
+  ansible.builtin.command: |
+    docker run --rm "{{ curl_docker_image }}" curl -H "Accept: application/vnd.github.v3+json" "{{ skynet_js_repo_api_url }}/tags"
+  register: skynet_js_versions_result
+
+- name: Set skynet-js versions
+  set_fact:
+    skynet_js_versions: "{{ skynet_js_versions_result.stdout | from_json | map(attribute='name') }}"
+
+- name: Get highest valid skynet-js semver version
+  # Should be run locally, because expects python3 semver package installed
+  # on Ansible CM machine (our Ansible CM docker image)
+  local_action:
+    module: ansible.builtin.shell
+    cmd: |
+      import semver
+      versions = []
+      
+      # Add all versions from ansible var
+      {% for r in skynet_js_versions %}versions.append('{{ r }}')
+      {% endfor %}
+      print('Versions:')
+      print(versions)
+      print()
+
+      # Remove leading 'v' and filter out invalid semver versions
+      valid_semver_versions = [r[1:] for r in versions if r[0] == 'v' and semver.VersionInfo.isvalid(r[1:])]
+      print('Valid semver versions:')
+      print(valid_semver_versions)
+      print()
+
+      # Check if at least one semver release was found
+      if len(valid_semver_versions) == 0:
+        print('No valid semver release was found')
+      else:
+        # Print the result
+        print('Highest valid semver release:')
+        print('v' + str(max(map(semver.VersionInfo.parse, valid_semver_versions))))
+    args:
+      executable: /usr/bin/python3
+  register: max_version_result
+
+- name: Set skynet-js latest version
+  set_fact:
+    skynet_js_latest_version: "{{ max_version_result.stdout_lines[-1] }}"
+
+- name: Log latest skynet-js version
+  debug:
+    msg: "Latest skynet-js version: {{ skynet_js_latest_version }}"
+
+- name: Fail if no valid skynet-js semver release was found
+  fail:
+    msg: "No valid skynet-js semver release was found:\n\n{{ max_version_result.stdout }}"
+  when: skynet_js_latest_version not in skynet_js_versions
