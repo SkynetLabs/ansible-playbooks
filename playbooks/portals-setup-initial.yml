@@ -1,6 +1,6 @@
 - name: Setup basic security by root
   hosts: webportals
-  remote_user: root
+  remote_user: "{{ initial_root_like_user | default('root') }}"
   gather_facts: True
   serial: 1              # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
