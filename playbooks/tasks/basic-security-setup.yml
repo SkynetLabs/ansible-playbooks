@@ -15,6 +15,7 @@
 
 # Create user
 - name: Create users
+  become: true # only needed when not root user
   ansible.builtin.user:
     name: "{{ item.username }}"
     password: "{{ item.password_hash }}"
@@ -26,6 +27,7 @@
 
 # Add SSH authorized keys
 - name: Add SSH authorized keys
+  become: true # only needed when not root user
   ansible.posix.authorized_key:
     user: "{{ item.username }}"
     state: present
