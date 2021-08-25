@@ -1,12 +1,14 @@
 ---
 # Update apt
-- name: Run apt-get update
+- name: Run sudo apt-get update
+  become: true # only needed when not root user
   apt:
     update_cache: yes
     cache_valid_time: 900
 
 # Install latest sudo
 - name: Install sudo
+  become: true # only needed when not root user
   apt:
     name: sudo
     state: latest
