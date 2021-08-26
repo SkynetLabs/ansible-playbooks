@@ -1,7 +1,25 @@
+# This playbook:
+# - Creates webportal user (user should have uid:gid=1000:1000 for elasticsearch docker config)
+# - Sets up basic security
+
+# Workflow:
+# - if we have root user (initial_root_like_user is not defined):
+#     - login as root user
+#         - create webportal user
+#         - setup basic security (that's all)
+# - if we do not have root, but initial_root_like_user
+#   (e.g. debian with uid:gid=1000:1000) with password-less sudo rights:
+#     - login as initial_root_like_user user
+#         - create temp user with sudo rights
+#     - login as temp user
+#         - remove debian user
+#         - create webportal user (with uid:gid=1000:1000)
+#         - setup basic security
+
 - name: Setup basic security by root
   hosts: webportals
   remote_user: "{{ initial_root_like_user | default('root') }}"
-  gather_facts: True
+  gather_facts: False
   serial: 1              # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:                  # Playbook specific vars
@@ -27,3 +45,38 @@
       args:
         apply:
           become: "{{ False if initial_root_like_user == 'root' else True }}"
+
+
+
+
+
+
+# - name: Setup basic security by root
+#   hosts: webportals
+#   remote_user: "{{ initial_root_like_user | default('root') }}"
+#   gather_facts: True
+#   serial: 1              # Limit concurrency
+#   any_errors_fatal: True # Stop on first error, do not execute on the next host
+#   vars:                  # Playbook specific vars
+#     max_hosts: "{{ groups['webportals'] | length - 1 }}"
+#     lastpass_required: True
+
+#   tasks:
+
+#     # Check '--limit' is used
+#     - name: Fail if you are targeting all dev and prod webportals
+#       include_tasks: tasks/host-limit-check.yml
+
+#     # Check host OS version
+#     - name: Check supported OS and version
+#       assert:
+#         that:
+#           - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
+#         fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
+    
+#     # Basic security
+#     - name: Include basic security setup
+#       include_tasks: tasks/basic-security-setup.yml
+#       args:
+#         apply:
+#           become: "{{ False if initial_root_like_user == 'root' else True }}"
