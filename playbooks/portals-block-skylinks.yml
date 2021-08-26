@@ -1,0 +1,15 @@
+- name: Block Skynet Webportal Skylinks
+  hosts: webportals
+  strategy: free # Execute playbook on hosts in parallel as fast as possible (do not wait for other hosts)
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  tasks:
+    
+    # Added a non-loop remote task, so that unreachable hosts fail faster
+    - name: Starting to block skylinks
+      ansible.builtin.ping:
+    
+    - name: Block skylinks
+      ansible.builtin.command: "docker exec sia siac skynet blocklist add {{ item }}"
+      loop: "{{ skylinks_block_list }}"
