@@ -24,3 +24,6 @@
     # Basic security
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
+      args:
+        apply:
+          become: "{{ False if initial_root_like_user == 'root' else True }}"
