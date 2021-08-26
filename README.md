@@ -27,6 +27,8 @@
         - [Rollback Skynet Webportal](#rollback-skynet-webportal)
         - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
         - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
+        - [Block Portal Skylinks](#block-portal-skylinks)
+        - [Unblock Portal Skylinks](#unblock-portal-skylinks)
         - [Run Integration Tests](#run-integration-tests)
         - [Run Health Checks](#run-health-checks)
         - [Setup Portal from Scratch](#setup-portal-from-scratch)
@@ -382,10 +384,54 @@ Notes:
 * Format of `max_storage_price` value must be same as is expected by executing
   `docker exec sia siac renter setallowance --max-storage-price`
 
+To run:  
+`scripts/portals-set-allowance-max-storage-price.sh --limit webportals_prod`   
+`scripts/portals-set-allowance-max-storage-price.sh --limit eu-ger-3`
+
+### Block Portal Skylinks
+
+Playbook:
+* Blocks portal skylinks defined in `skylinks_block_list` variable.
+
+Preparation:  
+Create a file `skylinks-block.yml` in `my-vars` directory with defined
+`skylinks_block_list` variable.
+
+Example `skylinks-block.yml` content:  
+```yaml
+---
+
+skylinks_block_list:
+  - <skylink 1>
+  - <skylink 2>
+```
 
 To run:  
-`scripts/portals-set-allowance-max-storage-price.sh --limit portals_prod`   
-`scripts/portals-set-allowance-max-storage-price.sh --limit eu-ger-3`
+`scripts/portals-block-skylinks.sh -e @my-vars/skylinks-block.yml --limit eu-fin-1`  
+`scripts/portals-block-skylinks.sh -e @my-vars/skylinks-block.yml --limit webportals_prod`
+
+### Unblock Portal Skylinks
+
+Playbook:
+* Unblocks portal skylinks defined in `skylinks_unblock_list` variable.
+
+Preparation:  
+Create a file `skylinks-unblock.yml` in `my-vars` directory with defined
+`skylinks_unblock_list` variable.
+
+Example `skylinks-unblock.yml` content:  
+```yaml
+---
+
+skylinks_unblock_list:
+  - 3AF1z9V61r5w1A_5oCnxQ5gPbU4Ymn0IWlMNicPBxty6zg
+  - 3AFseaFttl533Ma3hmkUEOhvx7dQgklcnS4-Nhx3LPyrMg
+  - 3AHuMny_l2DqQUZty6OdhW-MXnDjT411rryLuQVWa0Sw_g
+```
+
+To run:  
+`scripts/portals-unblock-skylinks.sh -e @my-vars/skylinks-unblock.yml --limit eu-fin-1`  
+`scripts/portals-unblock-skylinks.sh -e @my-vars/skylinks-unblock.yml --limit webportals_prod`
 
 ### Run Integration Tests
 
