@@ -1,10 +1,11 @@
-- name: Restart Skynet Webportals
+- name: Disable Skynet Webportal Health Checks
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: False
 
-  # Limit concurrency
-  serial: 1
+  # High limit on concurrency since this script is typically used when a bug is
+  # found so we want to address it quickly.
+  serial: 10
 
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True
@@ -17,11 +18,12 @@
     portal_action: "portal-restart"
 
   tasks:
-    # Check '--limit' is used
+    # Check '--limit' is used. This is to protect against taking the entire
+    # fleet down
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
-    # Don't restart portals on takedown
+    # Skip portals on takedown as they are already out of the LB
     - block:
         - name: Stop play for portals in webportals_takedown group
           debug:
@@ -32,8 +34,8 @@
 
       when: "'webportals_takedown' in group_names"
 
-    # Check/install Ansible prerequisities
-    - name: Include preparing portal prerequisities
+    # Check/install Ansible prerequisites
+    - name: Include preparing portal prerequisites
       include_tasks: tasks/portals-prepare.yml
 
     # Disable health check
