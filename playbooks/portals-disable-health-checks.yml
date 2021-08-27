@@ -13,9 +13,6 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    docker_compose_build: False
-    set_portal_versions: False
-    portal_action: "portal-restart"
 
   tasks:
     # Check '--limit' is used. This is to protect against taking the entire
