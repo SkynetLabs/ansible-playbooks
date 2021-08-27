@@ -5,11 +5,13 @@
 
 # User settings
 webportal_user: "user"
-webportal_user_dance_user: "userdance"
 webportal_user_authorized_keys: "https://raw.githubusercontent.com/SkynetLabs/skynet-webportal/master/setup-scripts/support/authorized_keys"
+webportal_temp_user: "userdance"
+access_check_timeout_secs: 5
 
 initial_users:
   - username: "{{ webportal_user }}"
+    uid: 1000
     password_hash: "{{ webportal_user_pass_hash }}"
     authorized_keys: "{{ webportal_user_authorized_keys }}"
 
