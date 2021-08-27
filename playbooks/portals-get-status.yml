@@ -8,7 +8,6 @@
     portal_action: "portal-get-status"
 
   tasks:
-
     - name: Include getting portal status
       include_tasks: tasks/portal-status-get-status.yml
 
@@ -16,11 +15,10 @@
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: False
-  
+
   # Limit concurrency to handle Discord webhook rate limits
   serial: 1
 
   tasks:
-
     - name: Include reporting status to Discord
       include_tasks: tasks/portal-status-report-to-discord.yml

@@ -18,31 +18,29 @@
     portal_action: "portal-rollback"
 
   tasks:
-
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
-    
+
     # Don't rollback portals on takedown
     - block:
-
         - name: Stop play for portals in webportals_takedown group
           debug:
             msg: "Will not rollback portal in webportals_takedown group"
 
         - name: Stop play for portals in webportals_takedown group
           meta: end_host
-      
+
       when: "'webportals_takedown' in group_names"
-    
+
     # Disable health check
     - name: Include disabling portal health check
       include_tasks: tasks/portal-health-check-disable.yml
-    
+
     # Stop portal docker services
     - name: Include stopping portal docker services
       include_tasks: tasks/portal-docker-services-stop.yml
-    
+
     # Get last working config (status.tested)
     - name: Include getting last working portal versions (status.tested)
       include_tasks: tasks/portal-versions-get-last-status-tested-versions.yml
@@ -53,7 +51,7 @@
       vars:
         tag_from: "tested"
         tag_to: "rollback-tested"
-    
+
     # Set portal version (checkout skynet-webportal repo version)
     - name: Set portal version (checkout skynet-webportal repo version)
       ansible.builtin.git:
@@ -66,15 +64,15 @@
     # Rollback config files
     - name: Include rollback config files
       include_tasks: tasks/portal-versions-rollback-config-files.yml
-    
+
     # Rebuild docker images, start the docker services and log activities
     - name: Include starting portal docker services
       include_tasks: tasks/portal-docker-services-start.yml
-    
+
     # Run portal integration tests
     - name: Include running portal integration tests
       include_tasks: tasks/portal-integration-tests-run.yml
-    
+
     # Include running portal health checks
     - name: Include running portal health checks
       include_tasks: tasks/portal-health-checks-run.yml
@@ -85,15 +83,17 @@
       vars:
         tag_from: "started"
         tag_to: "tested"
-    
+
     # Enable health check
     - name: Include enabling portal health check
+      # do not enable health checks on hosts from out_of_LB group
+      when: ('out_of_LB' not in group_names)
       include_tasks: tasks/portal-health-check-enable.yml
-    
+
     # Get portal status
     - name: Include getting portal status
       include_tasks: tasks/portal-status-get-status.yml
-    
+
     # Report portal status to Discord
     - name: Include reporting status to Discord
       include_tasks: tasks/portal-status-report-to-discord.yml
