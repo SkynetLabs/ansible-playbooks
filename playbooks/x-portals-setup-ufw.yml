@@ -1,0 +1,82 @@
+- name: Setup ufw rules
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+
+  tasks:
+    
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+    
+    # Set ufw rules
+    - block:
+      # Reset
+      - name: Reset ufw
+        community.general.ufw:
+          state: reset
+      
+      # SSH
+      - name: Limit SSH
+        community.general.ufw:
+          rule: limit
+          direction: in
+          port: '22'
+          proto: tcp
+        notify:
+          - reload ufw firewall
+
+      # Default in, out
+
+      - name: Allow outgoing
+        community.general.ufw:
+          default: allow
+          direction: outgoing
+
+      - name: Deny incoming
+        community.general.ufw:
+          default: deny
+          direction: incoming
+
+      # In ports
+      - name: Allow incoming ports
+        community.general.ufw:
+          rule: allow
+          direction: in
+          port: "'{{ item }}'"
+          proto: tcp
+        loop:
+          - 80
+          - 443
+          - 26257
+          - 27017
+      
+      # Deny out to local nets (except 10.0.0.0/8 - this can't be denied)
+      - name: Deny outgoing to local nets
+        community.general.ufw:
+          xxx
+
+      always:
+        - name: Limit SSH
+          community.general.ufw:
+            rule: limit
+            direction: in
+            port: '22'
+            proto: tcp
+        
+        - name: Enable Firewall
+          community.general.ufw:
+            state: enabled
+      
+      become: True
