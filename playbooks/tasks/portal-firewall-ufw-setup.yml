@@ -1,0 +1,61 @@
+---
+
+# Setup portal ufw firewall rules
+
+- block:
+    - name: Reset ufw (reset ufw rules and disables ufw firewall)
+      community.general.ufw:
+        state: reset
+    
+    - name: Limit SSH access
+      community.general.ufw:
+        rule: limit
+        direction: in
+        port: '22'
+        proto: tcp
+
+    - name: Allow outgoing traffic by default
+      community.general.ufw:
+        default: allow
+        direction: outgoing
+
+    - name: Deny incoming traffic by default
+      community.general.ufw:
+        default: deny
+        direction: incoming
+
+    - name: Allow specific incoming ports
+      community.general.ufw:
+        rule: allow
+        direction: in
+        port: "'{{ item }}'"
+        proto: tcp
+      loop:
+        - 80
+        - 443
+        - 26257
+        - 27017
+    
+    - name: Deny outgoing traffic to local networks
+      community.general.ufw:
+        rule: "deny"
+        proto: "any"
+        direction: "out"
+        to_ip: "{{ item }}"
+      # Exception: Do not deny traffic to 10.0.0.0/8 because we need to
+      # connect to various docker services on this network.
+      when: "'10.0.0.0' not in item"
+      loop: "{{ local_networks }}"
+
+  # On error set at least SSH rule and enable firewall
+  always:
+    - name: Limit SSH access
+      community.general.ufw:
+        rule: limit
+        direction: in
+        port: '22'
+        proto: tcp
+    
+    - name: Enable Firewall
+      community.general.ufw:
+        state: enabled
