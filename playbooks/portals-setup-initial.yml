@@ -64,6 +64,9 @@
   gather_facts: False
   serial: 1              # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:
+    # LastPass required to set webportal_temp_user password to webportal_user password
+    lastpass_required: True
   tasks:
     - name: Skip if initial root like user is not defined
       meta: end_host
@@ -129,12 +132,15 @@
   gather_facts: False
   serial: 1              # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:
+    # LastPass required to read password for become: True and for setting
+    # webportal_user password from LastPass
+    lastpass_required: True
   tasks:
     - name: Skip if initial root like user is not defined
       meta: end_host
       when: initial_root_like_user is not defined
     
-    xxxqqq need become pass
     - name: Remove initial root like user
       ansible.builtin.user:
         name: "{{ initial_root_like_user }}"
