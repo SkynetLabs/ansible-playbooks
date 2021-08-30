@@ -72,13 +72,21 @@
       meta: end_host
       when: initial_root_like_user is not defined
     
-    - name: Skip if initial root like user was disabled
+    - name: Check SSH access (initial root like user might be already disabled)
       block:
         - name: Check SSH access
           wait_for_connection:
             timeout: "{{ access_check_timeout_secs }}"
           changed_when: False
+          register: ssh_access_result
       rescue:
+        # 'meta: end_host' couldn't be in this 'rescue:' because it caused
+        # ansible host to stop completely, it didn't continued to the next
+        # play. So the 'meta: end_host' was added to the block with 'when'.
+        - meta: noop
+      
+    - name: Skip to next play if initial root like user was disabled
+      block:
         - name: Log no SSH access
           debug:
             msg: |
@@ -91,9 +99,10 @@
                - server is down
                - fail2ban limits SSH connections
 
-             Skipping this play
+             Skipping this play, continue with the next play...
         
-        - meta: end_play
+        - meta: end_host
+      when: ssh_access_result.failed
 
     # Check host OS version
 
@@ -133,7 +142,7 @@
   serial: 1              # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
-    # LastPass required to read password for become: True and for setting
+    # LastPass required to read password for 'become: True' and for setting
     # webportal_user password from LastPass
     lastpass_required: True
   tasks:
@@ -146,11 +155,15 @@
         name: "{{ initial_root_like_user }}"
         state: absent
         remove: yes
+        force: True
       become: True
     
     - name: Restore initial users (if they were updated)
       set_fact:
         initial_users: "{{ initial_users_before_user_dance | default(initial_users) }}"
+    
+    - name: Gather ansible facts on demand
+      ansible.builtin.setup:
 
     # Setup basic security
     - name: Include basic security setup
