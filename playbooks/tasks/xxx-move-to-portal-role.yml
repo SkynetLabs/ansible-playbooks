@@ -66,6 +66,13 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
+
+    # xxx use community.docker.docker_prune (requires community.docker upgrade) with long timeout
+    # Prune docker
+    - name: Prune docker
+      ansible.builtin.command: docker system prune --force
+      async: 300
+      poll: 5
     
     - name: Start Sia docker container
       community.docker.docker_compose:
