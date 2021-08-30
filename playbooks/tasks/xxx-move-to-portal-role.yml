@@ -71,7 +71,7 @@
     # Prune docker
     - name: Prune docker
       ansible.builtin.command: docker system prune --force
-      async: 300
+      async: "{{ docker_prune_timeout_secs }}"
       poll: 5
     
     - name: Start Sia docker container
@@ -97,7 +97,7 @@
 # Prune docker
 - name: Prune docker
   ansible.builtin.command: docker system prune --force
-  async: 300
+  async: "{{ docker_prune_timeout_secs }}"
   poll: 5
 
 - name: Check wallet
