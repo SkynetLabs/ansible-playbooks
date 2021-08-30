@@ -56,6 +56,9 @@ setup_status_file: "{{ setup_status_dir }}/status"
 devops_scripts_dir: "{{ devops_dir }}/scripts"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
 
+# Docker prune settings
+docker_prune_timeout_secs: 1800
+
 # Sia setup settings
 # Wallet initialization
 use_existing_sia_seed_if_exists: True
