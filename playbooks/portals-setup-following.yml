@@ -26,7 +26,7 @@
           become: True
     
     - name: Include firewall setup
-      include_tasks: tasks/firewall-ufw-setup.yml
+      include_tasks: tasks/portal-firewall-ufw-setup.yml
       args:
         apply:
           become: True
