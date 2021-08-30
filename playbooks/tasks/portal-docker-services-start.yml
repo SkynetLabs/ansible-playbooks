@@ -41,6 +41,12 @@
     mode: preserve
   loop: "{{ webportal_docker_compose_files_wanted + webportal_other_config_files }}"
 
+# Prune docker
+- name: Prune docker
+  ansible.builtin.command: docker system prune --force
+  async: 300
+  poll: 5
+
 # Log status as 'starting'
 - name: Log status as 'starting'
   file:
@@ -74,7 +80,9 @@
 
 # Prune docker
 - name: Prune docker
-  command: docker system prune
+  ansible.builtin.command: docker system prune --force
+  async: 300
+  poll: 5
 
 # Sleep 30 seconds
 - name: Sleep for 30 seconds and continue with play

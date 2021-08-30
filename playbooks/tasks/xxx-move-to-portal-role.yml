@@ -87,8 +87,11 @@
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
 # xxx use community.docker.docker_prune (requires community.docker upgrade) with long timeout
+# Prune docker
 - name: Prune docker
-  command: docker system prune --force
+  ansible.builtin.command: docker system prune --force
+  async: 300
+  poll: 5
 
 - name: Check wallet
   command: docker exec sia siac wallet
