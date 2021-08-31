@@ -1,5 +1,7 @@
 ---
 
+# xxx This ansible playbook task, should be moved to portal role
+
 - name: Checkout skynet-webportal repository
   ansible.builtin.git:
     repo: "{{ webportal_repo_url }}"
