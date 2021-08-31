@@ -3,7 +3,7 @@
 # Portal common config
 - name: Get LastPass portal common config data
   set_fact:
-    lastpass_data: "{{ lookup('community.general.lastpass', webportal_common_config_lastpass_path, field='notes') }}"
+    lastpass_data: "{{ lookup('community.general.lastpass', lastpass_portal_config_common, field='notes') }}"
 
 - name: Load LastPass portal common config data to variable
   set_fact:
