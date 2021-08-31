@@ -4,7 +4,7 @@
 
 - name: Get LastPass portal cluster config data
   set_fact:
-    lastpass_data: "{{ lookup('community.general.lastpass', webportal_cluster_config_lastpass_path, field='notes') }}"
+    lastpass_data: "{{ lookup('community.general.lastpass', lastpass_portal_config_cluster, field='notes') }}"
   when: portal_cluster_id is defined
 
 # webportal_cluster_config will stay undefined if the host is not a part of a
