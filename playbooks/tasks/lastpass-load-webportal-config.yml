@@ -26,3 +26,7 @@
 - name: Update portal common config with portal cluster config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | combine(webportal_cluster_config | default({}), recursive=True) }}"
+
+- name: Reset portal cluster config (portal common config should be used instead)
+  set_fact:
+    webportal_cluster_config: None
