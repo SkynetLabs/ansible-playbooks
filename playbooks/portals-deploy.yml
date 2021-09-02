@@ -71,7 +71,7 @@
     # TEMP: Wait for NGINX to no longer be restarting. This is to address the
     # SSL caddy change
     - name: Include waiting for NGINX to Start Up
-      include_tasks: tasks/portal-check-nginx.yml
+      include_tasks: tasks/portals-check-nginx.yml
 
     # Run portal integration tests
     - name: Include running portal integration tests
