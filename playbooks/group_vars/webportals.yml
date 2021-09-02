@@ -1,5 +1,4 @@
 ---
-
 # =============================================================================
 # Portal setup settings (from fresh server)
 
@@ -33,8 +32,8 @@ docker_users: "{{ [webportal_user] }}"
 
 # UFW firewall settings
 group_ufw_rules:
-  - { rule: 'allow', port: '80', proto: 'tcp', direction: "in" }
-  - { rule: 'allow', port: '443', proto: 'tcp', direction: "in" }
+  - { rule: "allow", port: "80", proto: "tcp", direction: "in" }
+  - { rule: "allow", port: "443", proto: "tcp", direction: "in" }
 ufw_deny_outgoing_to_local_network: True
 local_networks:
   - "10.0.0.0/8"
@@ -76,7 +75,7 @@ dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
 # xxx make optional
 webportal_git_config:
   - name: user.name
-    value: 'SkynetLabs Devs'
+    value: "SkynetLabs Devs"
   - name: user.email
     value: "{{ skynetlabs_devs_email }}"
 
@@ -147,6 +146,11 @@ sia_full_setup_timeout_secs: 900
 sia_daemon_ready_timeout_secs: 600
 curl_docker_image: "curlimages/curl:7.77.0"
 sia_endpoint_not_available_msg: "491 Module disabled - Refer to API.md"
+
+# Times
+five_minutes: 300
+ten_minutes: 600
+fifteen_minutes: 900
 
 # docker-compose.override.yml cleaning vars
 keep_accounts_services:

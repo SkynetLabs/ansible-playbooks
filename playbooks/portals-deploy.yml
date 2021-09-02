@@ -68,6 +68,11 @@
     - name: Include starting portal docker services
       include_tasks: tasks/portal-docker-services-start.yml
 
+    # TEMP: Wait for NGINX to no longer be restarting. This is to address the
+    # SSL caddy change
+    - name: Include waiting for NGINX to Start Up
+      include_tasks: tasks/portal-check-nginx.yml
+
     # Run portal integration tests
     - name: Include running portal integration tests
       include_tasks: tasks/portal-integration-tests-run.yml

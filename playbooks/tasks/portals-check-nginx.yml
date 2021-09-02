@@ -1,0 +1,7 @@
+# Wait until nginx is no longer restarting
+- name: Check for Restarting in docker ps
+  shell: docker ps | grep nginx
+  register: docker_nginx
+  until: docker_nginx.stdout.find("Restarting") == -1
+  delay: 1
+  retries: "{{ fifteen_minutes }}"
