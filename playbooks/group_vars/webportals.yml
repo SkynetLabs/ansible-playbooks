@@ -147,11 +147,6 @@ sia_daemon_ready_timeout_secs: 600
 curl_docker_image: "curlimages/curl:7.77.0"
 sia_endpoint_not_available_msg: "491 Module disabled - Refer to API.md"
 
-# Times
-five_minutes: 300
-ten_minutes: 600
-fifteen_minutes: 900
-
 # docker-compose.override.yml cleaning vars
 keep_accounts_services:
   - "nginx"
