@@ -25,9 +25,7 @@
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
-  
   tasks:
-
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
@@ -38,6 +36,8 @@
   gather_facts: False
   serial: 1              # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:
+    lastpass_required: True
   tasks:
     - name: Skip if initial root like user is defined
       meta: end_host
