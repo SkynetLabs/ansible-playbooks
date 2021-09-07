@@ -99,7 +99,6 @@ webportal_server_config_defaults:
   portal_name: "{{ ansible_host }}"
   portal_modules: ""
   sia_wallet_password: ""
-  skynet_server_api: "https://{{ ansible_host }}"
   sia_api_port: 9980
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
 
