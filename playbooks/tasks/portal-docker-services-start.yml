@@ -66,6 +66,12 @@
   become: True
   become_user: "user"
 
+# Prune docker
+- name: Prune docker
+  ansible.builtin.command: docker system prune --force
+  async: "{{ docker_prune_timeout_secs }}"
+  poll: 5
+
 # Wait until Sia finished full setup
 - name: Wait until Sia finished full setup
   command: docker logs sia
@@ -77,12 +83,6 @@
 # Include waiting for sia daemon/ready
 - name: Include waiting for sia daemon/ready
   include_tasks: tasks/portal-wait-for-sia-daemon-ready.yml
-
-# Prune docker
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
 
 # Confirm all Docker Services Started Up
 - name: Wait Until Docker Services Have Started Up
