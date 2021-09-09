@@ -1,12 +1,32 @@
 ---
 
-# Load Portal server and common configs from LastPass
+# Load portal configs from LastPass
 
-- name: Include loading LastPass portal server config
-  include_tasks: tasks/lastpass-load-webportal-server-config.yml
+# Portal common and server configs are loaded and set always.
+# If a portal is part of a cluster:
+# - cluster config is loaded and set
+# - cluster config data are merged into and can override common config data
+# - common config then contans valid common and cluster data
 
-- name: Include loading LastPass portal common config
-  include_tasks: tasks/lastpass-load-webportal-common-config.yml
+- name: Load portal common and server configs from LastPass
+  include_tasks: tasks/lastpass-load-yaml-note.yml
+  loop:
+    - lastpass_path: "{{ lastpass_portal_config_common }}"
+      var_name: webportal_common_config
+    - lastpass_path: "{{ lastpass_portal_config_server }}"
+      var_name: webportal_server_config
 
-- name: Include loading LastPass portal cluster config
-  include_tasks: tasks/lastpass-load-webportal-cluster-config.yml
+- name: Load portal cluster config from LastPass (if cluster is defined for a host)
+  include_tasks: tasks/lastpass-load-yaml-note.yml
+  when: portal_cluster_id is defined
+  loop:
+    - lastpass_path: "{{ lastpass_portal_config_cluster }}"
+      var_name: webportal_cluster_config
+
+- name: Update portal common config with portal cluster config
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | combine(webportal_cluster_config | default({}), recursive=True) }}"
+
+- name: Reset portal cluster config (portal common config should be used instead)
+  set_fact:
+    webportal_cluster_config: None
