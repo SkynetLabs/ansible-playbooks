@@ -1,5 +1,4 @@
 ---
-
 # Take portal out of load balancer by stopping healh check
 
 - name: Sleep before portal health check disabling
@@ -13,7 +12,7 @@
   register: result
 
 - name: Stop portal healh check to take portal out of load balancer
-  command: docker exec health-check cli/disable
+  command: docker exec health-check cli/disable {{ out_of_lb_message }}
   become: True
   become_user: "user"
   when: result.exists and result.container is defined and result.container.State.Running
