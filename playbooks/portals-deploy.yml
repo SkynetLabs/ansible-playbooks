@@ -2,19 +2,27 @@
   hosts: webportals
   gather_facts: False
 
-  # Limit concurrency to keep batch_hosts order deterministic
+  # Limit concurrency to keep batch_hosts order deterministic.
+  # When you want to deploy in parallel, keep 'serial: 1' for this play,
+  # parallel deploys are set by 'serial' variable in the next play.
   serial: 1
 
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True
 
   vars:
+    max_hosts: "{{ groups['webportals_prod'] | length - 1 }}"
+
     # Default batch config (one batch with all selected hosts will be created),
     # can be overriden with cli flag --extra-vars/-e
     batch_size: 1
     batch_number: 1
 
   tasks:
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
     - name: Filter hosts by batch size and batch number
       ansible.builtin.group_by:
         key: batch_hosts
@@ -28,14 +36,13 @@
   gather_facts: False
 
   # Limit concurrency
-  serial: 1
+  serial: "{{ parallel_deploys | default(1) }}"
 
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True
 
   # Playbook specific vars
   vars:
-    max_hosts: "{{ groups['webportals'] | length - 1 }}"
     # Rebuild docker services
     docker_compose_build: True
     # Set portal, skyd, accounts versions
@@ -43,15 +50,11 @@
     portal_action: "portal-deploy"
 
   tasks:
-    # Check '--limit' is used
-    - name: Fail if you are targeting all dev and prod webportals
-      include_tasks: tasks/host-limit-check.yml
-
     # Print timestamp
     - name: Print timestamp
       debug:
         msg: "{{ inventory_hostname + ' deployment start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
-
+  
     # Check/install Ansible prerequisities
     - name: Include preparing portal prerequisities
       include_tasks: tasks/portals-prepare.yml

@@ -1,0 +1,28 @@
+- name: Setup ufw rules
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+
+  tasks:
+    
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+    
+    # Set ufw firewall rules
+    - name: Include setting ufw firewall rules
+      include_tasks: tasks/portal-firewall-ufw-setup.yml
+      args:
+        apply:
+          become: True

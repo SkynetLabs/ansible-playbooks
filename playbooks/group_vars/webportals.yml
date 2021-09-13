@@ -1,14 +1,16 @@
 ---
-
 # =============================================================================
 # Portal setup settings (from fresh server)
 
 # User settings
 webportal_user: "user"
 webportal_user_authorized_keys: "https://raw.githubusercontent.com/SkynetLabs/skynet-webportal/master/setup-scripts/support/authorized_keys"
+webportal_temp_user: "userdance"
+access_check_timeout_secs: 5
 
 initial_users:
   - username: "{{ webportal_user }}"
+    uid: 1000
     password_hash: "{{ webportal_user_pass_hash }}"
     authorized_keys: "{{ webportal_user_authorized_keys }}"
 
@@ -30,8 +32,8 @@ docker_users: "{{ [webportal_user] }}"
 
 # UFW firewall settings
 group_ufw_rules:
-  - { rule: 'allow', port: '80', proto: 'tcp', direction: "in" }
-  - { rule: 'allow', port: '443', proto: 'tcp', direction: "in" }
+  - { rule: "allow", port: "80", proto: "tcp", direction: "in" }
+  - { rule: "allow", port: "443", proto: "tcp", direction: "in" }
 ufw_deny_outgoing_to_local_network: True
 local_networks:
   - "10.0.0.0/8"
@@ -42,9 +44,10 @@ local_networks:
   - "169.254.0.0/16"
 
 # LastPass settings
-webportal_server_config_lastpass_path: "Shared-Configurations/portal-vars-{{ inventory_hostname }}.yml"
-webportal_cluster_config_lastpass_path: "Shared-Configurations/portal-cluster-vars-{{ portal_cluster_id }}.yml"
-webportal_common_config_lastpass_path: "Shared-Configurations/portal-common-vars.yml"
+lastpass_ansible_config_dir: "Shared-Ansible/Portal-Configurations"
+lastpass_portal_config_common: "{{ lastpass_ansible_config_dir }}/common.yml"
+lastpass_portal_config_cluster: "{{ lastpass_ansible_config_dir }}/cluster-{{ portal_cluster_id }}.yml"
+lastpass_portal_config_server: "{{ lastpass_ansible_config_dir }}/server-{{ inventory_hostname }}.yml"
 
 # Portal settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
@@ -55,6 +58,9 @@ setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
 devops_scripts_dir: "{{ devops_dir }}/scripts"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
+
+# Docker prune settings
+docker_prune_timeout_secs: 1800
 
 # Sia setup settings
 # Wallet initialization
@@ -69,7 +75,7 @@ dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
 # xxx make optional
 webportal_git_config:
   - name: user.name
-    value: 'SkynetLabs Devs'
+    value: "SkynetLabs Devs"
   - name: user.email
     value: "{{ skynetlabs_devs_email }}"
 
@@ -93,7 +99,6 @@ webportal_server_config_defaults:
   portal_name: "{{ ansible_host }}"
   portal_modules: ""
   sia_wallet_password: ""
-  skynet_server_api: "https://{{ ansible_host }}"
   sia_api_port: 9980
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
 

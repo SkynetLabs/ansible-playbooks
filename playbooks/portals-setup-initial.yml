@@ -1,20 +1,52 @@
-- name: Setup basic security by root
+# This playbook:
+# - Creates webportal user (user should have uid:gid=1000:1000 for elasticsearch docker config)
+# - Sets up basic security
+
+# Workflow:
+# - if we have root user (initial_root_like_user is not defined):
+#     - login as root user
+#         - create webportal user
+#         - setup basic security (that's all)
+# - if we do not have root, but initial_root_like_user
+#   (e.g. debian with uid:gid=1000:1000) with password-less sudo rights:
+#     - login as initial_root_like_user user
+#         - create temp user with sudo rights
+#     - login as temp user
+#         - remove debian user
+#         - create webportal user (with uid:gid=1000:1000)
+#         - setup basic security
+
+- name: Check '--limit' is used
   hosts: webportals
-  remote_user: root
-  gather_facts: True
-  serial: 1              # Limit concurrency
-  any_errors_fatal: True # Stop on first error, do not execute on the next host
-  vars:                  # Playbook specific vars
+  remote_user: "nobody"
+  gather_facts: False
+  serial: 1
+  any_errors_fatal: True
+  vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
-
   tasks:
-
-    # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
+# When we have root access we just run this play
+- name: Setup basic security by root
+  hosts: webportals
+  remote_user: "root"
+  gather_facts: False
+  serial: 1              # Limit concurrency
+  any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:
+    lastpass_required: True
+  tasks:
+    - name: Skip if initial root like user is defined
+      meta: end_host
+      when: initial_root_like_user is defined
+    
     # Check host OS version
+    - name: Gather ansible facts on demand
+      ansible.builtin.setup:
+    
     - name: Check supported OS and version
       assert:
         that:
@@ -24,3 +56,118 @@
     # Basic security
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
+
+# When we have initial root like user
+- name: Create temp user by initial root like user
+  hosts: webportals
+  remote_user: "{{ initial_root_like_user | default('') }}"
+  gather_facts: False
+  serial: 1              # Limit concurrency
+  any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:
+    # LastPass required to set webportal_temp_user password to webportal_user password
+    lastpass_required: True
+  tasks:
+    - name: Skip if initial root like user is not defined
+      meta: end_host
+      when: initial_root_like_user is not defined
+    
+    - name: Check SSH access (initial root like user might be already disabled)
+      block:
+        - name: Check SSH access
+          wait_for_connection:
+            timeout: "{{ access_check_timeout_secs }}"
+          changed_when: False
+          register: ssh_access_result
+      rescue:
+        # 'meta: end_host' couldn't be in this 'rescue:' because it caused
+        # ansible host to stop completely, it didn't continued to the next
+        # play. So the 'meta: end_host' was added to the block with 'when'.
+        - meta: noop
+      
+    - name: Skip to next play if initial root like user was disabled
+      block:
+        - name: Log no SSH access
+          debug:
+            msg: |
+             User {{ initial_root_like_user }}
+             could not establish SSH connection
+             within {{ access_check_timeout_secs }} seconds timeout
+
+             Maybe
+               - {{ initial_root_like_user }} user was already disabled (this is expected)
+               - server is down
+               - fail2ban limits SSH connections
+
+             Skipping this play, continue with the next play...
+        
+        - meta: end_host
+      when: ssh_access_result.failed
+
+    # Check host OS version
+
+    - name: Gather ansible facts on demand
+      ansible.builtin.setup:
+    
+    - name: Check supported OS and version
+      assert:
+        that:
+          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
+        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
+    
+    # Backup and update initial_users
+
+    - name: Backup initial users
+      set_fact:
+        initial_users_before_user_dance: "{{ initial_users }}"
+
+    - name: Update initial users with temp user
+      set_fact:
+        initial_users: "{{ [item | combine({'username': webportal_temp_user, 'gid': None}, recursive=True)] }}"
+      when: item.username == webportal_user
+      loop: "{{ initial_users }}"
+
+    # Setup basic security
+    - name: Include basic security setup
+      include_tasks: tasks/basic-security-setup.yml
+      args:
+        apply:
+          become: True
+
+# When we have initial root like user
+- name: Create webportal user by temp user
+  hosts: webportals
+  remote_user: "{{ webportal_temp_user | default('') }}"
+  gather_facts: False
+  serial: 1              # Limit concurrency
+  any_errors_fatal: True # Stop on first error, do not execute on the next host
+  vars:
+    # LastPass required to read password for 'become: True' and for setting
+    # webportal_user password from LastPass
+    lastpass_required: True
+  tasks:
+    - name: Skip if initial root like user is not defined
+      meta: end_host
+      when: initial_root_like_user is not defined
+    
+    - name: Remove initial root like user
+      ansible.builtin.user:
+        name: "{{ initial_root_like_user }}"
+        state: absent
+        remove: yes
+        force: True
+      become: True
+    
+    - name: Restore initial users (if they were updated)
+      set_fact:
+        initial_users: "{{ initial_users_before_user_dance | default(initial_users) }}"
+    
+    - name: Gather ansible facts on demand
+      ansible.builtin.setup:
+
+    # Setup basic security
+    - name: Include basic security setup
+      include_tasks: tasks/basic-security-setup.yml
+      args:
+        apply:
+          become: True

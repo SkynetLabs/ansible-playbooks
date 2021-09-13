@@ -11,8 +11,22 @@
     name: sudo
     state: latest
 
-# Create user
-- name: Create users
+# Create users with defined uid
+- name: Create users with defined uid
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    password: "{{ item.password_hash }}"
+    gid: "item.gid"
+    state: present
+    shell: /bin/bash
+    groups:
+      - sudo
+  # Below must be exact case: None (Python), none (Jinja test)
+  when: item.gid | default(None) is not none
+  loop: "{{ initial_users }}"
+
+# Create users without defined uid
+- name: Create users without defined uid
   ansible.builtin.user:
     name: "{{ item.username }}"
     password: "{{ item.password_hash }}"
@@ -20,7 +34,17 @@
     shell: /bin/bash
     groups:
       - sudo
+  # Below must be exact case: None (Python), none (Jinja test)
+  when: item.gid | default(None) is none
   loop: "{{ initial_users }}"
+
+# Remove temp user
+- name: Remove temp user (when webportal user is active)
+  ansible.builtin.user:
+    name: "{{ webportal_temp_user }}"
+    state: absent
+    remove: yes
+  when: ansible_user == webportal_user
 
 # Add SSH authorized keys
 - name: Add SSH authorized keys

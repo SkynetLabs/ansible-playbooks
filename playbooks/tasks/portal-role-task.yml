@@ -1,5 +1,7 @@
 ---
 
+# xxx This ansible playbook task, should be moved to portal role
+
 - name: Checkout skynet-webportal repository
   ansible.builtin.git:
     repo: "{{ webportal_repo_url }}"
@@ -66,6 +68,13 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
+
+    # xxx use community.docker.docker_prune (requires community.docker upgrade) with long timeout
+    # Prune docker
+    - name: Prune docker
+      ansible.builtin.command: docker system prune --force
+      async: "{{ docker_prune_timeout_secs }}"
+      poll: 5
     
     - name: Start Sia docker container
       community.docker.docker_compose:
@@ -87,8 +96,11 @@
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
 # xxx use community.docker.docker_prune (requires community.docker upgrade) with long timeout
+# Prune docker
 - name: Prune docker
-  command: docker system prune --force
+  ansible.builtin.command: docker system prune --force
+  async: "{{ docker_prune_timeout_secs }}"
+  poll: 5
 
 - name: Check wallet
   command: docker exec sia siac wallet
