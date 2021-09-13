@@ -17,7 +17,8 @@
         - [Deploy Skynet Webportal](#deploy-skynet-webportal)
             - [Deploy Playbook Actions:](#deploy-playbook-actions)
             - [Portal Modules](#portal-modules)
-            - [How to set portal, skyd, accounts versions:](#how-to-set-portal-skyd-accounts-versions)
+            - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
+            - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
             - [How to Set Deploy Batch](#how-to-set-deploy-batch)
         - [Takedown Skynet Webportal](#takedown-skynet-webportal)
             - [Playbook Actions](#playbook-actions)
@@ -214,7 +215,7 @@ or Jaeger defined in `docker-compose.accounts.yml` or
 Accounts and Jaeger docker compose files will be loaded according to the flag
 order in `PORTAL_MODULES`.
 
-#### How to set portal, skyd, accounts versions:
+#### How to set portal, skyd, accounts versions
 
 * Go to `my-vars`.
 * Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
@@ -235,6 +236,24 @@ To deploy portal at `eu-ger-1` and `us-pa-1` execute:
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1,us-pa-1`  
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1.us-pa-1`
+
+#### How to enable parallel deployments
+
+By default portals-deploy playbook performs deployments one server at a time
+(rolling updates/deploys). You can enable parallel deployments (deploy to the
+given number of hosts in parallel) by setting optional `parallel_deploys`
+variable in used `portal-versions.yml`.
+
+Example `portal-versions.yml`:
+```yaml
+---
+
+portal_repo_version: "deploy-2021-08-24"
+portal_skyd_version: "deploy-2021-08-24"
+portal_accounts_version: "deploy-2021-08-23"
+
+parallel_deploys: 3
+```
 
 #### How to Set Deploy Batch
 
