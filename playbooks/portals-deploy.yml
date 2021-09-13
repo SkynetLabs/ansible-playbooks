@@ -11,7 +11,7 @@
   any_errors_fatal: True
 
   vars:
-    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    max_hosts: "{{ groups['webportals_prod'] | length - 1 }}"
 
     # Default batch config (one batch with all selected hosts will be created),
     # can be overriden with cli flag --extra-vars/-e
