@@ -1,0 +1,1 @@
+- Fix bug in the takedown script where the user wasn't probably defined.
