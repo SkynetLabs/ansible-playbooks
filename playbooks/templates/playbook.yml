@@ -1,0 +1,51 @@
+# Name your playbook, this is printed in STDOUT
+- name: My Cool Playbook
+  # Define your target hosts, this typically doesn't change
+  hosts: webportals
+  # Define the user that is executing the commands, this typically doesn't
+  # change
+  remote_user: "{{ webportal_user }}"
+  # Tell ansible if it should gather information about the hosts. This is
+  # currently only used in setting up the servers.
+  gather_facts: False
+
+  # Limit concurrency or the playbook if needed
+  serial: 1
+
+  # Execute playbook on hosts in parallel as fast as possible (do not wait for other hosts)
+  # strategy: free
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+
+  # Define the tasks for your playbook
+  tasks:
+    - name: Hello World
+      ansible.builtin.command: echo "Hello World"
+
+    # Example of calling a refactored task
+    #
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Example of task with additional vars
+    #
+    # Update log status to 'tested'
+    - name: Update log status to 'tested'
+      include_tasks: tasks/portal-logs-update-status.yml
+      vars:
+        tag_from: "started"
+        tag_to: "tested"
+
+    # Example of task with 'when' condition
+    #
+    # Enable health check
+    - name: Include enabling portal health check
+      # do not enable health checks on hosts from out_of_LB group
+      when: ('out_of_LB' not in group_names)
+      include_tasks: tasks/portal-health-check-enable.yml
