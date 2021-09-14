@@ -44,10 +44,10 @@ local_networks:
   - "169.254.0.0/16"
 
 # LastPass settings
-lastpass_ansible_config_dir: "Shared-Ansible/Portal-Configurations"
-lastpass_portal_config_common: "{{ lastpass_ansible_config_dir }}/Common/common.yml"
-lastpass_portal_config_cluster: "{{ lastpass_ansible_config_dir }}/Cluster/cluster-{{ portal_cluster_id }}.yml"
-lastpass_portal_config_server: "{{ lastpass_ansible_config_dir }}/Server/{{ inventory_hostname }}.yml"
+lastpass_ansible_dir: "Shared-Ansible"
+lastpass_portal_config_common: "{{ lastpass_ansible_dir }}/portal-common-configs/common.yml"
+lastpass_portal_config_cluster: "{{ lastpass_ansible_dir }}/portal-cluster-configs/cluster-{{ portal_cluster_id }}.yml"
+lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/portal-server-configs/{{ inventory_hostname }}.yml"
 
 # Portal settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
