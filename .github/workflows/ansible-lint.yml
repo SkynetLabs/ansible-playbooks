@@ -1,0 +1,15 @@
+name: ansible-lint
+
+# repository_dispatch allows for triggering the github action locally
+on: [push, repository_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: ansible-lint
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v2
+      - run: pip install ansible ansible-lint
+      - run: ansible-lint --version
+      - run: ansible-lint .
