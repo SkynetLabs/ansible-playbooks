@@ -14,7 +14,7 @@
 - name: Stop portal healh check to take portal out of load balancer
   vars:
     disable_message: "{{  out_of_lb_message | default('') }}"
-  command: 'docker exec health-check cli/disable "{{ disable_message }}"'
+  command: 'docker exec health-check ./cli disable "{{ disable_message }}"'
   become: True
   become_user: "user"
   when: result.exists and result.container is defined and result.container.State.Running

@@ -1,8 +1,7 @@
 ---
-
 # Enable portal health check to add portal to load balancer
 
 - name: Enable portal healh check to add portal to load balancer
-  command: docker exec health-check cli/enable
+  command: docker exec health-check ./cli enable
   become: True
   become_user: "user"
