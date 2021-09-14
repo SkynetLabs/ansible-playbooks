@@ -45,9 +45,9 @@ local_networks:
 
 # LastPass settings
 lastpass_ansible_config_dir: "Shared-Ansible/Portal-Configurations"
-lastpass_portal_config_common: "{{ lastpass_ansible_config_dir }}/common.yml"
-lastpass_portal_config_cluster: "{{ lastpass_ansible_config_dir }}/cluster-{{ portal_cluster_id }}.yml"
-lastpass_portal_config_server: "{{ lastpass_ansible_config_dir }}/server-{{ inventory_hostname }}.yml"
+lastpass_portal_config_common: "{{ lastpass_ansible_config_dir }}/Common/common.yml"
+lastpass_portal_config_cluster: "{{ lastpass_ansible_config_dir }}/Cluster/cluster-{{ portal_cluster_id }}.yml"
+lastpass_portal_config_server: "{{ lastpass_ansible_config_dir }}/Server/{{ inventory_hostname }}.yml"
 
 # Portal settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
