@@ -20,6 +20,10 @@
 - name: Include loading portal config
   include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
 
+- name: Set portal config to empty if it hasn't yet been saved to secrets backend
+  set_fact:
+    webportal_server_config: "{{ webportal_server_config | default({}) }}"
+
 - name: Set portal config missing variables to default values
   set_fact:
     webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}) }}"
