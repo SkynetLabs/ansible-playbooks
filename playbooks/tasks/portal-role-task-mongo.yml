@@ -1,0 +1,57 @@
+---
+
+# TODO: Move this task to skynet_webportal role > mongo task, include it
+# only if accounts are on
+
+# Ensure that mgkey file exists:
+# - random string for non cluster host
+# - common config.mongo_db_mgkey for cluster host
+
+- name: Remove mongo and mongo-test containers (if exist)
+  docker_container:
+    name: "{{ item }}"
+    state: absent
+    container_default_behavior: no_defaults
+  loop:
+    - mongo
+    - mongo-setup
+
+- name: Ensure mgkey parent directory exists
+  ansible.builtin.file:
+    path: "{{ webportal_dir }}/docker/data/mongo/db"
+    state: directory
+  become: True
+
+- name: Remove mgkey file/dir if exists
+  ansible.builtin.file:
+    path: "{{ webportal_mongo_db_mgkey_file }}"
+    state: absent
+  become: True
+
+- name: Ensure mgkey with content file exists
+  ansible.builtin.copy:
+    content: "{{ webportal_common_config.mongo_db_mgkey if (portal_cluster_id is defined) else lookup('community.general.random_string', base64=True, length=756) }}"
+    dest: "{{ webportal_mongo_db_mgkey_file }}"
+    owner: "999"
+    group: "999"
+    mode: "0400"
+  become: True
+
+# Load MongoDB image version from docker-compose.accounts.yml so that we
+# run mongo-setup container with the same version
+
+- name: Read docker-compose.accounts.yml file
+  slurp:
+    src: "{{ webportal_dir }}/docker-compose.accounts.yml"
+  register: docker_compose_accounts_slurped
+
+- name: Parse docker-compose.accounts.yml
+  set_fact:
+    docker_compose_accounts: "{{ docker_compose_accounts_slurped.content | b64decode | from_yaml }}"
+
+- name: Set used MongoDB image version
+  set_fact:
+    mongo_image: "{{ docker_compose_accounts.services.mongo.image }}"
+
+# xxxqqq setup mongo cluster only if portal is in cluster
+# xxxqqq start mongo-test with the mongo_image

@@ -32,6 +32,10 @@
 
 # xxx add subdomain check (only install portal to subdomain for now)
 
+- name: Set Accounts flag
+  set_fact:
+    portal_accounts_on: "{{ webportal_server_config.portal_modules is defined and webportal_server_config.portal_modules is not none and 'a' in webportal_server_config.portal_modules }}"
+
 - name: Create .env file
   ansible.builtin.template:
     src: .env.j2
@@ -109,12 +113,6 @@
   delay: 1
   retries: 30
 
-#xxx
-- debug:
-    msg: "out:\n{{ sia_wallet_result.stdout }}"
-- debug:
-    msg: "find: {{ sia_wallet_result.stdout.find('Unencrypted,') }}"
-
 - name: Set wallet initialized
   set_fact:
     sia_wallet_initialized: "{{ 'Unencrypted,' not in sia_wallet_result.stdout }}"
@@ -122,16 +120,6 @@
 - name: Set Sia wallet seed defined
   set_fact:
     sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined }}"
-
-#xxx
-- debug:
-    msg: "inited: {{ sia_wallet_initialized }}, seed defd: {{ sia_wallet_seed_defined }}"
-- debug:
-    var: webportal_server_config
-- debug:
-    msg: "use ex se: {{ not sia_wallet_initialized and sia_wallet_seed_defined and use_existing_sia_seed_if_exists }}"
-- debug:
-    msg: "use ne se: {{ not sia_wallet_initialized and not (sia_wallet_seed_defined and use_existing_sia_seed_if_exists) }}"
 
 - name: Check Sia blockchain sync status
   command: docker exec sia siac consensus
@@ -221,10 +209,6 @@
   set_fact:
     sia_wallet_locked: "{{ 'Unlocked' not in sia_wallet_result.stdout }}"
 
-#xxx
-- debug:
-    msg: "sia wallet locked: {{ sia_wallet_locked }}"
-
 - name: Unlock the wallet
   ansible.builtin.expect:
     command: docker exec -it sia siac wallet unlock
@@ -238,11 +222,6 @@
   fail:
     msg: "Error unlocking Sia wallet:\n\n{{ sia_wallet_unlock_result }}"
   when: sia_wallet_unlock_result.rc | default(0) != 0 and 'another wallet rescan is already underway' not in sia_wallet_unlock_result.stdout
-  
-
-#xxx
-- debug:
-    msg: "sia wallet unlock result: {{ sia_wallet_unlock_result }}"
 
 - name: Stop playbook if Sia wallet seed initialization is still in progress
   fail:

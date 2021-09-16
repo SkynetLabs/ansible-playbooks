@@ -59,6 +59,10 @@ setup_status_file: "{{ setup_status_dir }}/status"
 devops_scripts_dir: "{{ devops_dir }}/scripts"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
 
+# Portal Accounts settings
+webportal_mongo_db_dir: "{{ webportal_dir }}/docker/data/mongo/db"
+webportal_mongo_db_mgkey_file: "{{ webportal_mongo_db_dir }}/mgkey"
+
 # Docker prune settings
 docker_prune_timeout_secs: 1800
 
