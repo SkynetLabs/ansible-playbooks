@@ -28,24 +28,18 @@
       ansible.builtin.command: echo "Hello World"
 
     # Example of calling a refactored task
-    #
-    # Check '--limit' is used
-    - name: Fail if you are targeting all dev and prod webportals
-      include_tasks: tasks/host-limit-check.yml
+    - name: Run my refactored task
+      include_tasks: tasks/my-factored-task.yml
 
     # Example of task with additional vars
-    #
-    # Update log status to 'tested'
-    - name: Update log status to 'tested'
-      include_tasks: tasks/portal-logs-update-status.yml
+    - name: My task with vars
+      include_tasks: tasks/my-task-with-vars.yml
       vars:
-        tag_from: "started"
-        tag_to: "tested"
+        foo: "this can be used in my-task-with-vars.yml as 'bar'"
+        bar: "this can be used in my-task-with-vars.yml as 'bar'"
 
     # Example of task with 'when' condition
-    #
-    # Enable health check
-    - name: Include enabling portal health check
+    - name: Only execute when something is true
       # do not enable health checks on hosts from out_of_LB group
-      when: ('out_of_LB' not in group_names)
-      include_tasks: tasks/portal-health-check-enable.yml
+      when: some_variable is defined
+      include_tasks: tasks/excute-when-condition-is-true.yml
