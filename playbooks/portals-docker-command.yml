@@ -51,5 +51,5 @@
       include_tasks: tasks/portal-health-checks-run.yml
 
     # Enable health check
-    - name: Include disabling portal health check
+    - name: Include enabling portal health check
       include_tasks: tasks/portal-health-check-enable.yml
