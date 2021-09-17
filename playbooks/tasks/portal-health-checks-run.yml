@@ -10,7 +10,7 @@
   # reason for the failure is the docker container and not the cli command.
   failed_when: >
     (health_check_docker_container_result.exists is not defined) or
-    (health_check_docker_container_result.exists is not defined) or
+    (health_check_docker_container_result.container is not defined) or
     (not health_check_docker_container_result.container.State.Running)
 
 # Run critical health checks
