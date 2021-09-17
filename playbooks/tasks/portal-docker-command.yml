@@ -1,0 +1,4 @@
+---
+# Execute Docker command from yml file
+- name: Executing Docker Command
+  command: "{{ docker_command }}"
