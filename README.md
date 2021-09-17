@@ -596,7 +596,7 @@ Example:
 
 ```yaml
 ---
-skylinks_block_list:
+docker_commands:
   - "docker exec sia siac"
   - "docker exec sia siac renter"
 ```
