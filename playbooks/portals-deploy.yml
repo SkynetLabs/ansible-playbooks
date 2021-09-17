@@ -54,7 +54,7 @@
     - name: Print timestamp
       debug:
         msg: "{{ inventory_hostname + ' deployment start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
-  
+
     # Check/install Ansible prerequisities
     - name: Include preparing portal prerequisities
       include_tasks: tasks/portals-prepare.yml
@@ -70,6 +70,10 @@
     # Rebuild docker images, start the docker services and log activities
     - name: Include starting portal docker services
       include_tasks: tasks/portal-docker-services-start.yml
+
+    # Execute Docker command from yml file
+    - name: Executing Docker Command
+      include_tasks: tasks/portal-docker-command.yml
 
     # Run portal integration tests
     - name: Include running portal integration tests
