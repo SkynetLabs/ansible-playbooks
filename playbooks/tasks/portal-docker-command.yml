@@ -1,0 +1,9 @@
+---
+# Execute Docker command from yml file
+#
+# This loops over all the docker commands listed and executes them one at a
+# time.
+- name: Executing Docker Command
+  ansible.builtin.command: "{{ item }}"
+  loop: "{{ docker_commands }}"
+  when: docker_commands is defined

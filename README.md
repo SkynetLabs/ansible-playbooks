@@ -3,44 +3,45 @@
 <!-- TOC -->
 
 - [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
-    - [Requirements](#requirements)
-        - [Git repository ansible-private](#git-repository-ansible-private)
-        - [Docker](#docker)
-        - [Ansible Roles and Collections](#ansible-roles-and-collections)
-    - [Repository Organization](#repository-organization)
-    - [Playbook Execution](#playbook-execution)
-        - [Check Access](#check-access)
-        - [LastPass Login](#lastpass-login)
-    - [Playbooks](#playbooks)
-        - [Get Webportal Status](#get-webportal-status)
-        - [Restart Skynet Webportal](#restart-skynet-webportal)
-        - [Deploy Skynet Webportal](#deploy-skynet-webportal)
-            - [Deploy Playbook Actions:](#deploy-playbook-actions)
-            - [Portal Modules](#portal-modules)
-            - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
-            - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
-            - [How to Set Deploy Batch](#how-to-set-deploy-batch)
-        - [Takedown Skynet Webportal](#takedown-skynet-webportal)
-            - [Playbook Actions](#playbook-actions)
-            - [Preparation](#preparation)
-            - [Execution](#execution)
-            - [Following Portal Deployments and Restarts](#following-portal-deployments-and-restarts)
-        - [Rollback Skynet Webportal](#rollback-skynet-webportal)
-        - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
-        - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
-        - [Block Portal Skylinks](#block-portal-skylinks)
-        - [Unblock Portal Skylinks](#unblock-portal-skylinks)
-        - [Run Integration Tests](#run-integration-tests)
-        - [Run Health Checks](#run-health-checks)
-        - [Setup Portal from Scratch](#setup-portal-from-scratch)
-            - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
-            - [Playbook portals-setup-following](#playbook-portals-setup-following)
-            - [Playbook portals-deploy](#playbook-portals-deploy)
-    - [Playbook Live Demos](#playbook-live-demos)
-    - [Troubleshooting](#troubleshooting)
-        - [Role Not Installed](#role-not-installed)
-        - [Unreachable Host](#unreachable-host)
-        - [LastPass Session Not Active](#lastpass-session-not-active)
+  - [Requirements](#requirements)
+    - [Git repository ansible-private](#git-repository-ansible-private)
+    - [Docker](#docker)
+    - [Ansible Roles and Collections](#ansible-roles-and-collections)
+  - [Repository Organization](#repository-organization)
+  - [Playbook Execution](#playbook-execution)
+    - [Check Access](#check-access)
+    - [LastPass Login](#lastpass-login)
+  - [Playbooks](#playbooks)
+    - [Get Webportal Status](#get-webportal-status)
+    - [Restart Skynet Webportal](#restart-skynet-webportal)
+    - [Deploy Skynet Webportal](#deploy-skynet-webportal)
+      - [Deploy Playbook Actions:](#deploy-playbook-actions)
+      - [Portal Modules](#portal-modules)
+      - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
+      - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
+      - [How to Set Deploy Batch](#how-to-set-deploy-batch)
+    - [Takedown Skynet Webportal](#takedown-skynet-webportal)
+      - [Playbook Actions](#playbook-actions)
+      - [Preparation](#preparation)
+      - [Execution](#execution)
+      - [Following Portal Deployments and Restarts](#following-portal-deployments-and-restarts)
+    - [Rollback Skynet Webportal](#rollback-skynet-webportal)
+    - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
+    - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
+    - [Block Portal Skylinks](#block-portal-skylinks)
+    - [Unblock Portal Skylinks](#unblock-portal-skylinks)
+    - [Run Integration Tests](#run-integration-tests)
+    - [Run Health Checks](#run-health-checks)
+    - [Setup Portal from Scratch](#setup-portal-from-scratch)
+      - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
+      - [Playbook portals-setup-following](#playbook-portals-setup-following)
+      - [Playbook portals-deploy](#playbook-portals-deploy)
+    - [Run Docker Command](#run-docker-command)
+  - [Playbook Live Demos](#playbook-live-demos)
+  - [Troubleshooting](#troubleshooting)
+    - [Role Not Installed](#role-not-installed)
+    - [Unreachable Host](#unreachable-host)
+    - [LastPass Session Not Active](#lastpass-session-not-active)
 
 <!-- /TOC -->
 
@@ -76,43 +77,43 @@ To install all roles and collections required for Skynet Labs playbooks, execute
 
 ## Repository Organization
 
-* `ansible_collections`
-  * ignored by git
-  * stores installed Ansible collections
-* `my-logs`
-  * content ignored by git
-  * stores logs (playbook branch/commit used, for portal: docker-compose files
+- `ansible_collections`
+  - ignored by git
+  - stores installed Ansible collections
+- `my-logs`
+  - content ignored by git
+  - stores logs (playbook branch/commit used, for portal: docker-compose files
     used, portal, skyd, account versions) from playbook executions executed
     from your machine.
-  * `last-portal-versions.yml` could be used to rerun portal deploy on another
+  - `last-portal-versions.yml` could be used to rerun portal deploy on another
     host (more info below).
-* `my-vars`
-  * content ignored by git (with exception of `portal-versions.sample.do-not-edit.yml`)
-  * you can store your variables for playbook executions (more info below)
-* `playbooks`
-  * stores our Ansible playbooks
-  * playbooks should not be executed directly but through `scripts` commands
-  * `group_vars`
-    * stores group specific var files e.g. for `webportals_dev` and
+- `my-vars`
+  - content ignored by git (with exception of `portal-versions.sample.do-not-edit.yml`)
+  - you can store your variables for playbook executions (more info below)
+- `playbooks`
+  - stores our Ansible playbooks
+  - playbooks should not be executed directly but through `scripts` commands
+  - `group_vars`
+    - stores group specific var files e.g. for `webportals_dev` and
       `webportals_prod` groups
-    * group_vars files are loaded automatically based on host group names
-  * `tasks`
-    * stores Ansible playbook tasks (reusable Ansible sub-tasks)
-  * `templates`
-    * stores file templates for playbooks
-  * `vars`
-    * stores common and playbook specific variables
-* `roles`
-  * ignored by git
-  * stores installed Ansible roles
-* `scripts`
-  * stores scripts to be executed
+    - group_vars files are loaded automatically based on host group names
+  - `tasks`
+    - stores Ansible playbook tasks (reusable Ansible sub-tasks)
+  - `templates`
+    - stores file templates for playbooks
+  - `vars`
+    - stores common and playbook specific variables
+- `roles`
+  - ignored by git
+  - stores installed Ansible roles
+- `scripts`
+  - stores scripts to be executed
 
 ## Playbook Execution
 
 ### Check Access
 
-To check that you have access to all portals, execute:   
+To check that you have access to all portals, execute:  
 `scripts/portals-ping.sh`
 
 ### LastPass Login
@@ -138,39 +139,43 @@ you can execute playbooks as usually.
 ### Get Webportal Status
 
 Playbook:
-* Gets `skynet-webportal` repository version (git tag, branch or commit).
-* Gets skyd version from `docker-compose.override.yml`.
-* Gets Accounts version from `docker-compose.override.yml`.
-* Gets list of all files in `skynet-webportal` directory modified after the
+
+- Gets `skynet-webportal` repository version (git tag, branch or commit).
+- Gets skyd version from `docker-compose.override.yml`.
+- Gets Accounts version from `docker-compose.override.yml`.
+- Gets list of all files in `skynet-webportal` directory modified after the
   last Ansible deployment.
-* Checks that URL `https://skapp.hns.<portal domain>` returns status code 200.
-* Sends the result to Skynet Labs Discord channel `#ansible-logs` defined by
+- Checks that URL `https://skapp.hns.<portal domain>` returns status code 200.
+- Sends the result to Skynet Labs Discord channel `#ansible-logs` defined by
   `discord_ansible_logs_webhook` webhook variable.
 
 ### Restart Skynet Webportal
 
 Playbook:
-* Disables health check.
-* Waits 5 minutes for load balancer (with dev servers it doesn't wait).
-* Stops docker compose services.
-* Starts docker compose services.
-* Runs portal integration tests.
-* Enables health check.
+
+- Disables health check.
+- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Stops docker compose services.
+- Starts docker compose services.
+- Runs portal integration tests.
+- Enables health check.
 
 You can see logs in `/home/user/devops/logs` on the server:
-* Ansible playbook version.
-* skynet-webportal, skyd, accounts versions.
-* Used docker-compose files.
-* Used `.env` file.
-* Status:
-  * starting: versions were set, docker compose up is being called
-  * started: docker compose up started without error, integration tests started
-  * tested: portal intagration tests passed
+
+- Ansible playbook version.
+- skynet-webportal, skyd, accounts versions.
+- Used docker-compose files.
+- Used `.env` file.
+- Status:
+  - starting: versions were set, docker compose up is being called
+  - started: docker compose up started without error, integration tests started
+  - tested: portal intagration tests passed
 
 You can see logs locally in `./my-logs`
-* Ansible playbook version
-* skynet-webportal, skyd, accounts versions
-* `last-portal-versions.yml` which can be used for portal deployment on another
+
+- Ansible playbook version
+- skynet-webportal, skyd, accounts versions
+- `last-portal-versions.yml` which can be used for portal deployment on another
   host (more info below at: Playbook: Deploy Skynet Portal)
 
 To restart `eu-ger-1` server execute:  
@@ -184,19 +189,20 @@ Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 ### Deploy Skynet Webportal
 
 #### Deploy Playbook Actions:
-* Disables health check.
-* Waits 5 minutes for load balancer (with dev servers it doesn't wait).
-* Stops docker compose services.
-* Sets portal versions:
-  * Checks out skynet-webportal at specific branch/tag/commit.
-  * Selects skyd version in `docker-compose.override.yml`.
-  * Selects account version in `docker-compose.accounts.yml`.
-* Builds docker images.
-* Starts docker compose services.
-* Waits for Sia full setup finished.
-* Waits for Sia `/daemon/ready` (if the endpoint is available).
-* Runs portal integration tests.
-* Enables health check.
+
+- Disables health check.
+- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Stops docker compose services.
+- Sets portal versions:
+  - Checks out skynet-webportal at specific branch/tag/commit.
+  - Selects skyd version in `docker-compose.override.yml`.
+  - Selects account version in `docker-compose.accounts.yml`.
+- Builds docker images.
+- Starts docker compose services.
+- Waits for Sia full setup finished.
+- Waits for Sia `/daemon/ready` (if the endpoint is available).
+- Runs portal integration tests.
+- Enables health check.
 
 For logs see above Playbook: Restart Skynet Webportal.
 
@@ -217,15 +223,16 @@ order in `PORTAL_MODULES`.
 
 #### How to set portal, skyd, accounts versions
 
-* Go to `my-vars`.
-* Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
-* Set `skynet-webportal`, `skyd` and `accounts` versions you want to deploy in
+- Go to `my-vars`.
+- Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
+- Set `skynet-webportal`, `skyd` and `accounts` versions you want to deploy in
   `portal-versions.yml` (or whatever you named the file).
-* Start the playbook with `-e @my-vars/portal-versions.yml` (see below).
+- Start the playbook with `-e @my-vars/portal-versions.yml` (see below).
 
 Alternatively you can use settings from the last playbook execution on
 another host:
-* Start the playbook with `-e @my-logs/last-portal-versions.yml`
+
+- Start the playbook with `-e @my-logs/last-portal-versions.yml`
 
 To deploy portal at `eu-ger-1` execute:  
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1`  
@@ -245,9 +252,9 @@ given number of hosts in parallel) by setting optional `parallel_deploys`
 variable in used `portal-versions.yml`.
 
 Example `portal-versions.yml`:
+
 ```yaml
 ---
-
 portal_repo_version: "deploy-2021-08-24"
 portal_skyd_version: "deploy-2021-08-24"
 portal_accounts_version: "deploy-2021-08-23"
@@ -269,6 +276,7 @@ target just a part of hosts in the same region (when they are ordered by region
 in the selected inventory group).
 
 Example of settings with 3 batches, day 1 execution:
+
 ```yaml
 <portal versions settings>...
 
@@ -277,6 +285,7 @@ batch_number: 1
 ```
 
 Day 2 execution:
+
 ```yaml
 <portal versions settings>...
 
@@ -285,6 +294,7 @@ batch_number: 2
 ```
 
 Day 3 execution:
+
 ```yaml
 <portal versions settings>...
 
@@ -306,10 +316,10 @@ batch_number: 1
 
 #### Playbook Actions
 
-* Disables health check.
-* Waits 5 minutes for load balancer (with dev servers it doesn't wait).
-* Stops docker compose services.
-* Starts only sia docker service.
+- Disables health check.
+- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Stops docker compose services.
+- Starts only sia docker service.
 
 #### Preparation
 
@@ -345,22 +355,23 @@ versions that crossed compatibility border. Use only if you know what are you
 doing!!!
 
 Playbook:
-* Disables health check.
-* Waits 5 minutes for load balancer (with dev servers it doesn't wait).
-* Stops docker compose services.
-* Gets last working portal configuration with passed integration tests (i.e.
+
+- Disables health check.
+- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Stops docker compose services.
+- Gets last working portal configuration with passed integration tests (i.e.
   with `status.tested`).
-* Updates status of the last working configuration from `status.tested` to
+- Updates status of the last working configuration from `status.tested` to
   `status.rollback-tested` so if we perform another rollback, this
   configuration is not repeated.
-* Sets portal versions:
-  * Checks out skynet-webportal at specific branch/tag/commit.
-  * Selects skyd version in `docker-compose.override.yml`.
-  * Selects account version in `docker-compose.accounts.yml`.
-* Builds docker images.
-* Starts docker compose services.
-* Runs portal integration tests.
-* Enables health check.
+- Sets portal versions:
+  - Checks out skynet-webportal at specific branch/tag/commit.
+  - Selects skyd version in `docker-compose.override.yml`.
+  - Selects account version in `docker-compose.accounts.yml`.
+- Builds docker images.
+- Starts docker compose services.
+- Runs portal integration tests.
+- Enables health check.
 
 For logs see above Playbook: Restart Skynet Webportal.
 
@@ -376,9 +387,10 @@ To rollback portal on `eu-ger-1` and `us-pa-1` execute:
 ### Get Skynet Webportal Versions
 
 Playbook:
-* Extracts versions from skynet-webportal repo and its files.
-* Lists all files modified manually after last Ansible docker re-/start.
-* Fails for the portal if it finds any modified files.
+
+- Extracts versions from skynet-webportal repo and its files.
+- Lists all files modified manually after last Ansible docker re-/start.
+- Fails for the portal if it finds any modified files.
 
 To check all portals:
 `scripts/portals-get-versions.sh`
@@ -392,34 +404,37 @@ To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
 ### Set Allowance Max Storage Price
 
 Playbook:
-* Sets allowance defined in
+
+- Sets allowance defined in
   `playbooks/portals-set-allowance-max-storage-price.yml` > `vars` >
   `max_storage_price`
   on the portal server(s).
 
-Notes:  
-* `--limit` must be used, it's not possible to set allowance on all
-`portals_dev` and `portals_prod` servers at once.
-* Format of `max_storage_price` value must be same as is expected by executing
+Notes:
+
+- `--limit` must be used, it's not possible to set allowance on all
+  `portals_dev` and `portals_prod` servers at once.
+- Format of `max_storage_price` value must be same as is expected by executing
   `docker exec sia siac renter setallowance --max-storage-price`
 
 To run:  
-`scripts/portals-set-allowance-max-storage-price.sh --limit webportals_prod`   
+`scripts/portals-set-allowance-max-storage-price.sh --limit webportals_prod`  
 `scripts/portals-set-allowance-max-storage-price.sh --limit eu-ger-3`
 
 ### Block Portal Skylinks
 
 Playbook:
-* Blocks portal skylinks defined in `skylinks_block_list` variable.
+
+- Blocks portal skylinks defined in `skylinks_block_list` variable.
 
 Preparation:  
 Create a file `skylinks-block.yml` in `my-vars` directory with defined
 `skylinks_block_list` variable.
 
-Example `skylinks-block.yml` content:  
+Example `skylinks-block.yml` content:
+
 ```yaml
 ---
-
 skylinks_block_list:
   - <skylink 1>
   - <skylink 2>
@@ -432,16 +447,17 @@ To run:
 ### Unblock Portal Skylinks
 
 Playbook:
-* Unblocks portal skylinks defined in `skylinks_unblock_list` variable.
+
+- Unblocks portal skylinks defined in `skylinks_unblock_list` variable.
 
 Preparation:  
 Create a file `skylinks-unblock.yml` in `my-vars` directory with defined
 `skylinks_unblock_list` variable.
 
-Example `skylinks-unblock.yml` content:  
+Example `skylinks-unblock.yml` content:
+
 ```yaml
 ---
-
 skylinks_unblock_list:
   - 3AF1z9V61r5w1A_5oCnxQ5gPbU4Ymn0IWlMNicPBxty6zg
   - 3AFseaFttl533Ma3hmkUEOhvx7dQgklcnS4-Nhx3LPyrMg
@@ -455,8 +471,9 @@ To run:
 ### Run Integration Tests
 
 Playbook:
-* Checks out `skynet-js` repo locally.
-* Runs integration tests from local docker container against portal.
+
+- Checks out `skynet-js` repo locally.
+- Runs integration tests from local docker container against portal.
 
 Note: `--limit` must be used, it's not possible to run integration tests on all
 `portals_dev` and `portals_prod` servers at once.
@@ -468,7 +485,8 @@ To run:
 ### Run Health Checks
 
 Playbook:
-* Runs health checks on portal.
+
+- Runs health checks on portal.
 
 Note: `--limit` must be used, it's not possible to run health checks on all
 `portals_dev` and `portals_prod` servers at once.
@@ -484,28 +502,31 @@ The setup playbooks currently setup single portal without Jaeger, Accounts and
 cluster.
 
 Setup process requires 3 playbooks:
-* `portals-setup-initial.sh` (run once)
-* `portals-setup-following.sh`
-* `portals-deploy.sh`
+
+- `portals-setup-initial.sh` (run once)
+- `portals-setup-following.sh`
+- `portals-deploy.sh`
 
 #### Playbook portals-setup-initial
 
 Requires:
-* Server side
-  * Fresh `Debian 10 minimal` server
-  * SSH key added to `root` authorized keys
-* Ansible inventory
-  * Ansible hostname (e.g. `eu-fin-5`) added to (one of) `webportals` group
-* LastPass
-  * Desired password added for the user `user`
-  * Active LastPass session (see `LastPass Login` section above)
+
+- Server side
+  - Fresh `Debian 10 minimal` server
+  - SSH key added to `root` authorized keys
+- Ansible inventory
+  - Ansible hostname (e.g. `eu-fin-5`) added to (one of) `webportals` group
+- LastPass
+  - Desired password added for the user `user`
+  - Active LastPass session (see `LastPass Login` section above)
 
 Playbook (as `root`):
-* Installs `sudo`
-* Creates passworded user
-* Adds SSH keys from `skynet-webportal` repo
-* Performs basic security setup
-  * Disables `root` access, ...
+
+- Installs `sudo`
+- Creates passworded user
+- Adds SSH keys from `skynet-webportal` repo
+- Performs basic security setup
+  - Disables `root` access, ...
 
 This playbook can be run successfully just once, then root access is disabled.
 
@@ -515,36 +536,38 @@ Execute (e.g. on `eu-fin-5`):
 #### Playbook portals-setup-following
 
 Requires:
-* Active LastPass session (see `LastPass Login` section above)
-* Portal versions
-  * See `How to set portal, skyd, accounts versions` section above
-  * Portal versions should be the same or lower than portal versions that will
-  be later deployed to the portal
-  * It is recommended to use the same portal versions yml file during setup and then
-  during the first deployment
+
+- Active LastPass session (see `LastPass Login` section above)
+- Portal versions
+  - See `How to set portal, skyd, accounts versions` section above
+  - Portal versions should be the same or lower than portal versions that will
+    be later deployed to the portal
+  - It is recommended to use the same portal versions yml file during setup and then
+    during the first deployment
 
 Playbook:
-* Prepares the server
-  * Performs basic security setup
-  * Performs ufw firewall setup
-  * Installs python3-pip, git, docker, Python modules
-  * Sets timezone
-  * Updates hostname
-* Sets dev tools
-  * Setup dotfiles
-  * TBD: Setup dev tools
-* Sets portal (simplified)
-  * Checkout `skynet-webportal` repo
-  * Load existing portal config (if exists) from LastPass otherwise generate
-  portal config and save it to LastPass
-  * Always recreate `.env` file from `.env.j2` template and portal config
-  * Start sia container if not running, restart if config changed
-  * Init new wallet (if not done previously)
-  * Wait for sia blockchain synced (takes time, can timeout)
-  * Init wallet (with existing seed if exists, takes time, can timeout)
-  * Unlock wallet
-  * Set default allowance
-  * Setup health checks
+
+- Prepares the server
+  - Performs basic security setup
+  - Performs ufw firewall setup
+  - Installs python3-pip, git, docker, Python modules
+  - Sets timezone
+  - Updates hostname
+- Sets dev tools
+  - Setup dotfiles
+  - TBD: Setup dev tools
+- Sets portal (simplified)
+  - Checkout `skynet-webportal` repo
+  - Load existing portal config (if exists) from LastPass otherwise generate
+    portal config and save it to LastPass
+  - Always recreate `.env` file from `.env.j2` template and portal config
+  - Start sia container if not running, restart if config changed
+  - Init new wallet (if not done previously)
+  - Wait for sia blockchain synced (takes time, can timeout)
+  - Init wallet (with existing seed if exists, takes time, can timeout)
+  - Unlock wallet
+  - Set default allowance
+  - Setup health checks
 
 Timeouts:  
 This playbook is expected to fail with a timeout (might be a couple of times).
@@ -560,15 +583,39 @@ Execute (e.g. on `eu-fin-5`):
 To finish portal setup and deployment execute portal deploy playbook (see
 separate section above).
 
+### Run Docker Command
+
+Playbook:
+
+- Run a docker command on portals define in `docker_commands` variable.
+
+Preparation:  
+Defined a `docker_commands` variable in your `portal_versions.yml` file.
+
+Example:
+
+```yaml
+---
+docker_commands:
+  - "docker exec sia siac"
+  - "docker exec sia siac renter"
+```
+
+To run:  
+`scripts/portals-docker-command.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+
+The deploy script also supports the docker command execution:
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+
 ## Playbook Live Demos
 
-* Deploy portal on xyz:  
+- Deploy portal on xyz:  
   https://asciinema.org/a/XMXVFDB96R5FaGgYhoEHVno04
-* Restart portal on xyz:  
+- Restart portal on xyz:  
   https://asciinema.org/a/cIILRC6QHU3vAgzGIpOyc2rS6
-* Set versions and redeploy portal on xyz:  
+- Set versions and redeploy portal on xyz:  
   https://asciinema.org/a/iqIXxYwvdxkaKg7MGaZQ5HLZD
-* Rollback to the previous portal configuration with passed integration tests
+- Rollback to the previous portal configuration with passed integration tests
   on xyz:  
   https://asciinema.org/a/miJgwUK806bpxDPBx5PqRX7l3
 
@@ -577,6 +624,7 @@ separate section above).
 ### Role Not Installed
 
 Example error:
+
 ```
 ERROR! the role 'geerlingguy.docker' was not found in /tmp/playbook/playbooks/roles:/tmp/playbook/roles:/tmp/playbook/playbooks
 ```
@@ -591,6 +639,7 @@ Install all required roles and collections by executing:
 ### Unreachable Host
 
 Example error:
+
 ```
 fatal: [fin-1]: UNREACHABLE! => {
     "changed": false,
@@ -613,6 +662,7 @@ In the second case, try to rerun the playbook for the affected host, i.e. with
 ### LastPass Session Not Active
 
 Example error 1:
+
 ```
 Your LastPass session is not active.
 Execute:
@@ -621,6 +671,7 @@ Execute:
 ```
 
 Example error 2:
+
 ```
 Error: Could not find decryption key. Perhaps you need to login with `lpass login`.
 ```
