@@ -1,0 +1,1 @@
+- Add variable `parallel_deploys` to define how many servers should be deployed in parallel

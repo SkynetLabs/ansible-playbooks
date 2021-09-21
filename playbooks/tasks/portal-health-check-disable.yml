@@ -1,22 +1,27 @@
 ---
-# Take portal out of load balancer by stopping healh check
+# Take portal out of load balancer by stopping health check
 
-- name: Sleep before portal health check disabling
-  wait_for:
-    timeout: "{{ portal_health_check_disable_delay_secs }}"
-  delegate_to: localhost
-
+# Check if the health check container is running.
 - name: Check health check container is running
   community.docker.docker_container_info:
     name: health-check
-  register: result
+  register: health_check_docker_container_result
 
-- name: Stop portal healh check to take portal out of load balancer
-  command: 'docker exec health-check cli/disable "{{ out_of_lb_message }}"'
-  become: True
-  become_user: "user"
-  when: result.exists and result.container is defined and result.container.State.Running
+# Marker the health check as disabled via the cli command
+- name: Stop portal health check to take portal out of load balancer
+  # NOTE: portal_action is defined by the playbook, i.e. for deploys,
+  # portal_action='portal-deploy'
+  command: 'docker exec health-check cli disable "{{ out_of_lb_message | default(portal_action) }}"'
+  # Only execute the CLI command if the container is up and running. Otherwise,
+  # if it is not up and running, it is practically disabled.
+  when: health_check_docker_container_result.exists and health_check_docker_container_result.container is defined and health_check_docker_container_result.container.State.Running
 
+# This is a temporary solution to help allow uploads to finish. One piece of the
+# solution is listed below in a TODO. The second part of the solution is for
+# multi server large uploads, meaning TUS uploads can resume on another server.
+#
+# TODO: Replace this with a check if there are any in process uploads, wait for
+# them to finish in this timeout
 - name: "Wait given timeout for the load balancer to remove the portal"
   wait_for:
     timeout: "{{ portal_load_balancer_timeout_secs }}"

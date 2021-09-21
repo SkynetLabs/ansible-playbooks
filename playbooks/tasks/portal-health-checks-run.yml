@@ -1,13 +1,24 @@
 ---
-
 # Run webportal health checks
+
+# Check if the health check container is running
+- name: Check health check container is running
+  community.docker.docker_container_info:
+    name: health-check
+  register: health_check_docker_container_result
+  # If the container is not up and running, fail here so that it is clear the
+  # reason for the failure is the docker container and not the cli command.
+  failed_when: >
+    (health_check_docker_container_result.exists is not defined) or
+    (health_check_docker_container_result.container is not defined) or
+    (not health_check_docker_container_result.container.State.Running)
 
 # Run critical health checks
 - name: Run critical health checks
-  command: docker exec health-check cli/run critical
+  command: docker exec health-check cli run critical
   changed_when: False
 
 # Run extended health checks
 - name: Run extended health checks
-  command: docker exec health-check cli/run extended
+  command: docker exec health-check cli run extended
   changed_when: False

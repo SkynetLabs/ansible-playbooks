@@ -1,8 +1,18 @@
 ---
-
 # Enable portal health check to add portal to load balancer
 
-- name: Enable portal healh check to add portal to load balancer
-  command: docker exec health-check cli/enable
-  become: True
-  become_user: "user"
+# Check if the health check container is running
+- name: Check health check container is running
+  community.docker.docker_container_info:
+    name: health-check
+  register: health_check_docker_container_result
+  # If the container is not up and running, fail here so that it is clear the
+  # reason for the failure is the docker container and not the cli command.
+  failed_when: >
+    (health_check_docker_container_result.exists is not defined) or
+    (health_check_docker_container_result.container is not defined) or
+    (not health_check_docker_container_result.container.State.Running)
+
+# Mark the health check as enabled via the cli command
+- name: Enable portal health check to add portal to load balancer
+  command: docker exec health-check cli enable
