@@ -1,0 +1,47 @@
+---
+
+# TODO: Move this task to skynet_webportal role > mongo cluster task, include it
+# only if accounts and cluster are on
+
+# Load MongoDB image version from docker-compose.accounts.yml so that we
+# run mongo-setup container with the same version
+
+# Setup MongoDB replicaset
+
+- name: Include getting wanted docker compose files
+  include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
+
+- name: Start mongo docker container
+  community.docker.docker_compose:
+    project_src: "{{ webportal_dir }}"
+    files: "{{ webportal_docker_compose_files_wanted }}"
+    services: mongo
+    build: True
+    nocache: True
+    pull: True
+    state: present
+
+# xxxqqq configure replicaset
+
+- name: Ensure Python3 pymongo library is installed
+  pip:
+    name: pymongo
+    state: latest
+
+# xxxqqq override default replSet in dca.yml: command: --keyFile=/data/mgkey --replSet=skynet
+
+- name: Ensure MongoDB replicaset exists
+  community.mongodb.mongodb_replicaset:
+  #xxxqqq update all params
+    # xxxqqq
+    login_host: "{{ ansible_host }}"
+    login_user: "{{ accounts_config.skynet_db_user }}"
+    login_password: "{{ accounts_config.skynet_db_password }}"
+    replica_set: "{{ webportal_common_config.mongo_db_replicaset_name }}"
+    members:
+    # xxxqqq
+    - "{{ ansible_host }}:27017"
+    # - mongodb2:27017
+    # - mongodb3:27017
+  # xxxqqq
+  # when: groups.mongod.index(inventory_hostname) == 0

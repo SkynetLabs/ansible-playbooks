@@ -1,0 +1,63 @@
+---
+
+# Get portal configs
+# - Load portal configs from secrets backend (e.g. LastPass)
+# - Set default values (for unset keys)
+# - Set accounts flag
+# - Set accounts config (if accounts are on)
+
+- name: Include loading portal config
+  include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
+
+- name: Set portal config to empty (if it hasn't yet been saved to secrets backend)
+  set_fact:
+    webportal_server_config: "{{ webportal_server_config | default({}) }}"
+
+- name: Set portal config missing variables to default values
+  set_fact:
+    webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}) }}"
+  when: webportal_server_config[item.key] is not defined
+  loop: "{{ webportal_server_config_defaults | dict2items }}"
+  no_log: True
+
+- name: Set Accounts flag
+  set_fact:
+    portal_accounts_on: "{{ webportal_server_config.portal_modules is defined and webportal_server_config.portal_modules is not none and 'a' in webportal_server_config.portal_modules }}"
+
+# Get accounts config (if accounts are on)
+- block:
+    - name: Set accounts config keys
+      set_fact:
+        account_config_keys:
+          - skynet_db_user
+          - skynet_db_password
+
+    - name: Set accounts config (server config overrides common config)
+      set_fact:
+        accounts_config: "{{ accounts_config | default({}) | combine({item: webportal_server_config[item] | default(webportal_common_config[item]) }) }}"
+      no_log: True
+      ignore_errors: True
+      register: accounts_config_result
+      loop: "{{ account_config_keys }}"
+
+    - name: Fail if there are some missing accounts config items
+      fail:
+        msg: |
+          Portal configuration error for Accounts.
+
+          For Accounts you must configure all of the following items:
+          {% for key in account_config_keys %}
+          - {{ key }}
+          {% endfor %}
+          in server or common config.
+
+          For these items server config overrides common config if the item is defined in both of them.
+          
+          The following item(s) are not configured:
+          {% for key in account_config_keys %}
+          {% if accounts_config[key] is not defined %}
+          - {{ key }}
+          {% endif %}
+          {% endfor %}
+      failed_when: accounts_config_result.failed | default(False)
+  when: portal_accounts_on

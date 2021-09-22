@@ -60,8 +60,8 @@ devops_scripts_dir: "{{ devops_dir }}/scripts"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
 
 # Portal Accounts settings
-webportal_mongo_db_dir: "{{ webportal_dir }}/docker/data/mongo/db"
-webportal_mongo_db_mgkey_file: "{{ webportal_mongo_db_dir }}/mgkey"
+webportal_docker_data_mongo_dir: "{{ webportal_dir }}/docker/data/mongo"
+webportal_mongo_db_mgkey_file: "{{ webportal_docker_data_mongo_dir }}/mgkey"
 
 # Docker prune settings
 docker_prune_timeout_secs: 1800
@@ -76,17 +76,17 @@ use_existing_sia_seed_if_exists: True
 webportal_repo_url: "https://github.com/SkynetLabs/skynet-webportal.git"
 dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
 
-# xxx make optional
+# TODO: make optional
 webportal_git_config:
   - name: user.name
     value: "SkynetLabs Devs"
   - name: user.email
     value: "{{ skynetlabs_devs_email }}"
 
-# xxx default in role: False
+# TODO: default in role: False
 webportal_setup_dotfiles_and_dev_tools: True
 
-# xxx move to role default vars
+# TODO: move to role default vars
 webportal_allowance:
   amount: 100KS
   expected_storage: 10TB
@@ -97,7 +97,7 @@ webportal_allowance:
   payment_contract_initial_funding: 10SC
   period: 8640b
 
-# xxx move to role default vars
+# TODO: move to role default vars
 webportal_server_config_defaults:
   domain_name: "{{ ansible_host }}"
   portal_name: "{{ ansible_host }}"
@@ -106,8 +106,8 @@ webportal_server_config_defaults:
   sia_api_port: 9980
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
 
-# xxx move to role default vars
-# xxx default to: False
+# TODO: move to role default vars
+# TODO: default to: False
 webportal_setup_health_checks: True
 
 # =============================================================================

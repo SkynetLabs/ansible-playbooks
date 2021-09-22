@@ -17,28 +17,13 @@
     value: "{{ item.value }}"
   loop: "{{ webportal_git_config }}"
 
-- name: Include loading portal config
-  include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
-
-- name: Set portal config to empty if it hasn't yet been saved to secrets backend
-  set_fact:
-    webportal_server_config: "{{ webportal_server_config | default({}) }}"
-
-- name: Set portal config missing variables to default values
-  set_fact:
-    webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}) }}"
-  when: webportal_server_config[item.key] is not defined
-  loop: "{{ webportal_server_config_defaults | dict2items }}"
-  no_log: True
+- name: Include getting portal configs
+  include_tasks: tasks/portal-configs-get.yml
 
 - name: Include saving portal config
   include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
 
 # xxx add subdomain check (only install portal to subdomain for now)
-
-- name: Set Accounts flag
-  set_fact:
-    portal_accounts_on: "{{ webportal_server_config.portal_modules is defined and webportal_server_config.portal_modules is not none and 'a' in webportal_server_config.portal_modules }}"
 
 - name: Create .env file
   ansible.builtin.template:

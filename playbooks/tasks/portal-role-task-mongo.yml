@@ -6,6 +6,8 @@
 # Ensure that mgkey file exists:
 # - random string for non cluster host
 # - common config.mongo_db_mgkey for cluster host
+# mgkey is used for cluster setup, but we need mgkey even for non-cluster setup
+# otherwise mongo container will not run correctly.
 
 - name: Remove mongo and mongo-test containers (if exist)
   docker_container:
@@ -18,7 +20,7 @@
 
 - name: Ensure mgkey parent directory exists
   ansible.builtin.file:
-    path: "{{ webportal_dir }}/docker/data/mongo/db"
+    path: "{{ webportal_docker_data_mongo_dir }}"
     state: directory
   become: True
 
@@ -37,21 +39,6 @@
     mode: "0400"
   become: True
 
-# Load MongoDB image version from docker-compose.accounts.yml so that we
-# run mongo-setup container with the same version
-
-- name: Read docker-compose.accounts.yml file
-  slurp:
-    src: "{{ webportal_dir }}/docker-compose.accounts.yml"
-  register: docker_compose_accounts_slurped
-
-- name: Parse docker-compose.accounts.yml
-  set_fact:
-    docker_compose_accounts: "{{ docker_compose_accounts_slurped.content | b64decode | from_yaml }}"
-
-- name: Set used MongoDB image version
-  set_fact:
-    mongo_image: "{{ docker_compose_accounts.services.mongo.image }}"
-
-# xxxqqq setup mongo cluster only if portal is in cluster
-# xxxqqq start mongo-test with the mongo_image
+- name: Include setting up MongoDB cluster (if portal is in cluster)
+  include_tasks: tasks/portal-role-task-mongo-cluster.yml
+  when: portal_cluster_id is defined

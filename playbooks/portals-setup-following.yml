@@ -148,13 +148,16 @@
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
     
-    # xxx remove these after moved to role
+    # TODO: remove these after moved to role - begin
     - set_fact:
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
+    
     - set_fact:
-        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+    save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+    
     - name: xxx include role task
       include_tasks: tasks/portal-role-task.yml
+    # TODO: remove these after moved to role - end
 
   handlers:
     

@@ -1,0 +1,130 @@
+---
+
+# MongoDB Replicaset Test
+
+- name: Remove mongo containers (if exist)
+  docker_container:
+    name: "{{ item }}"
+    state: absent
+    container_default_behavior: no_defaults
+  loop:
+    - mongo
+    - mongo-setup
+    - mongo-1
+    - mongo-2
+    - mongo-3
+    - mongo-4
+    - mongo-5
+
+- name: Ensure mgkey parent directory exists
+  ansible.builtin.file:
+    path: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}"
+    state: directory
+  become: True
+  loop:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+
+- name: Remove mgkey file/dir if exists
+  ansible.builtin.file:
+    path: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}/mgkey"
+    state: absent
+  become: True
+  loop:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+
+- name: Ensure mgkey with content file exists
+  ansible.builtin.copy:
+    content: "{{ webportal_common_config.mongo_db_mgkey if (portal_cluster_id is defined) else lookup('community.general.random_string', base64=True, length=756) }}"
+    dest: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}/mgkey"
+    owner: "999"
+    group: "999"
+    mode: "0400"
+  become: True
+  loop:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+
+- name: Start MongoDB docker containers
+  community.docker.docker_container:
+    name: "mongo-{{ item }}"
+    published_ports: "2701{{ item }}:2701{{ item }}"
+    env:
+      MONGO_INITDB_ROOT_USERNAME: "admin"
+      MONGO_INITDB_ROOT_PASSWORD: "aaabbbccc"
+    volumes: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}:/data"
+    # xxxqqq get current image
+    image: "mongo:4.4.1"
+    command: "--keyFile=/data/mgkey --replSet=sub-crap --port 2701{{ item }}"
+    container_default_behavior: "no_defaults"
+    networks:
+      - name: "skynet-webportal_shared"
+    # Note: Set network_mode for depreciation warning.
+    network_mode: "default"
+  loop:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+
+- name: Wait for MongoDB services to be ready
+  wait_for:
+    host: crap.siasky.net
+    port: "2701{{ item }}"
+    connect_timeout: 3
+    delay: 0
+    timeout: 30
+  loop:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+
+- name: Set initial replicaset members list
+  set_fact:
+    initial_replicaset_members: "{{ ['crap.siasky.net:2701'] | product(test_item.initial_replicaset) | map('join') | list }}"
+
+- debug:
+    msg: |
+      Initial replicaset members list:
+
+      {{ initial_replicaset_members }}
+
+- name: Ensure MongoDB initial replicaset exists
+  community.mongodb.mongodb_replicaset:
+  #xxxqqq update all params
+    login_host: "crap.siasky.net"
+    # xxxqqq
+    login_port: 27011
+    # xxxqqq
+    # login_user: "{{ accounts_config.skynet_db_user }}"
+    login_user: "admin"
+    # xxxqqq
+    # login_password: "{{ accounts_config.skynet_db_password }}"
+    login_password: "aaabbbccc"
+    # replica_set: "{{ webportal_common_config.mongo_db_replicaset_name }}"
+    replica_set: "sub-crap"
+    # xxxqqqq update initial_replicatset_members
+    members: "{{ initial_replicaset_members }}"
+    # xxxqqqq remove
+    # - "crap.siasky.net:27117"
+    # - "crap.siasky.net:27217"
+    # - "crap.siasky.net:27317"
+  # xxxqqq run once
+  # when: groups.mongod.index(inventory_hostname) == 0
+  run_once: True
+
+  # xxxqqqq add rs verification
+  xxxqqq
