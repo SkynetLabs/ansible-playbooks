@@ -1,14 +1,7 @@
-# TODO - Add checks for other docker services
+# Check that all docker compose services are successfully running.
 
-# Check that NGINX has successfully started up
-- name: Check That NGINX Has Started
-  # This command will return the docker ps headers and then a line for nginx if
-  # it is running
-  ansible.builtin.command: docker ps --filter name=nginx --filter status=running
-  register: docker_nginx_result
-  # If nginx isn't running, stdout will only be 1 line of the docker ps
-  # headers. Wait until there is the second line which is the nginx container.
-  until: docker_nginx_result.stdout_lines | length == 2
-  # Retry every second for fifteen minutes
-  delay: 1
-  retries: "{{ fifteen_minutes_in_secs }}"
+- name: Include checking that each docker compose service is successfully running
+  include_tasks: tasks/portal-wait-for-docker-service.yml
+  loop: "{{ docker_compose_services }}"
+  loop_control:
+    loop_var: "docker_service_item"
