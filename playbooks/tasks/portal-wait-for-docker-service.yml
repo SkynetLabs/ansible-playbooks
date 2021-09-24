@@ -1,16 +1,25 @@
 # Check that docker service is successfully running.
-- name: Check that docker service is successfully running
-  # This command will return the docker ps headers and then a line for
-  # docker service if it is running. We filter by exact container name.
-  ansible.builtin.command: "docker ps --filter name=^{{ docker_service_item }}$ --filter status=running"
-  register: docker_ps_result
-  # If docker service isn't running, stdout will only be 1 line of the
-  # docker ps headers. Wait until there is the second line which is the
-  # service container.
-  until: docker_ps_result.stdout_lines | length == 2
-  # Retry every second for fifteen minutes
-  delay: 1
-  retries: "{{ fifteen_minutes_in_secs }}"
-  # Do not use "loop: ..." here, because if an item fails, it continues with
-  # the next item (loop here doesn't fail fast). If you want to loop over
-  # docker services and fail fast, include this task in a loop.
+
+- block:
+  - name: Log service name
+    debug:
+      msg: "Wait for docker service: {{ docker_service_item }}"
+
+  - name: Check that docker service is successfully running
+    # This command will return the docker ps headers and then a line for
+    # docker service if it is running. We filter by exact container name.
+    ansible.builtin.command: "docker ps --filter name=^{{ docker_service_item }}$ --filter status=running"
+    register: docker_ps_result
+    # If docker service isn't running, stdout will only be 1 line of the
+    # docker ps headers. Wait until there is the second line which is the
+    # service container.
+    until: docker_ps_result.stdout_lines | length == 2
+    # Retry every second for fifteen minutes
+    delay: 1
+    retries: "{{ fifteen_minutes_in_secs }}"
+    # Do not use "loop: ..." here, because if an item fails, it continues with
+    # the next item (loop here doesn't fail fast). If you want to loop over
+    # docker services and fail fast, include this task in a loop.
+  
+  # Exclude one off services, e.g. kratos-migrate
+  when: docker_service_item not in docker_services_exclude_waiting
