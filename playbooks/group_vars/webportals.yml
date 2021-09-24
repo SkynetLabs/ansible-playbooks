@@ -153,6 +153,10 @@ keep_accounts_services:
 keep_jaeger_services:
   - "sia"
 
+# Do not wait for these docker services
+docker_services_exclude_waiting:
+  - "kratos-migrate"
+
 # Localhost vars
 # my-logs path relative to ./playbooks directory
 local_logs_dir: "../my-logs"
