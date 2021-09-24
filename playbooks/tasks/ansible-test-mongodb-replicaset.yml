@@ -7,124 +7,88 @@
     name: "{{ item }}"
     state: absent
     container_default_behavior: no_defaults
-  loop:
-    - mongo
-    - mongo-setup
-    - mongo-1
-    - mongo-2
-    - mongo-3
-    - mongo-4
-    - mongo-5
+  loop: "{{ test_config.mongo_containers }}"
 
 - name: Ensure mgkey parent directory exists
   ansible.builtin.file:
-    path: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}"
+    path: "{{ webportal_user_home_dir }}/mongo-cluster-test/docker/data/mongo-{{ item }}"
     state: directory
   become: True
-  loop:
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
+  loop: "{{ test_config.mongo_indices }}"
 
 - name: Remove mgkey file/dir if exists
   ansible.builtin.file:
-    path: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}/mgkey"
+    path: "{{ webportal_user_home_dir }}/mongo-cluster-test/docker/data/mongo-{{ item }}/mgkey"
     state: absent
   become: True
-  loop:
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
+  loop: "{{ test_config.mongo_indices }}"
 
 - name: Ensure mgkey with content file exists
   ansible.builtin.copy:
-    content: "{{ webportal_common_config.mongo_db_mgkey if (portal_cluster_id is defined) else lookup('community.general.random_string', base64=True, length=756) }}"
-    dest: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}/mgkey"
+    content: "{{ webportal_common_config.mongo_db_mgkey }}"
+    dest: "{{ webportal_user_home_dir }}/mongo-cluster-test/docker/data/mongo-{{ item }}/mgkey"
     owner: "999"
     group: "999"
     mode: "0400"
   become: True
-  loop:
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
+  loop: "{{ test_config.mongo_indices }}"
 
 - name: Start MongoDB docker containers
   community.docker.docker_container:
     name: "mongo-{{ item }}"
     published_ports: "2701{{ item }}:2701{{ item }}"
     env:
-      MONGO_INITDB_ROOT_USERNAME: "admin"
-      MONGO_INITDB_ROOT_PASSWORD: "aaabbbccc"
-    volumes: "/home/user/mongo-cluster-test/docker/data/mongo-{{ item }}:/data"
-    # xxxqqq get current image
-    image: "mongo:4.4.1"
-    command: "--keyFile=/data/mgkey --replSet=sub-crap --port 2701{{ item }}"
+      MONGO_INITDB_ROOT_USERNAME: "{{ accounts_config.skynet_db_user }}"
+      MONGO_INITDB_ROOT_PASSWORD: "{{ accounts_config.skynet_db_password }}"
+    volumes: "{{ webportal_user_home_dir }}/mongo-cluster-test/docker/data/mongo-{{ item }}:/data"
+    image: "{{ test_config.mongo_image}}"
+    command: "--keyFile=/data/mgkey --replSet={{ webportal_common_config.mongo_db_replicaset_name }} --port 2701{{ item }}"
     container_default_behavior: "no_defaults"
     networks:
       - name: "skynet-webportal_shared"
-    # Note: Set network_mode for depreciation warning.
+    # Note: Set network_mode to get rid of depreciation warning.
     network_mode: "default"
-  loop:
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
+  loop: "{{ test_config.mongo_indices }}"
 
 - name: Wait for MongoDB services to be ready
   wait_for:
-    host: crap.siasky.net
+    host: "{{ webportal_server_config.domain_name }}"
     port: "2701{{ item }}"
     connect_timeout: 3
     delay: 0
     timeout: 30
-  loop:
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-
-- name: Set initial replicaset members list
-  set_fact:
-    initial_replicaset_members: "{{ ['crap.siasky.net:2701'] | product(test_item.initial_replicaset) | map('join') | list }}"
+  loop: "{{ test_config.mongo_indices }}"
 
 - debug:
     msg: |
-      Initial replicaset members list:
-
-      {{ initial_replicaset_members }}
+      Test: {{ test_item.name }}
+      Members: {{ test_item.members }}
 
 - name: Ensure MongoDB initial replicaset exists
   community.mongodb.mongodb_replicaset:
-  #xxxqqq update all params
-    login_host: "crap.siasky.net"
+    login_host: "{{ webportal_server_config.domain_name }}"
     # xxxqqq
     login_port: 27011
-    # xxxqqq
-    # login_user: "{{ accounts_config.skynet_db_user }}"
-    login_user: "admin"
-    # xxxqqq
-    # login_password: "{{ accounts_config.skynet_db_password }}"
-    login_password: "aaabbbccc"
-    # replica_set: "{{ webportal_common_config.mongo_db_replicaset_name }}"
-    replica_set: "sub-crap"
-    # xxxqqqq update initial_replicatset_members
-    members: "{{ initial_replicaset_members }}"
-    # xxxqqqq remove
-    # - "crap.siasky.net:27117"
-    # - "crap.siasky.net:27217"
-    # - "crap.siasky.net:27317"
-  # xxxqqq run once
-  # when: groups.mongod.index(inventory_hostname) == 0
+    login_user: "{{ accounts_config.skynet_db_user }}"
+    login_password: "{{ accounts_config.skynet_db_password }}"
+    replica_set: "{{ webportal_common_config.mongo_db_replicaset_name }}"
+    members: "{{ test_item.members }}"
   run_once: True
 
-  # xxxqqqq add rs verification
-  xxxqqq
+- name: Check replicaset
+  community.mongodb.mongodb_status:
+    login_host: "{{ webportal_server_config.domain_name }}"
+    # xxxqqq
+    login_port: 27011
+    login_user: "{{ accounts_config.skynet_db_user }}"
+    login_password: "{{ accounts_config.skynet_db_password }}"
+    poll: 3
+    interval: 10
+  register: replicaset_result
+  run_once: True
+
+- debug:
+    msg: |
+      MongoDB replicaset status:
+
+      {{ replicaset_result | to_nice_json }}
