@@ -22,6 +22,9 @@
 - name: "Wait for uploads to finish"
   ansible.builtin.command: docker exec sia siac renter uploads
   register: docker_renter_uploads
+  # Wait until 'No files are uploading.' is found in the stdout.
   until: docker_renter_uploads.stdout.find("No files are uploading.") != -1
+  # Retry every 5 seconds for portal_upload_num_retries, in prod this is 60
+  # times which is where the 5 minutes is determined in the above comment.
   delay: 5
   retries: "{{ portal_upload_num_retries }}"
