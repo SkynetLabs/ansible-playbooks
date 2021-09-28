@@ -24,4 +24,4 @@
   register: docker_renter_uploads
   until: docker_renter_uploads.stdout.find("No files are uploading.") != -1
   delay: 5
-  retries: "{{ portal_load_balancer_timeout_secs }}"
+  retries: "{{ portal_upload_num_retries }}"
