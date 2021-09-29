@@ -16,13 +16,15 @@
   # if it is not up and running, it is practically disabled.
   when: health_check_docker_container_result.exists and health_check_docker_container_result.container is defined and health_check_docker_container_result.container.State.Running
 
-# This is a temporary solution to help allow uploads to finish. One piece of the
-# solution is listed below in a TODO. The second part of the solution is for
-# multi server large uploads, meaning TUS uploads can resume on another server.
-#
-# TODO: Replace this with a check if there are any in process uploads, wait for
-# them to finish in this timeout
-- name: "Wait given timeout for the load balancer to remove the portal"
-  wait_for:
-    timeout: "{{ portal_load_balancer_timeout_secs }}"
-  delegate_to: localhost
+# Wait 5 minutes for any small uploads to finish. After 5 minutes, it is likely
+# that it is a large upload in which case it is safe to take the server down as
+# the large upload will continue on another server.
+- name: "Wait for uploads to finish"
+  ansible.builtin.command: docker exec sia siac renter uploads
+  register: docker_renter_uploads
+  # Wait until 'No files are uploading.' is found in the stdout.
+  until: docker_renter_uploads.stdout.find("No files are uploading.") != -1
+  # Retry every 5 seconds for portal_upload_num_retries, in prod this is 60
+  # times which is where the 5 minutes is determined in the above comment.
+  delay: 5
+  retries: "{{ portal_upload_num_retries }}"
