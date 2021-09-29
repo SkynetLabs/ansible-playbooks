@@ -4,22 +4,21 @@
 
 - name: Remove mongo containers (if exist)
   docker_container:
-    name: "{{ item }}"
+    name: "mongo-{{ item }}"
     state: absent
     container_default_behavior: no_defaults
-  loop: "{{ test_config.mongo_containers }}"
+  loop: "{{ test_config.mongo_indices }}"
+
+- name: Remove test directory
+  ansible.builtin.file:
+    path: "{{ webportal_user_home_dir }}/mongo-cluster-test"
+    state: absent
+  become: True
 
 - name: Ensure mgkey parent directory exists
   ansible.builtin.file:
     path: "{{ webportal_user_home_dir }}/mongo-cluster-test/docker/data/mongo-{{ item }}"
     state: directory
-  become: True
-  loop: "{{ test_config.mongo_indices }}"
-
-- name: Remove mgkey file/dir if exists
-  ansible.builtin.file:
-    path: "{{ webportal_user_home_dir }}/mongo-cluster-test/docker/data/mongo-{{ item }}/mgkey"
-    state: absent
   become: True
   loop: "{{ test_config.mongo_indices }}"
 
@@ -59,36 +58,109 @@
     timeout: 30
   loop: "{{ test_config.mongo_indices }}"
 
-- debug:
+- name: Wait for MongoDB accepting connections
+  ansible.builtin.command: "docker logs mongo-{{item}}"
+  register: docker_logs_mongo_result
+  until: docker_logs_mongo_result.stdout | regex_search('Waiting for connections.*"port":2701' + item | string) != ""
+  delay: 1
+  retries: 20
+  loop: "{{ test_config.mongo_indices }}"
+
+# Note: Waits above didn't help to wait to be ready to setup replicaset.
+# Didn't found a better way (e.g. in logs) to be ready for replicaset setup.
+- name: Wait for MongoDB
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
+
+- name: Log Initial members
+  debug:
     msg: |
       Test: {{ test_item.name }}
-      Members: {{ test_item.members }}
+      Initial members: {{ test_item.initial_members }}
 
 - name: Ensure MongoDB initial replicaset exists
   community.mongodb.mongodb_replicaset:
     login_host: "{{ webportal_server_config.domain_name }}"
     # xxxqqq
-    login_port: 27011
+    login_port: 27013
     login_user: "{{ accounts_config.skynet_db_user }}"
     login_password: "{{ accounts_config.skynet_db_password }}"
     replica_set: "{{ webportal_common_config.mongo_db_replicaset_name }}"
-    members: "{{ test_item.members }}"
+    members: "{{ test_item.initial_members }}"
+    validate: False
   run_once: True
 
-- name: Check replicaset
-  community.mongodb.mongodb_status:
-    login_host: "{{ webportal_server_config.domain_name }}"
-    # xxxqqq
-    login_port: 27011
-    login_user: "{{ accounts_config.skynet_db_user }}"
-    login_password: "{{ accounts_config.skynet_db_password }}"
-    poll: 3
-    interval: 10
-  register: replicaset_result
-  run_once: True
+# - name: Check replicaset
+#   community.mongodb.mongodb_status:
+#     login_host: "{{ webportal_server_config.domain_name }}"
+#     # xxxqqq
+#     login_port: 27013
+#     login_user: "{{ accounts_config.skynet_db_user }}"
+#     login_password: "{{ accounts_config.skynet_db_password }}"
+#     poll: 3
+#     interval: 10
+#   register: replicaset_result
+#   run_once: True
+
+# - debug:
+#     msg: |
+#       MongoDB replicaset status:
+
+#       {{ replicaset_result | to_nice_json }}
+
+
+
+# Get replicaset config
+
+# - name: XXX Get MongoDB replicaset config
+#   ansible.builtin.shell:
+#     # cmd: "docker exec -it mongo-2 mongo 'mongodb://crap.siasky.net:27012/admin' -u {{ accounts_config.skynet_db_user }} -p {{ accounts_config.skynet_db_password }}"
+#     cmd: "docker exec -it mongo-2 mongo 'mongodb://crap.siasky.net:27012/admin' -u {{ accounts_config.skynet_db_user }} -p"
+#   args:
+#     stdin:
+#       - "{{ accounts_config.skynet_db_password }}"
+#       - "rs.config()"
+#   register: mongo_login_result
+#   # no_log: True
+
+# Working, want better output
+# - name: XXX Get MongoDB replicaset config
+#   community.docker.docker_container_exec:
+#     # xxxqqq hardcoded container name
+#     container: mongo-2
+#     argv:
+#       - mongo
+#       # xxxqqq hardcoded host:port
+#       - mongodb://crap.siasky.net:27012/admin
+#       - -u 
+#       - "{{ accounts_config.skynet_db_user }}"
+#       - -p
+#       - "{{ accounts_config.skynet_db_password }}"
+#       - --eval
+#       - rs.config()
+#   register: mongo_login_result
+#   # 'no_log: True' is not needed
+
+- name: XXX Get MongoDB replicaset config
+  community.docker.docker_container_exec:
+    # xxxqqq hardcoded container name
+    container: mongo-1
+    argv:
+      - mongo
+      # xxxqqq hardcoded host:port
+      - mongodb://crap.siasky.net:27011/admin
+      - -u 
+      - "{{ accounts_config.skynet_db_user }}"
+      - -p
+      - "{{ accounts_config.skynet_db_password }}"
+    stdin: |
+      rs.config()
+      rs.add({host: "crap.siasky.net:27015", priority: 0, votes: 0})
+      rs.config()
+  register: mongo_login_result
+  # Note: 'no_log: True' is not needed, password doesn't leak to logs
 
 - debug:
     msg: |
-      MongoDB replicaset status:
-
-      {{ replicaset_result | to_nice_json }}
+      MDB Log Res: {{ mongo_login_result | to_nice_json}}
