@@ -53,6 +53,11 @@
     path: "{{ logs_dir }}/{{ log_filename_prefix }}.status.starting"
     state: touch
 
+# Print timestamp
+- name: Print timestamp (starting docker services)
+  debug:
+    msg: "{{ inventory_hostname + ' docker services start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
+
 # Start the docker services (on deploy also build images)
 - name: Start the docker services (on deploy also build images)
   community.docker.docker_compose:
