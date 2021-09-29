@@ -1,0 +1,1 @@
+- Add check for active downloads to health check disable task
