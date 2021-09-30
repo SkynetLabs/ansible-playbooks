@@ -14,7 +14,10 @@
   command: 'docker exec health-check cli disable "{{ out_of_lb_message | default(portal_action) }}"'
   # Only execute the CLI command if the container is up and running. Otherwise,
   # if it is not up and running, it is practically disabled.
-  when: health_check_docker_container_result.exists and health_check_docker_container_result.container is defined and health_check_docker_container_result.container.State.Running
+  when:
+    - health_check_docker_container_result.exists
+    - health_check_docker_container_result.container is defined
+    - health_check_docker_container_result.container.State.Running
 
 # Check if sia container is running.
 - name: Check sia container is running
@@ -22,17 +25,41 @@
     name: sia
   register: sia_docker_container_result
 
-# Wait 5 minutes for any small uploads to finish. After 5 minutes, it is likely
-# that it is a large upload in which case it is safe to take the server down as
-# the large upload will continue on another server.
-- name: "Wait for uploads to finish"
-  ansible.builtin.command: docker exec sia siac renter uploads
-  register: docker_renter_uploads
-  # Wait until 'No files are uploading.' is found in the stdout.
-  until: docker_renter_uploads.stdout.find("No files are uploading.") != -1
-  # Retry every 5 seconds for portal_upload_num_retries, in prod this is 60
-  # times which is where the 5 minutes is determined in the above comment.
-  delay: 5
-  retries: "{{ portal_upload_num_retries }}"
+# Wait 5 minutes for any small uploads and downloads to finish. After 5 minutes,
+# it is likely that it is a large upload in which case it is safe to take the
+# server down as the large upload will continue on another server. Or it is a
+# large download which can also be resumed on another server.
+- block:
+    - name: "Wait for uploads to finish"
+      ansible.builtin.command: docker exec sia siac renter uploads
+      register: docker_renter_uploads
+      # Wait until 'No files are uploading.' is found in the stdout.
+      until: docker_renter_uploads.stdout.find("No files are uploading.") != -1
+      # Retry every 5 seconds for portal_upload_check_num_retries, in prod this
+      # is 60 times which is where the 5 minutes is determined in the above
+      # comment.
+      delay: 5
+      retries: "{{ portal_upload_check_num_retries }}"
+      # Only fail the task if there is an error reported to stderr. Otherwise we
+      # will continue on after the retries are complete.
+      failed_when: docker_renter_uploads.stderr != ''
+
+    - name: "Wait for downloads to finish"
+      ansible.builtin.command: docker exec sia siac renter downloads
+      register: docker_renter_downloads
+      # Wait until 'No files are downloading.' is found in the stdout.
+      until: docker_renter_downloads.stdout.find("No files are downloading.") != -1
+      # Retry every 5 seconds for portal_download_check_num_retries, in prod
+      # this is 60 times which is where the 5 minutes is determined in the above
+      # comment.
+      delay: 5
+      retries: "{{ portal_download_check_num_retries }}"
+      # Only fail the task if there is an error reported to stderr. Otherwise we
+      # will continue on after the retries are complete.
+      failed_when: docker_renter_downloads.stderr != ''
+
   # Do not wait if sia container is not running
-  when: sia_docker_container_result.exists and sia_docker_container_result.container is defined and sia_docker_container_result.container.State.Running
+  when:
+    - sia_docker_container_result.exists
+    - sia_docker_container_result.container is defined
+    - sia_docker_container_result.container.State.Running
