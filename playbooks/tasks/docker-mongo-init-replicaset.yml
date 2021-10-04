@@ -12,7 +12,7 @@
       - docker_mongo_replicaset.user | default('') != ''
       - docker_mongo_replicaset.password | default('') != ''
 
-- name: Create MongoDB replicaset init string
+- name: Create MongoDB replicaset initialization string
   set_fact:
     mongo_replicaset_init: |
       {% set members = [] %}
@@ -21,9 +21,9 @@
       {% set _ = m.update(member) %}
       {% set _ = members.append(m) %}
       {% endfor %}
-      {% set init = {'_id': webportal_common_config.mongo_db_replicaset_name } %}
-      {% set _ = init.update({'members': members}) %}
-      {{ init }}
+      {% set init_str = {'_id': webportal_common_config.mongo_db_replicaset_name } %}
+      {% set _ = init_str.update({'members': members}) %}
+      {{ init_str }}
 
 - name: Log initial replicaset string (and test to json)
   debug:
@@ -43,15 +43,13 @@
   register: mongo_init_result
   failed_when: mongo_init_result.transformed_output is not defined or (mongo_init_result.transformed_output.ok | default(-1) != 1)
 
-- name: xxxqqq Wait for MongoDB replicaset status
+- name: Wait for MongoDB replicaset initialization finished
   community.mongodb.mongodb_shell:
     login_host: "{{ docker_mongo_replicaset.host }}"
     login_port: "{{ docker_mongo_replicaset.port }}"
     login_user: "{{ docker_mongo_replicaset.user }}"
     login_password: "{{ docker_mongo_replicaset.password }}"
     mongo_cmd: "docker exec {{ docker_mongo_replicaset.container_name }} mongo"
-    # transform_output can't be parsed correctly by this module, keep it raw
-    transform: raw
     # Replicaset status() doesn't return pure JSON, so we select only some
     # attributes from members.
     eval: |
@@ -61,6 +59,8 @@
       print('{ \"membersStatus\" : ')
       printjson(membersStatus)
       print('}')
+    # transform_output can't be parsed correctly by this module, keep it raw
+    transform: raw
   register: mongo_status_result
   # Wait until all members are in status PRIMARY or SECONDARY
   until:

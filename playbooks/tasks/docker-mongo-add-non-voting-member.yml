@@ -1,0 +1,58 @@
+---
+
+# Add MongoDB non-voting member
+
+- name: Assert we have all arguments
+  assert:
+    that:
+      - docker_mongo_replicaset_add_non_voting.member | default([]) != []
+      - docker_mongo_replicaset_add_non_voting.container_name | default('') != ''
+      - docker_mongo_replicaset_add_non_voting.host | default('') != ''
+      - docker_mongo_replicaset_add_non_voting.port | default('') != ''
+      - docker_mongo_replicaset_add_non_voting.user | default('') != ''
+      - docker_mongo_replicaset_add_non_voting.password | default('') != ''
+
+- name: Add MongoDB non-voting member
+  community.mongodb.mongodb_shell:
+    login_host: "{{ docker_mongo_replicaset_add_non_voting.host }}"
+    login_port: "{{ docker_mongo_replicaset_add_non_voting.port }}"
+    login_user: "{{ docker_mongo_replicaset_add_non_voting.user }}"
+    login_password: "{{ docker_mongo_replicaset_add_non_voting.password }}"
+    mongo_cmd: "docker exec {{ docker_mongo_replicaset_add_non_voting.container_name }} mongo"
+    # Single quotes are needed for host value below.
+    eval: |
+      rs.add({host: '{{ docker_mongo_replicaset_add_non_voting.member.host }}', priority: 0, votes: 0})
+    # transform_output can't be parsed correctly by this module, keep it raw
+    transform: raw
+  register: mongo_add_non_voting_result
+
+- name: Fail if adding non-voting member was not successful
+  fail:
+    msg: |
+      Adding a non-voting member failed, see mongo shell output:
+      
+      {{ mongo_add_non_voting_result.transformed_output }}
+  when: |-
+    (mongo_add_non_voting_result.transformed_output | default('') == '') or ((mongo_add_non_voting_result.transformed_output | replace('\t', '') | replace(' : ', ':')).find('"ok":1,') == -1)
+
+- name: Wait for MongoDB member becoming active, i.e. having status SECONDARY (eventually PRIMARY)
+  community.mongodb.mongodb_shell:
+    login_host: "{{ docker_mongo_replicaset_add_non_voting.host }}"
+    login_port: "{{ docker_mongo_replicaset_add_non_voting.port }}"
+    login_user: "{{ docker_mongo_replicaset_add_non_voting.user }}"
+    login_password: "{{ docker_mongo_replicaset_add_non_voting.password }}"
+    mongo_cmd: "docker exec {{ docker_mongo_replicaset_add_non_voting.container_name }} mongo"
+    # Print status of the added member
+    eval: |
+      print('{ \"addedMemberStatus\" : ');
+      rs.status().members.forEach((m) => {if(m.name == '{{ docker_mongo_replicaset_add_non_voting.member.host }}') {printjson(m.stateStr);}});
+      print('}');
+    # transform_output can't be parsed correctly by this module, keep it raw
+    transform: raw
+  register: mongo_status_result
+  # Wait until the added member becomes active with status SECONDARY eventually PRIMARY
+  until:
+    - mongo_status_result.transformed_output is defined
+    - (mongo_status_result.transformed_output | from_json).addedMemberStatus in ['PRIMARY', 'SECONDARY']
+  delay: 1
+  retries: 60

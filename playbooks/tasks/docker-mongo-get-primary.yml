@@ -1,0 +1,37 @@
+---
+
+# Get primary MongoDB member
+
+- name: Assert we have all arguments
+  assert:
+    that:
+      - docker_mongo_replicaset_primary.container_name | default('') != ''
+      - docker_mongo_replicaset_primary.host | default('') != ''
+      - docker_mongo_replicaset_primary.port | default('') != ''
+      - docker_mongo_replicaset_primary.user | default('') != ''
+      - docker_mongo_replicaset_primary.password | default('') != ''
+
+- name: Get primary MongoDB member
+  community.mongodb.mongodb_shell:
+    login_host: "{{ docker_mongo_replicaset_primary.host }}"
+    login_port: "{{ docker_mongo_replicaset_primary.port }}"
+    login_user: "{{ docker_mongo_replicaset_primary.user }}"
+    login_password: "{{ docker_mongo_replicaset_primary.password }}"
+    mongo_cmd: "docker exec {{ docker_mongo_replicaset_primary.container_name }} mongo"
+    eval: |
+      print('{ \"primaryMemberName\" : ');
+      rs.status().members.forEach((m) => {if(m.stateStr == 'PRIMARY') {printjson(m.name);}});
+      print('}');
+    # transform_output can't be parsed correctly by this module, keep it raw
+    transform: raw
+  register: mongo_primary_result
+  failed_when: (mongo_primary_result.transformed_output | default('') == '') or ((mongo_primary_result.transformed_output | from_json).primaryMemberName | default('') == '')
+
+- name: Set MongoDB primary member variable
+  set_fact:
+    mongo_primary_host_port: "{{ (mongo_primary_result.transformed_output | from_json).primaryMemberName }}"
+
+- name: Log MongoDB primary member
+  debug:
+    msg: |
+      MongoDB primary member: {{ mongo_primary_host_port }}
