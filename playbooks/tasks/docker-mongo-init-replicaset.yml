@@ -65,6 +65,7 @@
   # Wait until all members are in status PRIMARY or SECONDARY
   until:
     - mongo_status_result.transformed_output is defined
+    - "'PRIMARY' in ((mongo_status_result.transformed_output | from_json).membersStatus | map(attribute='stateStr') | list)"
     - (mongo_status_result.transformed_output | from_json).membersStatus | map(attribute='stateStr') | list | reject('==', 'PRIMARY') | reject('==', 'SECONDARY') | length == 0
   delay: 1
   retries: 60

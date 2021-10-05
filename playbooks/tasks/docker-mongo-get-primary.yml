@@ -25,7 +25,25 @@
     # transform_output can't be parsed correctly by this module, keep it raw
     transform: raw
   register: mongo_primary_result
-  failed_when: (mongo_primary_result.transformed_output | default('') == '') or ((mongo_primary_result.transformed_output | from_json).primaryMemberName | default('') == '')
+  until: 
+    - mongo_primary_result.transformed_output | default('') != ''
+    - (mongo_primary_result.transformed_output | from_json).primaryMemberName | default('') != ''
+  delay: 1
+  retries: 60
+  failed_when: False
+
+- name: Log getting primary MongoDB member result
+  debug:
+    msg: |
+      Getting primary MongoDB member result: {{ mongo_primary_result }}
+
+- name: Fail when getting primary MongoDB member is not successful
+  fail:
+    msg: |
+      Error getting primary MongoDB member:
+
+      Result: {{ mongo_primary_result }}
+  when: (mongo_primary_result.transformed_output | default('') == '') or ((mongo_primary_result.transformed_output | from_json).primaryMemberName | default('') == '')
 
 - name: Set MongoDB primary member variable
   set_fact:

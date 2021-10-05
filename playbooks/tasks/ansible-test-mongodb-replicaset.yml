@@ -2,6 +2,13 @@
 
 # MongoDB Replicaset Test
 
+- name: Starting a new test
+  debug:
+    msg: |
+      Test: {{ test_item.name }}
+      Initial members: {{ test_item.initial_members }}
+      Add members: {{ test_item.add_members | default([])}}
+
 - name: Remove mongo containers (if exist)
   docker_container:
     name: "mongo-{{ item }}"
@@ -49,148 +56,83 @@
     network_mode: "default"
   loop: "{{ test_config.mongo_indices }}"
 
-- name: Wait for MongoDB services to be ready
-  wait_for:
-    host: "{{ webportal_server_config.domain_name }}"
-    port: "2701{{ item }}"
-    connect_timeout: 3
-    delay: 0
-    timeout: 30
-  loop: "{{ test_config.mongo_indices }}"
-
-- name: Wait for MongoDB accepting connections
-  ansible.builtin.command: "docker logs mongo-{{item}}"
-  register: docker_logs_mongo_result
-  until: docker_logs_mongo_result.stdout | regex_search('Waiting for connections.*"port":2701' + item | string) != ""
+- name: Wait for MongoDB containers to be ready
+  community.mongodb.mongodb_shell:
+    login_host: "{{ webportal_server_config.domain_name }}"
+    login_port: "2701{{ item }}"
+    login_user: "{{ accounts_config.skynet_db_user }}"
+    login_password: "{{ accounts_config.skynet_db_password }}"
+    mongo_cmd: "docker exec mongo-{{ item }} mongo"
+    eval: "rs.status()"
+  register: mongo_wait_result
+  until:
+    - mongo_wait_result.transformed_output is defined
+    - mongo_wait_result.transformed_output.ok == 1 or mongo_wait_result.transformed_output.codeName == 'NotYetInitialized'
   delay: 1
-  retries: 20
+  retries: 60
   loop: "{{ test_config.mongo_indices }}"
 
-# Note: Waits above didn't help to wait to be ready to setup replicaset.
-# Didn't found a better way (e.g. in logs) to be ready for replicaset setup.
-# xxxqqq get better wait
-- name: Wait for MongoDB
-  wait_for:
-    timeout: 30
-  delegate_to: localhost
-
-- name: Log Initial members
-  debug:
-    msg: |
-      Test: {{ test_item.name }}
-      Initial members: {{ test_item.initial_members }}
-
-# # xxxqqq working but remove
-# - name: Ensure MongoDB initial replicaset exists
-#   community.mongodb.mongodb_replicaset:
-#     login_host: "{{ webportal_server_config.domain_name }}"
-#     # xxxqqq
-#     login_port: 27013
-#     login_user: "{{ accounts_config.skynet_db_user }}"
-#     login_password: "{{ accounts_config.skynet_db_password }}"
-#     replica_set: "{{ webportal_common_config.mongo_db_replicaset_name }}"
-#     members: "{{ test_item.initial_members }}"
-#     validate: False
-#   run_once: True
-
-# # - name: Check replicaset
-# #   community.mongodb.mongodb_status:
-# #     login_host: "{{ webportal_server_config.domain_name }}"
-# #     # xxxqqq
-# #     login_port: 27013
-# #     login_user: "{{ accounts_config.skynet_db_user }}"
-# #     login_password: "{{ accounts_config.skynet_db_password }}"
-# #     poll: 3
-# #     interval: 10
-# #   register: replicaset_result
-# #   run_once: True
-
-# # - debug:
-# #     msg: |
-# #       MongoDB replicaset status:
-
-# #       {{ replicaset_result | to_nice_json }}
-
-
-
-# # Get replicaset config
-
-# # - name: XXX Get MongoDB replicaset config
-# #   ansible.builtin.shell:
-# #     # cmd: "docker exec -it mongo-2 mongo 'mongodb://crap.siasky.net:27012/admin' -u {{ accounts_config.skynet_db_user }} -p {{ accounts_config.skynet_db_password }}"
-# #     cmd: "docker exec -it mongo-2 mongo 'mongodb://crap.siasky.net:27012/admin' -u {{ accounts_config.skynet_db_user }} -p"
-# #   args:
-# #     stdin:
-# #       - "{{ accounts_config.skynet_db_password }}"
-# #       - "rs.config()"
-# #   register: mongo_login_result
-# #   # no_log: True
-
-# # Working, want better output
-# # - name: XXX Get MongoDB replicaset config
-# #   community.docker.docker_container_exec:
-# #     # xxxqqq hardcoded container name
-# #     container: mongo-2
-# #     argv:
-# #       - mongo
-# #       # xxxqqq hardcoded host:port
-# #       - mongodb://crap.siasky.net:27012/admin
-# #       - -u 
-# #       - "{{ accounts_config.skynet_db_user }}"
-# #       - -p
-# #       - "{{ accounts_config.skynet_db_password }}"
-# #       - --eval
-# #       - rs.config()
-# #   register: mongo_login_result
-# #   # 'no_log: True' is not needed
-
-
-
-
-
-- name: Include executing MongoDB CLI command
-  include_tasks: tasks/docker-mongo-cli-execute-command.yml
+- name: Include initializing MongoDB replicaset
+  include_tasks: tasks/docker-mongo-init-replicaset.yml
   vars:
-    - mongo_cli_container: mongo-1
-    - mongo_cli_port: 27011
-    - mongo_cli_user: "{{ accounts_config.skynet_db_user }}"
-    - mongo_cli_pass: "{{ accounts_config.skynet_db_password }}"
-    - mongo_cli_command: |
-        rs.initiate(
-          {
-            _id : "{{ webportal_common_config.mongo_db_replicaset_name }}",
-            members: [ { _id : 0, host : "crap.siasky.net:27011" } ]
-          }
-        )
+    docker_mongo_replicaset:
+      members: "{{ test_item.initial_members }}"
+      container_name: "mongo-1"
+      host: "localhost"
+      port: "27011"
+      user: "{{ accounts_config.skynet_db_user }}"
+      password: "{{ accounts_config.skynet_db_password }}"
 
-# - name: xxxqqq
-#   community.docker.docker_container_exec:
-#     # xxxqqq hardcoded container name
-#     container: mongo-1
-#     argv:
-#       - mongo
-#       # xxxqqq hardcoded host:port
-#       # - mongodb://crap.siasky.net:27011/admin
-#       - mongodb://localhost:27011/admin
-#       - -u 
-#       - "{{ accounts_config.skynet_db_user }}"
-#       - -p
-#       - "{{ accounts_config.skynet_db_password }}"
-#     # stdin: |
-#     #   rs.config()
-#     #   rs.add({host: "crap.siasky.net:27015", priority: 0, votes: 0})
-#     #   rs.config()
-#     # xxxqqq hardcoded init node
-#     stdin: |
-#       rs.initiate(
-#         {
-#           _id : "{{ webportal_common_config.mongo_db_replicaset_name }}",
-#           members: [ { _id : 0, host : "crap.siasky.net:27011" } ]
-#         }
-#       )
-#   register: mongo_login_result
-#   # Note: 'no_log: True' is not needed, password doesn't leak to logs
+# Add non-voting member (test cluster specific)
+# xxxqqq add members - add voting, non-voting switch
 
-# - debug:
-#     msg: |
-#       MDB Log Res: {{ mongo_login_result | to_nice_json}}
+- name: Add non-voting member(s) to MongoDB replicaset
+  block:
+    - name: Include getting primary MongoDB member
+      include_tasks: tasks/docker-mongo-get-primary.yml
+      vars:
+        docker_mongo_replicaset_primary:
+          container_name: "mongo-2"
+          host: "localhost"
+          port: "27012"
+          user: "{{ accounts_config.skynet_db_user }}"
+          password: "{{ accounts_config.skynet_db_password }}"
+
+    - name: Set MongoDB primary port
+      set_fact:
+        mongo_primary_port: "{{ mongo_primary_host_port.split(':')[1] }}"
+
+    - name: Set MongoDB primary container name
+      set_fact:
+        mongo_primary_container: "mongo-{{ mongo_primary_port | int - 27010 }}"
+
+    - name: Add MongoDB non-voting member
+      include_tasks: tasks/docker-mongo-add-non-voting-member.yml
+      vars:
+        docker_mongo_replicaset_add_non_voting:
+          member: "{{ add_member_item }}"
+          container_name: "{{ mongo_primary_container }}"
+          host: "localhost"
+          port: "{{ mongo_primary_port | int }}"
+          user: "{{ accounts_config.skynet_db_user }}"
+          password: "{{ accounts_config.skynet_db_password }}"
+      loop: "{{ test_item.add_members | list }}"
+      loop_control:
+        loop_var: "add_member_item"
+  when: test_item.add_members | default([]) != []
+
+- name: Check final MongoDB replicaset
+  block:
+    - name: Get MongoDB replicaset config
+      community.mongodb.mongodb_shell:
+        login_host: "{{ webportal_server_config.domain_name }}"
+        login_port: "27012"
+        login_user: "{{ accounts_config.skynet_db_user }}"
+        login_password: "{{ accounts_config.skynet_db_password }}"
+        mongo_cmd: "docker exec mongo-2 mongo"
+        eval: "rs.config()"
+      register: mongo_config_result
+
+    # Check MongoDB replicaset config
+    # Get MongoDB replicaset status
+    # Check MongoDB replicaset status
