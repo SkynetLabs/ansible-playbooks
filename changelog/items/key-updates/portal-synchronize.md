@@ -1,0 +1,1 @@
+- Add playbook for synchronizing files and directories between portals

@@ -1,5 +1,4 @@
 ---
-
 # Prepare Skynet Webportals for our Ansible playbooks
 
 # xxx requires sudo pass
@@ -26,4 +25,12 @@
     state: directory
     owner: "user"
     group: "user"
-    mode: '0700'
+    mode: "0700"
+
+# Install rsync for synchronize commands
+- name: "Installing Rsync"
+  apt:
+    name: rsync
+    state: latest
+    # update_cache: yes
+    # cache_valid_time: 900
