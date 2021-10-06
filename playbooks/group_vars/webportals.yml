@@ -35,7 +35,9 @@ group_ufw_rules:
   - { rule: "allow", port: "80", proto: "tcp", direction: "in" }
   - { rule: "allow", port: "443", proto: "tcp", direction: "in" }
 ufw_deny_outgoing_to_local_network: True
-local_networks:
+local_networks_allowed:
+  - "10.10.10.10/24"
+local_networks_denied:
   - "10.0.0.0/8"
   - "172.16.0.0/12"
   - "192.168.0.0/16"
