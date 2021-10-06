@@ -107,12 +107,6 @@
 - name: Wait Until Docker Services Have Started Up
   include_tasks: tasks/portal-wait-for-docker-services.yml
 
-# Sleep 30 seconds
-- name: Sleep for 30 seconds and continue with play
-  wait_for:
-    timeout: 30
-  delegate_to: localhost
-
 # Update log status to 'started'
 - name: Update log status to 'started'
   include_tasks: tasks/portal-logs-update-status.yml
