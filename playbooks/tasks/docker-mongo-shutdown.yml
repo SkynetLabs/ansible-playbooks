@@ -1,0 +1,21 @@
+---
+
+# Shutdown MongoDB Replicaset Member
+
+- name: Assert we have all arguments
+  assert:
+    that:
+      - docker_mongo_shutdown.container_name | default('') != ''
+      - docker_mongo_shutdown.host | default('') != ''
+      - docker_mongo_shutdown.port | default('') != ''
+      - docker_mongo_shutdown.user | default('') != ''
+      - docker_mongo_shutdown.password | default('') != ''
+
+- name: Shutdown MongoDB replicaset member
+  community.mongodb.mongodb_shutdown:
+    login_host: "{{ docker_mongo_shutdown.host }}"
+    login_port: "{{ docker_mongo_shutdown.port }}"
+    login_user: "{{ docker_mongo_shutdown.user }}"
+    login_password: "{{ docker_mongo_shutdown.password }}"
+  register: mongo_shutdown_result
+  ignore_errors: True

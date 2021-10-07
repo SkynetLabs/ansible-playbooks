@@ -1,0 +1,43 @@
+---
+
+# Shutdown and Remove MongoDB member
+
+- name: Include shutting down MongoDB member
+  include_tasks: tasks/docker-mongo-shutdown.yml
+  vars:
+    docker_mongo_shutdown:
+      container_name: "mongo-{{ remove_member_item.host.split(':')[1] | int - 27010 }}"
+      host: "localhost"
+      port: "{{ remove_member_item.host.split(':')[1] | int }}"
+      user: "{{ accounts_config.skynet_db_user }}"
+      password: "{{ accounts_config.skynet_db_password }}"
+
+- name: Include getting primary MongoDB member
+  include_tasks: tasks/docker-mongo-get-primary.yml
+  vars:
+    docker_mongo_replicaset_primary:
+      container_name: "mongo-2"
+      host: "localhost"
+      port: "27012"
+      user: "{{ accounts_config.skynet_db_user }}"
+      password: "{{ accounts_config.skynet_db_password }}"
+
+- name: Set MongoDB primary port
+  set_fact:
+    mongo_primary_port: "{{ mongo_primary_host_port.split(':')[1] }}"
+
+# Test cluster specific
+- name: Set MongoDB primary container name
+  set_fact:
+    mongo_primary_container: "mongo-{{ mongo_primary_port | int - 27010 }}"
+
+- name: Include removing MongoDB member from replicaset
+  include_tasks: tasks/docker-mongo-remove-member.yml
+  vars:
+    docker_mongo_replicaset_remove:
+      member: "{{ remove_member_item }}"
+      container_name: "{{ mongo_primary_container }}"
+      host: "localhost"
+      port: "{{ mongo_primary_port | int }}"
+      user: "{{ accounts_config.skynet_db_user }}"
+      password: "{{ accounts_config.skynet_db_password }}"

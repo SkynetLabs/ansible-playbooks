@@ -7,6 +7,7 @@
     msg: |
       Test: {{ test_item.name }}
       Initial members: {{ test_item.initial_members }}
+      Remove members: {{ test_item.remove_members | default([])}}
       Add members: {{ test_item.add_members | default([])}}
 
 - name: Remove mongo containers (if exist)
@@ -85,7 +86,6 @@
 
 # Add non-voting member (test cluster specific)
 # xxxqqq add members - add voting, non-voting switch
-
 - name: Add non-voting member(s) to MongoDB replicaset
   block:
     - name: Include getting primary MongoDB member
@@ -102,6 +102,7 @@
       set_fact:
         mongo_primary_port: "{{ mongo_primary_host_port.split(':')[1] }}"
 
+    # Test cluster specific
     - name: Set MongoDB primary container name
       set_fact:
         mongo_primary_container: "mongo-{{ mongo_primary_port | int - 27010 }}"
@@ -121,6 +122,16 @@
         loop_var: "add_member_item"
   when: test_item.add_members | default([]) != []
 
+# Remove member (test cluster specific)
+- name: Remove member(s) from MongoDB replicaset
+  block:
+    - name: Include shutting down, removing MongoDB member
+      include_tasks: tasks/ansible-test-mongodb-replicaset-remove-member.yml
+      loop: "{{ test_item.remove_members | list }}"
+      loop_control:
+        loop_var: "remove_member_item"
+  when: test_item.remove_members | default([]) != []
+
 - name: Check final MongoDB replicaset config and status
   block:
     # Check MongoDB replicaset config
@@ -128,10 +139,10 @@
     - name: Get MongoDB replicaset (filtered) config
       community.mongodb.mongodb_shell:
         login_host: "{{ webportal_server_config.domain_name }}"
-        login_port: "27012"
+        login_port: "27011"
         login_user: "{{ accounts_config.skynet_db_user }}"
         login_password: "{{ accounts_config.skynet_db_password }}"
-        mongo_cmd: "docker exec mongo-2 mongo"
+        mongo_cmd: "docker exec mongo-1 mongo"
         eval: |
           let cfg = rs.config();
           let filteredCfg = {};
@@ -162,19 +173,25 @@
           Expected: {{ webportal_common_config.mongo_db_replicaset_name }}
           Actual: {{ mongo_config_result.transformed_output._id }}
       when: mongo_config_result.transformed_output._id != webportal_common_config.mongo_db_replicaset_name
-    
+
+    - name: Reset final MongoDB replicaset members config
+      set_fact:
+        # Reset previous test
+        mongo_final_members: []
+
     - name: Set final MongoDB replicaset members config
       set_fact:
         # Merge initial members and added members,
         # if not defined set priority = 1, votes =  1.
-        mongo_final_members: "{{ mongo_final_members | default([]) + [item | combine({'priority': (item.priority | default(1)), 'votes': (item.votes | default(1))})] }}"
-      loop: "{{ test_item.initial_members + test_item.add_members }}"
+        # Do not add members from remove_mambers list.
+        mongo_final_members: "{{ mongo_final_members + [item | combine({'priority': (item.priority | default(1)), 'votes': (item.votes | default(1))})] }}"
+      when: item.host not in (test_item.remove_members | default([]) | map(attribute='host'))
+      loop: "{{ test_item.initial_members + (test_item.add_members | default([])) }}"
 
     - name: Fail if expected MongoDB replicaset members are not present in current replicaset config
       fail:
         msg: |
-          Member {{ item }} is expected to be present in replicaset config,
-          but it is missing.
+          A member(s) is expected to be present in replicaset config but was missing.
       when: item not in mongo_config_result.transformed_output.members
       loop: "{{ mongo_final_members }}"
     
@@ -183,10 +200,10 @@
     - name: Get MongoDB replicaset (filtered) status
       community.mongodb.mongodb_shell:
         login_host: "{{ webportal_server_config.domain_name }}"
-        login_port: "27012"
+        login_port: "27011"
         login_user: "{{ accounts_config.skynet_db_user }}"
         login_password: "{{ accounts_config.skynet_db_password }}"
-        mongo_cmd: "docker exec mongo-2 mongo"
+        mongo_cmd: "docker exec mongo-1 mongo"
         eval: |
           let sts = rs.status();
           let filteredSts = {};
