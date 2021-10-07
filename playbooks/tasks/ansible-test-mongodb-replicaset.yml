@@ -121,18 +121,117 @@
         loop_var: "add_member_item"
   when: test_item.add_members | default([]) != []
 
-- name: Check final MongoDB replicaset
+- name: Check final MongoDB replicaset config and status
   block:
-    - name: Get MongoDB replicaset config
+    # Check MongoDB replicaset config
+
+    - name: Get MongoDB replicaset (filtered) config
       community.mongodb.mongodb_shell:
         login_host: "{{ webportal_server_config.domain_name }}"
         login_port: "27012"
         login_user: "{{ accounts_config.skynet_db_user }}"
         login_password: "{{ accounts_config.skynet_db_password }}"
         mongo_cmd: "docker exec mongo-2 mongo"
-        eval: "rs.config()"
+        eval: |
+          let cfg = rs.config();
+          let filteredCfg = {};
+          let filteredMembers = [];
+
+          cfg.members.forEach((m) => filteredMembers.push({"host": m.host, "priority": m.priority, "votes": m.votes}));
+          
+          filteredCfg._id = cfg._id;
+          filteredCfg.members = filteredMembers;
+          
+          printjson(filteredCfg);
       register: mongo_config_result
 
-    # Check MongoDB replicaset config
-    # Get MongoDB replicaset status
+    - name: Log MongoDB replicaset config
+      debug:
+        var: mongo_config_result
+    
+    - name: Fail if we didn' get replicaset config
+      fail:
+        msg: We didn't get expected replicaset config data
+      when: mongo_config_result.transformed_output is not defined or mongo_config_result.transformed_output._id is not defined or mongo_config_result.transformed_output.members is not defined
+
+    - name: Fail if MongoDB replicaset id is not set correctly in config
+      fail:
+        msg: |
+          Replicaset id in config doesn't match:
+
+          Expected: {{ webportal_common_config.mongo_db_replicaset_name }}
+          Actual: {{ mongo_config_result.transformed_output._id }}
+      when: mongo_config_result.transformed_output._id != webportal_common_config.mongo_db_replicaset_name
+    
+    - name: Set final MongoDB replicaset members config
+      set_fact:
+        # Merge initial members and added members,
+        # if not defined set priority = 1, votes =  1.
+        mongo_final_members: "{{ mongo_final_members | default([]) + [item | combine({'priority': (item.priority | default(1)), 'votes': (item.votes | default(1))})] }}"
+      loop: "{{ test_item.initial_members + test_item.add_members }}"
+
+    - name: Fail if expected MongoDB replicaset members are not present in current replicaset config
+      fail:
+        msg: |
+          Member {{ item }} is expected to be present in replicaset config,
+          but it is missing.
+      when: item not in mongo_config_result.transformed_output.members
+      loop: "{{ mongo_final_members }}"
+    
     # Check MongoDB replicaset status
+
+    - name: Get MongoDB replicaset (filtered) status
+      community.mongodb.mongodb_shell:
+        login_host: "{{ webportal_server_config.domain_name }}"
+        login_port: "27012"
+        login_user: "{{ accounts_config.skynet_db_user }}"
+        login_password: "{{ accounts_config.skynet_db_password }}"
+        mongo_cmd: "docker exec mongo-2 mongo"
+        eval: |
+          let sts = rs.status();
+          let filteredSts = {};
+          let filteredMembers = [];
+
+          sts.members.forEach((m) => filteredMembers.push({"name": m.name, "health": m.health, "stateStr": m.stateStr}));
+          
+          filteredSts.set = sts.set;
+          filteredSts.ok = sts.ok;
+          filteredSts.members = filteredMembers;
+          
+          printjson(filteredSts);
+      register: mongo_status_result
+
+    - name: Log MongoDB replicaset status
+      debug:
+        var: mongo_status_result
+    
+    - name: Fail if we didn' get replicaset status
+      fail:
+        msg: We didn't get expected replicaset status data
+      when: (mongo_status_result.transformed_output is not defined) or (mongo_status_result.transformed_output.ok | default(-1) != 1) or (mongo_status_result.transformed_output.set is not defined) or (mongo_status_result.transformed_output.members is not defined)
+
+    - name: Fail if MongoDB replicaset id is not correct in status
+      fail:
+        msg: |
+          Replicaset id in status doesn't match:
+
+          Expected: {{ webportal_common_config.mongo_db_replicaset_name }}
+          Actual: {{ mongo_status_result.transformed_output.set }}
+      when: mongo_status_result.transformed_output.set != webportal_common_config.mongo_db_replicaset_name
+
+    - name: Fail if there is not exactly 1 PRIMARY member
+      fail:
+        msg: |
+          There is not exactly 1 PRIMARY member:
+
+          Members: {{ mongo_status_result.transformed_output.members }}
+      when: mongo_status_result.transformed_output.members | map(attribute='stateStr') | reject('==', 'PRIMARY') | length != mongo_status_result.transformed_output.members - 1
+
+    - name: Fail if there is not expected number of members in replicaset status
+      fail:
+        msg: |
+          MongoDB number of members in replicase doesn't match:
+
+          Expected members: {{ mongo_final_members | length }}
+          Actual members: {{ mongo_status_result.transformed_output.members | lenght }}
+      when: mongo_status_result.transformed_output.members | lenght != mongo_final_members | length
