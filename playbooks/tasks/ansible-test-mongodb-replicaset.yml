@@ -225,7 +225,7 @@
           There is not exactly 1 PRIMARY member:
 
           Members: {{ mongo_status_result.transformed_output.members }}
-      when: mongo_status_result.transformed_output.members | map(attribute='stateStr') | reject('==', 'PRIMARY') | length != mongo_status_result.transformed_output.members - 1
+      when: (mongo_status_result.transformed_output.members | map(attribute='stateStr') | reject('==', 'PRIMARY') | length) != (mongo_status_result.transformed_output.members | length - 1)
 
     - name: Fail if there is not expected number of members in replicaset status
       fail:
@@ -233,5 +233,5 @@
           MongoDB number of members in replicase doesn't match:
 
           Expected members: {{ mongo_final_members | length }}
-          Actual members: {{ mongo_status_result.transformed_output.members | lenght }}
-      when: mongo_status_result.transformed_output.members | lenght != mongo_final_members | length
+          Actual members: {{ mongo_status_result.transformed_output.members | length }}
+      when: mongo_status_result.transformed_output.members | length != mongo_final_members | length
