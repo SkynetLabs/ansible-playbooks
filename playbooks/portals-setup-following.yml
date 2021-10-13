@@ -7,6 +7,7 @@
   vars:                  # Playbook specific vars
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
+    portal_action: "portal-setup"
 
   tasks:
     
