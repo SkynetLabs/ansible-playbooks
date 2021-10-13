@@ -125,6 +125,7 @@ webportal_docker_compose_files_optional:
 webportal_docker_compose_files_dict:
   a: "docker-compose.accounts.yml"
   j: "docker-compose.jaeger.yml"
+  m: "docker-compose.mongodb.yml"
 
 webportal_other_config_files:
   - ".env"
