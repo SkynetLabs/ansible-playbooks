@@ -35,6 +35,12 @@
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
 
+    - name: Include getting log filename prefix
+      include_tasks: tasks/portal-get-log-filename-prefix.yml
+    
+    - name: Include getting Ansible repo branch and commit
+      include_tasks: tasks/playbook-version-get.yml
+
     - name: Include logging Ansible version
       include_tasks: tasks/playbook-logs-ansible-log-version.yml
 
