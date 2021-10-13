@@ -1,0 +1,1 @@
+- Add handling of 490 Module not loaded error in disabling health check.
