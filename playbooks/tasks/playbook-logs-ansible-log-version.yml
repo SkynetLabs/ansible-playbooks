@@ -6,6 +6,14 @@
   set_fact:
     log_ansible_version_filename: "{{ (log_filename_prefix + '.ansible-' + local_ansible_repo_branch + '-' + local_ansible_repo_commit + '.yml') | replace('/','-') }}"
 
+- name: Ensure devops/logs directory is present
+  ansible.builtin.file:
+    path: "{{ logs_dir }}"
+    state: directory
+    owner: "user"
+    group: "user"
+    mode: '0700'
+
 - name: Log Ansible playbook version on server
   ansible.builtin.template:
     src: templates/ansible-version.yml.j2
