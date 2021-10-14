@@ -115,7 +115,12 @@ webportal_setup_health_checks: True
 webportal_docker_compose_files_mandatory:
   - "docker-compose.yml"
 
+# Docker compose files should be in order of dependency. For example, accounts
+# depends on mongo so mongo needs to be before accounts in case accounts
+# overrides any mongo settings. This is also why the override file should always
+# be last.
 webportal_docker_compose_files_optional:
+  - "docker-compose.mongodb.yml"
   - "docker-compose.accounts.yml"
   - "docker-compose.jaeger.yml"
   - "docker-compose.override.yml"
@@ -125,6 +130,7 @@ webportal_docker_compose_files_optional:
 webportal_docker_compose_files_dict:
   a: "docker-compose.accounts.yml"
   j: "docker-compose.jaeger.yml"
+  m: "docker-compose.mongodb.yml"
 
 webportal_other_config_files:
   - ".env"
