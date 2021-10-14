@@ -124,9 +124,9 @@ webportal_docker_compose_files_optional:
 # Dictionary of optional portal modules defining which docker-compose files
 # should be added to docker-compose build/up command.
 webportal_docker_compose_files_dict:
-  m: "docker-compose.mongodb.yml"
   a: "docker-compose.accounts.yml"
   j: "docker-compose.jaeger.yml"
+  m: "docker-compose.mongodb.yml"
 
 webportal_other_config_files:
   - ".env"
