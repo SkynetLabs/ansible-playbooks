@@ -7,9 +7,8 @@
   include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
 
 # Create timestamped log filename prefix
-- name: Create timestamped log filename prefix
-  set_fact:
-    log_filename_prefix: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}.{{ portal_action }}.{{ inventory_hostname }}"
+- name: Include getting log filename prefix
+  include_tasks: tasks/portal-get-log-filename-prefix.yml
 
 # Include getting Ansible repo branch and commit
 - name: Include getting Ansible repo branch and commit

@@ -7,6 +7,7 @@
   vars:                  # Playbook specific vars
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
+    portal_action: "portal-setup"
 
   tasks:
     
@@ -33,25 +34,16 @@
     
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
+
+    - name: Include getting log filename prefix
+      include_tasks: tasks/portal-get-log-filename-prefix.yml
     
+    - name: Include getting Ansible repo branch and commit
+      include_tasks: tasks/playbook-version-get.yml
 
+    - name: Include logging Ansible version
+      include_tasks: tasks/playbook-logs-ansible-log-version.yml
 
-
-
-    # TODO
-    # - setup-server.sh
-    #   - tmux
-    #   - bashrc
-    #   - sudo apt-get -y install ufw tmux ranger htop nload gcc g++ make git vim unzip curl awscli
-    #   - terminfo for alacritty
-    # - Setting up Portal
-    #   - Step 2: Set up the environment (optional)
-    # - log ansible version
-
-
-
-
-    
     # Setup environment (dotfiles) and dev tools
     - block:
         
@@ -148,13 +140,18 @@
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
     
-    # xxx remove these after moved to role
+     # TODO: remove these after moved to role - begin
+
     - set_fact:
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
+
     - set_fact:
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+
     - name: xxx include role task
       include_tasks: tasks/portal-role-task.yml
+    
+     # TODO: remove these after moved to role - end
 
   handlers:
     

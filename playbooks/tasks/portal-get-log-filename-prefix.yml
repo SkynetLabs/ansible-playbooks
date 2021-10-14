@@ -1,0 +1,7 @@
+---
+
+# Get Log Filename Prefix
+
+- name: Get log filename prefix
+  set_fact:
+    log_filename_prefix: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}.{{ portal_action }}.{{ inventory_hostname }}"
