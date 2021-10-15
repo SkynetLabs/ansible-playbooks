@@ -51,7 +51,7 @@ lastpass_portal_config_common: "{{ lastpass_ansible_dir }}/portal-common-configs
 lastpass_portal_config_cluster: "{{ lastpass_ansible_dir }}/portal-cluster-configs/cluster-{{ portal_cluster_id }}.yml"
 lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/portal-server-configs/{{ inventory_hostname }}.yml"
 
-# Portal settings
+# Portal paths settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
 webportal_dir: "{{ webportal_user_home_dir }}/skynet-webportal"
 devops_dir: "{{ webportal_user_home_dir }}/devops"
@@ -60,6 +60,8 @@ setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
 devops_scripts_dir: "{{ devops_dir }}/scripts"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
+mongo_db_dir: "{{ webportal_dir}}/docker/data/mongo/db"
+mongo_mgkey_file: "{{ webportal_dir}}/docker/data/mongo/mgkey"
 
 # Docker prune settings
 docker_prune_timeout_secs: 1800
