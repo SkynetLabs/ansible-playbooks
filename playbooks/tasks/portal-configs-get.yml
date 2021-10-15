@@ -25,7 +25,7 @@
 
 - name: Set MongoDB flag
   set_fact:
-    portal_mongodb_on: >
+    portal_mongodb_on: >-
       {{ webportal_server_config.portal_modules is defined and
       webportal_server_config.portal_modules is not none and
       ('m' in webportal_server_config.portal_modules or 'a' in webportal_server_config.portal_modules) }}
@@ -73,7 +73,7 @@
 
 - name: Set Accounts flag
   set_fact:
-    portal_accounts_on: >
+    portal_accounts_on: >-
       {{ webportal_server_config.portal_modules is defined and
       webportal_server_config.portal_modules is not none and
       'a' in webportal_server_config.portal_modules }}
