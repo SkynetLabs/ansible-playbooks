@@ -58,7 +58,10 @@
   set_fact:
     # If Accounts (a) is specified, but MongoDB (m) is not specified, add also
     # mongodb docker compose file.
-    webportal_docker_compose_files_wanted: "{{ webportal_docker_compose_files_wanted + ([webportal_docker_compose_files_dict['m']] if (item == 'a' and 'm' not in portal_modules) else []) + [webportal_docker_compose_files_dict[item]] }}"
+    webportal_docker_compose_files_wanted: >
+      {{ webportal_docker_compose_files_wanted +
+      ([webportal_docker_compose_files_dict['m']] if (item == 'a' and 'm' not in portal_modules) else []) +
+      [webportal_docker_compose_files_dict[item]]}}
   loop: "{{ portal_modules | list }}"
 
 - name: Add docker-compose.override.yml file to the list
