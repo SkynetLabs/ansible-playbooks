@@ -35,7 +35,7 @@
         env:
           SKYNET_JS_INTEGRATION_TEST_SERVER: "https://{{ ansible_host }}"
         working_dir: "/skynet-js/{{ inventory_hostname }}"
-        command: /bin/sh -c 'yarn && yarn run jest src/integration.test.ts'
+        command: /bin/sh -c 'yarn && yarn run jest integration'
   
   always:
     
