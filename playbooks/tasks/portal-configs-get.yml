@@ -10,6 +10,8 @@
 - name: Include loading portal config
   include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
 
+# If the server config hasn't been yet saved to secrets backend, it is loaded
+# as undefined now and we set it to empty dictionary.
 - name: Set portal config to empty (if it hasn't yet been saved to secrets backend)
   set_fact:
     webportal_server_config: "{{ webportal_server_config | default({}) }}"
@@ -23,7 +25,10 @@
 
 - name: Set MongoDB flag
   set_fact:
-    portal_mongodb_on: "{{ webportal_server_config.portal_modules is defined and webportal_server_config.portal_modules is not none and ('m' in webportal_server_config.portal_modules or 'a' in webportal_server_config.portal_modules) }}"
+    portal_mongodb_on: >-
+      {{ webportal_server_config.portal_modules is defined and
+      webportal_server_config.portal_modules is not none and
+      ('m' in webportal_server_config.portal_modules or 'a' in webportal_server_config.portal_modules) }}
 
 # Get MongoDB config (if MongoDB is on)
 - block:
@@ -33,6 +38,9 @@
           - skynet_db_user
           - skynet_db_pass
 
+    # MongoDB configuration (mongodb_config_keys above) can be set at common
+    # (cluster) level or at server level. Server level configuration overrides
+    # common level for these keys.
     - name: Set MongoDB config (server config can override common config)
       set_fact:
         mongodb_config: "{{ mongodb_config | default({}) | combine({item: webportal_server_config[item] | default(webportal_common_config[item]) }) }}"
@@ -65,4 +73,7 @@
 
 - name: Set Accounts flag
   set_fact:
-    portal_accounts_on: "{{ webportal_server_config.portal_modules is defined and webportal_server_config.portal_modules is not none and 'a' in webportal_server_config.portal_modules }}"
+    portal_accounts_on: >-
+      {{ webportal_server_config.portal_modules is defined and
+      webportal_server_config.portal_modules is not none and
+      'a' in webportal_server_config.portal_modules }}
