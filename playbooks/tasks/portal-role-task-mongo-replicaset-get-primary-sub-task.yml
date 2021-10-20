@@ -9,59 +9,10 @@
 # - These tasks should be generally delegated to {{ host_item }} host, not run
 #   on the current Ansible host that we are handling.
 
-# Search for MongoDB primary host until you find it
-- block:
-    - name: Check that mongo container is running
-      community.docker.docker_container_info:
-        name: mongo
-      delegate_to: "{{ host_item }}"
-      register: mongo_container_result
-
-    - name: Set mongo container running correctly flag
-      set_fact:
-        mongo_container_ok: >-
-          {{ (mongo_container_result.exists | default(False) and
-          mongo_container_result.container | default(False) and
-          mongo_container_result.container.State.Running and
-          not mongo_container_result.container.State.Restarting) }}
-
-    # Get Skynet DB user/pass from host_item (we are not targeting ansible_host and
-    # can't use mongo_config values).
-
-    - name: Get mongo user on host_item from .env file
-      ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_USER"
-      delegate_to: "{{ host_item }}"
-      register: skynet_db_user_result
-
-    - name: Get mongo pass on host_item from .env file
-      ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_PASS"
-      delegate_to: "{{ host_item }}"
-      register: skynet_db_pass_result
-
-    - name: Get mongo replicaset primary member
-      community.mongodb.mongodb_shell:
-        # xxxqqqq use common/cluster config vars
-        login_host: "{{ hostvars[host_item].ansible_host }}"
-        # Use subcrap mongo port for testing, otherwise the default port.
-        login_port: "{{ hostvars[host_item].subcrap_mongo_port | default('27017') }}"
-        # Use host_item's mongo user, because we delegate this task
-        login_user: "{{ skynet_db_user_result.stdout }}"
-        # Use host_item's mongo password, because we delegate this task
-        login_password: "{{ skynet_db_pass_result.stdout }}"
-        mongo_cmd: "docker exec mongo mongo"
-        eval: "rs.status().members.forEach(m => {if (m.stateStr == 'PRIMARY') {print(m.name)}})"
-        # transformed_output can't be parsed correctly by this module, keep it raw
-        transform: raw
-      register: mongo_primary_result
-      when: mongo_container_ok
-      delegate_to: "{{ host_item }}"
-      ignore_errors: True
-
-    - name: Set mongo primary host
-      set_fact:
-        mongo_primary_host: "{{ item }}"
-      when: >-
-        not mongo_primary_result.failed and
-        hostvars[item].ansible_host + ':' + (hostvars[item].subcrap_mongo_port | default('27017')) == mongo_primary_result.transformed_output
-      loop: "{{ mongo_cluster_hosts }}"
+# Search for MongoDB primary host until you find it.
+# Searching for primary host was divided to two sub-tasks to improve Ansible
+# performance: When we find the primary host, we are skipping just one include
+# instead of skipping many tasks in block/when.
+- name: Search MongoDB primary Ansible host on another host
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary-sub-task2.yml
   when: mongo_primary_host | default('') == ''
