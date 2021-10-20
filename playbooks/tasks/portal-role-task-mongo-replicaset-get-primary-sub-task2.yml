@@ -39,13 +39,13 @@
 
 - name: Get mongo replicaset primary member
   community.mongodb.mongodb_shell:
-    # xxxqqqq use common/cluster config vars
-    login_host: "{{ hostvars[host_item].ansible_host }}"
-    # Use subcrap mongo port for testing, otherwise the default port.
+    # Use secure localhost connection unless on subcrap test cluster
+    login_host: "{{ 'localhost' if (hostvars[host_item].subcrap_mongo_port is not defined) else hostvars[host_item].ansible_host }}"
+    # Use default port unless on subcrap test cluster
     login_port: "{{ hostvars[host_item].subcrap_mongo_port | default('27017') }}"
-    # Use host_item's mongo user, because we delegate this task
+    # Use delegated host_item's mongo user, because we delegate this task
     login_user: "{{ skynet_db_user_result.stdout }}"
-    # Use host_item's mongo password, because we delegate this task
+    # Use delegated host_item's mongo password, because we delegate this task
     login_password: "{{ skynet_db_pass_result.stdout }}"
     mongo_cmd: "docker exec mongo mongo"
     eval: "rs.status().members.forEach(m => {if (m.stateStr == 'PRIMARY') {print(m.name)}})"
