@@ -7,7 +7,7 @@
 # - This task file is expected to be called in a loop over MongoDB replicaset
 #   member hosts with loop item variable {{ host_item }}.
 # - These tasks should be generally delegated to {{ host_item }} host, not run
-#   on the current host that we want to include to the MongoDB replicaset.
+#   on the current Ansible host that we are handling.
 
 # Search for MongoDB primary host until you find it
 - block:
@@ -62,6 +62,6 @@
         mongo_primary_host: "{{ item }}"
       when: >-
         not mongo_primary_result.failed and
-        hostvars[item].ansible_host + ':' + (hostvars[item].subcrap_mongo_port | default(27017)) == mongo_primary_result.transformed_output
+        hostvars[item].ansible_host + ':' + (hostvars[item].subcrap_mongo_port | default('27017')) == mongo_primary_result.transformed_output
       loop: "{{ mongo_cluster_hosts }}"
   when: mongo_primary_host | default('') == ''
