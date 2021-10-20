@@ -1,0 +1,81 @@
+---
+
+# Ensure MongoDB node is member of the MongoDB replicaset
+# TODO: This ansible playbook task, should be moved to portal role
+
+# Notes:
+# - This tasks file uses MongoDB primary node Ansible host stored in
+# {{ mongo_primary_host }}. If it's not defined, we include getting it.
+# - MongoDB primary node tasks should be executed on {{ mongo_primary_host }},
+#   not on the current Ansible host that we are handling.
+
+- name: Include getting MongoDB replicaset primary host
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary.yml
+  when: mongo_primary_host | default('') == ''
+
+
+- name: Check if MongoDB node is part of the replicaset
+  community.mongodb.mongodb_shell:
+    # Use secure localhost connection unless on subcrap test cluster
+    login_host: "{{ 'localhost' if (hostvars[mongo_primary_host].subcrap_mongo_port is not defined) else hostvars[mongo_primary_host].ansible_host }}"
+    # Use default port unless on subcrap test cluster
+    login_port: "{{ hostvars[mongo_primary_host].subcrap_mongo_port | default('27017') }}"
+    # Use delegated mongo_primary_host's mongo user, because we delegate this task
+    login_user: "{{ skynet_db_user_result.stdout }}"
+    # Use delegated mongo_primary_host's mongo password, because we delegate this task
+    login_password: "{{ skynet_db_pass_result.stdout }}"
+    mongo_cmd: "docker exec mongo mongo"
+    eval: |
+      rs.config().members.forEach(m => {
+        if (m.host == '{{ ansible_host }}:{{ subcrap_mongo_port | default('27017') }}')
+        {
+          print('is-member')
+        }
+      })
+    # transformed_output can't be parsed correctly by this module, keep it raw
+    transform: raw
+  register: mongo_primary_result
+  delegate_to: "{{ mongo_primary_host }}"
+
+- name: Set host in MongoDB replicaset configuration
+  set_fact:
+    host_in_replicaset: "{{ mongo_primary_result.transformed_output == 'is-member' }}"
+
+- name: Log whether MongoDB node is in replicaset configuration
+  debug:
+    msg: |
+      Ansible host: {{ inventory_hostname }}
+      MongoDB host: {{ ansible_host }}:{{ subcrap_mongo_port | default('27017') }}
+
+      MongoDB host in replicaset configuration: {{ host_in_replicaset }}
+
+- name: Add MongoDB node as non-voting member to replicaset configuration
+  community.mongodb.mongodb_shell:
+    # Use secure localhost connection unless on subcrap test cluster
+    login_host: "{{ 'localhost' if (hostvars[mongo_primary_host].subcrap_mongo_port is not defined) else hostvars[mongo_primary_host].ansible_host }}"
+    # Use default port unless on subcrap test cluster
+    login_port: "{{ hostvars[mongo_primary_host].subcrap_mongo_port | default('27017') }}"
+    # Use delegated mongo_primary_host's mongo user, because we delegate this task
+    login_user: "{{ skynet_db_user_result.stdout }}"
+    # Use delegated mongo_primary_host's mongo password, because we delegate this task
+    login_password: "{{ skynet_db_pass_result.stdout }}"
+    mongo_cmd: "docker exec mongo mongo"
+    eval: |
+      rs.add({host: '{{ ansible_host }}:{{ subcrap_mongo_port | default('27017') }}', priority: 0, votes: 0})
+    # transformed_output can't be parsed correctly by this module, keep it raw
+    transform: raw
+  register: mongo_add_result
+  delegate_to: "{{ mongo_primary_host }}"
+  when: not host_in_replicaset
+
+- name: Fail if adding a MongoDB node to replicaset config was not successful
+  fail:
+    msg: |
+      Add MongoDB node to replicaset result: {{ mongo_add_result | to_nice_json }}
+
+      Add MongoDB node to replicaset transformed_output: {{ mongo_add_result.transformed_output | default('') }}
+  when: >-
+    not (mongo_add_result.skipped | default(False)) and
+    (mongo_add_result.failed | default(False) or
+    mongo_add_result.transformed_output is not defined or
+    '\"ok\" : 1,' not in mongo_add_result.transformed_output)
