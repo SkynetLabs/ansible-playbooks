@@ -4,15 +4,11 @@
 # TODO: This ansible playbook task, should be moved to portal role
 
 # Notes:
-# - This tasks file uses MongoDB primary node Ansible host stored in
-# {{ mongo_primary_host }}. If it's not defined, we include getting it.
 # - MongoDB primary node tasks should be executed on {{ mongo_primary_host }},
 #   not on the current Ansible host that we are handling.
 
 - name: Include getting MongoDB replicaset primary host
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary.yml
-  when: mongo_primary_host | default('') == ''
-
 
 - name: Check if MongoDB node is part of the replicaset
   community.mongodb.mongodb_shell:
