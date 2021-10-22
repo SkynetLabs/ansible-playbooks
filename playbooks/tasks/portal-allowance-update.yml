@@ -1,0 +1,64 @@
+# Check on the webportal's allowance and update if necessary
+
+# TODO: What is this doing??
+- name: Pull curl docker image
+  community.docker.docker_image:
+    name: "{{ curl_docker_image }}"
+    source: pull
+
+# Some servers have blocked outgoing traffic to local networks so curl sia from
+# host will refuse connection, we have to curl inside docker compose network.
+
+# Get the ip address for the sia container
+- name: Get sia service IP inside docker compose network
+  command: docker inspect -f "{% raw %}{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}{% endraw %}" sia
+  register: sia_ip_result
+
+# Get the renter's information
+- name: Grab the Renter's information
+  command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
+  register: renter_get_result
+
+# This tasks calculates the unspent unallocated based on the calculation in the
+# ContractorSpending SpendingBreakdown method from skyd
+# https://gitlab.com/SkynetLabs/skyd/-/blob/master/skymodules/renter.go
+- name: Calculate Unspent Unallocated and Grab Allowance Funds
+  # Determine variables needed for this task
+  vars:
+    unspent_unallocated_lower_threshold: 10000
+    renter_json: "{{ renter_get_result.stdout | from_json }}"
+    allowance_funds: "{{ renter_json.settings.allowance.funds }}"
+    twenty_percent_allowance: "{{ allowance_funds|int / 5 }}"
+    financial_metrics: "{{ renter_json.financialmetrics }}"
+    maintenance_spending: "{{ financial_metrics.maintenancespending }}"
+    total_spent: >-
+      {{ financial_metrics.contractfees|int +
+      financial_metrics.uploadspending|int +
+      financial_metrics.downloadspending|int +
+      financial_metrics.storagespending|int +
+      financial_metrics.fundaccountspending|int +
+      maintenance_spending.accountbalancecost|int +
+      maintenance_spending.fundaccountcost|int +
+      maintenance_spending.updatepricetablecost|int }}
+    unspent_allocated: "{{ financial_metrics.totalallocated|int - total_spent|int }}"
+    unspent_unallocated: "{{ financial_metrics.unspent|int - unspent_allocated|int }}"
+  # Define facts needed in the following tasks
+  set_fact:
+    a: "{{ unspent_unallocated }}"
+    b: "{{ twenty_percent_allowance }}"
+    eighty_percent_used_update: "{{ twenty_percent_allowance|int > unspent_unallocated|int }}"
+    below_threshold_update: "{{ unspent_unallocated|int < unspent_unallocated_lower_threshold|int }}"
+    update_amount: "{{ twenty_percent_allowance|int + allowance_funds|int }}"
+
+- name: Log
+  debug:
+    msg:
+      - "{{ eighty_percent_used_update }}"
+      - "{{ below_threshold_update }}"
+      - "{{ a }}"
+      - "{{ b }}"
+
+# If either of the allowance update checks are valid, increase the allowance.
+- name: Update Allowance if needed
+  ansible.builtin.command: "docker exec sia siac renter setallowance --amount {{ update_amount }} H"
+  when: eighty_percent_used_update|bool == true or below_threshold_update|bool == true
