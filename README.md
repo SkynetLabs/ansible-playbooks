@@ -37,6 +37,7 @@
             - [Playbook portals-setup-following](#playbook-portals-setup-following)
             - [Playbook portals-deploy](#playbook-portals-deploy)
         - [Run Docker Command](#run-docker-command)
+        - [Update Allowance](#update-allowance)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
         - [Role Not Installed](#role-not-installed)
@@ -622,6 +623,30 @@ To run:
 
 The deploy script also supports the docker command execution:
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+
+### Update Allowance
+
+Playbook:
+
+- Automatically update the allowance of a webportal based on the same
+calculations of the Skynet dashboard.
+
+To run:  
+`scripts/portals-update-allowance.sh --limit eu-fin-1`
+
+The deploy script also supports the update allowance functionality. To do so,
+define a list of webportals you would like to enable auto updating the
+allowance on with `update_allowance`. This allows updating some webportals that
+need updating during deployments.
+
+Example:
+```yaml
+---
+update_allowance:
+  - eu-fin-1
+  - eu-fin-2
+```
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit depl_batch1`
 
 ## Playbook Live Demos
 
