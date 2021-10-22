@@ -1,0 +1,106 @@
+---
+
+# Check MongoDB docker service runs correctly
+# TODO: This ansible playbook task, should be moved to portal role
+
+# Check mongo container is running correctly
+# Outcome:
+# - mongo_service_ok: boolean flag whether mongo service runs as expected 
+
+- name: Include getting wanted docker compose files
+  include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
+
+- name: Include getting present docker compose files
+  include_tasks: tasks/portal-docker-compose-files-get-present.yml
+
+- name: Start mongo service
+  community.docker.docker_compose:
+    project_src: "{{ webportal_dir }}"
+    # Use intersection of wanted files and present files. E.g. wanted
+    # docker-compose.override.yml is wanted, but might not yet be created.
+    files: "{{ webportal_docker_compose_files_wanted | intersect(webportal_docker_compose_files_present) }}"
+    services: mongo
+    state: present
+  register: docker_mongo_result
+  ignore_errors: True
+
+- name: Set mongo service ok flag
+  set_fact:
+    mongo_service_ok: "{{ not (docker_mongo_result.failed | default(False)) }}"
+
+- name: Log docker compose on error
+  debug:
+    msg: |
+      Docker compose failed:
+
+      {{ docker_mongo_result | to_nice_json }}
+  when: not mongo_service_ok
+
+- name: Wait for mongo container initialization before checking status
+  wait_for:
+    timeout: 10
+  delegate_to: localhost
+  when: mongo_service_ok
+
+- name: Check mongo container is running
+  community.docker.docker_container_info:
+    name: mongo
+  register: mongo_container_result
+  when: mongo_service_ok
+
+- name: Update mongo service ok flag
+  set_fact:
+    mongo_service_ok: >-
+      {{ (mongo_container_result.exists | default(False) and
+      mongo_container_result.container.State.Running and
+      not mongo_container_result.container.State.Restarting) }}
+  # Update only if not already failing
+  when: mongo_service_ok
+
+- name: Log mongo container info when not running properly
+  debug:
+    msg: |
+      Mongo container info:
+
+      {{ mongo_container_result | to_nice_json }}
+  # Log only when checking container was performed (didn't fail previously)
+  when: not (mongo_container_result.skipped | default(False)) and not mongo_service_ok
+
+- name: Check replicaset status of the MongoDB node
+  community.mongodb.mongodb_shell:
+    # Use secure localhost connection unless on subcrap test cluster
+    login_host: "{{ 'localhost' if (subcrap_mongo_port is not defined) else ansible_host }}"
+    # Use default port unless on subcrap test cluster
+    login_port: "{{ subcrap_mongo_port | default('27017') }}"
+    login_user: "{{ mongodb_config.skynet_db_user }}"
+    login_password: "{{ mongodb_config.skynet_db_pass }}"
+    mongo_cmd: "docker exec mongo mongo"
+    eval: |
+      rs.status().members.forEach(m => {
+        if (m.name == '{{ ansible_host }}:{{ subcrap_mongo_port | default('27017') }}')
+        {
+          print(m.stateStr)
+        }
+      })
+    # transformed_output can't be parsed correctly by this module, keep it raw
+    transform: raw
+  register: mongo_replicaset_result
+  until: mongo_replicaset_result.transformed_output in ['PRIMARY', 'SECONDARY']
+  delay: 1
+  retries: 120
+  ignore_errors: True
+  when: mongo_service_ok
+
+- name: Update mongo service ok flag
+  set_fact:
+    mongo_service_ok: "{{ not (mongo_replicaset_result.failed | default(False)) }}"
+  when: mongo_service_ok
+
+- name: Log mongo replicaset status when on ok
+  debug:
+    msg: |
+      MongoDB node resplicaset status:
+
+      {{ mongo_replicaset_result | to_nice_json }}
+  # Log only when checking replicaset status was performed (didn't fail previously)
+  when: not (mongo_replicaset_result.skipped | default(False)) and not mongo_service_ok

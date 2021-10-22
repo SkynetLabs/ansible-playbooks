@@ -1,0 +1,80 @@
+---
+
+# Ensure MongoDB docker service is setup correctly
+# TODO: This ansible playbook task, should be moved to portal role
+
+- name: Check we have mongo cluster mgkey
+  assert:
+    that:
+      - "{{ webportal_common_config.mongo_db_mgkey is defined and webportal_common_config.mongo_db_mgkey is not none and webportal_common_config.mongo_db_mgkey != '' }}"
+
+- name: Check mongo/mgkey file exists and it is not directory
+  ansible.builtin.stat:
+    path: "{{ mongo_mgkey_file }}"
+  register: mgkey_stat_result
+
+- name: Ensure mongo/mgkey file content is up-to-date
+  ansible.builtin.copy:
+    dest: "{{ mongo_mgkey_file }}"
+    content: "{{ webportal_common_config.mongo_db_mgkey }}"
+  become: True
+  # Perform only if mongo/mgkey is a regular file (not a dictionary)
+  when: mgkey_stat_result.stat.isreg
+  register: mgkey_update_result
+
+- name: Include checking mongo service is running correctly
+  include_tasks: tasks/portal-role-task-mongo-check-docker-service.yml
+  when: mgkey_stat_result.stat.isreg and not mgkey_update_result.changed
+
+- name: Log mongo service status if not ok
+  debug:
+    msg: |
+      Mongo service does NOT run correctly.
+      We will reset the mongo service.
+  when: not mongo_service_ok
+
+# Reset mongo service if it is not running correctly
+- block:
+    - name: Stop and remove mongo container
+      community.docker.docker_container:
+        name: mongo
+        state: absent
+        container_default_behavior: no_defaults
+
+    - name: Remove mongo/db directory
+      ansible.builtin.file:
+        path: "{{ mongo_db_dir }}"
+        state: absent
+      become: True
+    
+    - name: Create empty mongo/db directory
+      ansible.builtin.file:
+        path: "{{ mongo_db_dir }}"
+        state: directory
+        owner: "999"
+        group: "999"
+      become: True
+
+    - name: Remove mongo/mgkey file/directory
+      ansible.builtin.file:
+        path: "{{ mongo_mgkey_file }}"
+        state: absent
+      become: True
+
+    - name: Create mongo/mgkey file
+      ansible.builtin.copy:
+        dest: "{{ mongo_mgkey_file }}"
+        content: "{{ webportal_common_config.mongo_db_mgkey }}"
+        owner: "999"
+        group: "999"
+        mode: "0400"
+      become: True
+
+    - name: Include checking mongo service is running correctly
+      include_tasks: tasks/portal-role-task-mongo-check-docker-service.yml
+
+    - name: Fail if mongo service is not running correctly after reset
+      fail:
+        msg: "Mongo service doesn't run correctly after reset"
+      when: not mongo_service_ok
+  when: not (mongo_service_ok | default(False))
