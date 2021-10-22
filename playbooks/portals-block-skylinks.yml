@@ -4,12 +4,39 @@
   remote_user: "{{ webportal_user }}"
   gather_facts: False
 
+  vars_prompt:
+    - name: run_airtable
+      prompt: |
+
+        Skylinks defined in 'skylinks_block_list' will be blocked.
+        Do you want to run Airtable blocklist too (y/n)?
+      private: False
+      default: "Defaults to: No"
+
   tasks:
     
     # Added a non-loop remote task, so that unreachable hosts fail faster
     - name: Starting to block skylinks
       ansible.builtin.ping:
     
-    - name: Block skylinks
+    - name: Block skylinks in Sia
       ansible.builtin.command: "docker exec sia siac skynet blocklist add {{ item }}"
-      loop: "{{ skylinks_block_list }}"
+      loop: "{{ skylinks_block_list | default([]) }}"
+
+    - name: Remove skylinks from Nginx cache
+      community.docker.docker_container_exec:
+        container: nginx
+        argv:
+          - "/bin/bash"
+          - "-c"
+          - "find /data/nginx/cache/ -type f | xargs -r grep -Els '^Skynet-Skylink: {{ item }}' | xargs -r rm"
+      loop: "{{ skylinks_block_list | default([]) }}"
+
+    - block:
+        - name: Start blocking all skylinks from Airtable
+          debug:
+            msg: Starting...
+
+        - name: Block all skylinks from Airtable
+          ansible.builtin.command: "{{ webportal_dir }}/setup-scripts/blocklist-airtable.py {{ webportal_dir }}/.env"
+      when: run_airtable[0:1] in 'yY'
