@@ -21,5 +21,3 @@
     # Update the Allowance
     - name: Update the Webportal's Allowance
       include_tasks: tasks/portal-allowance-update.yml
-      vars:
-        allowance_updated: false
