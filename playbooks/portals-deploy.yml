@@ -87,7 +87,7 @@
     - name: Include Updating the Allowance
       # Only execute allowance check if portal is manually defined
       when: inventory_hostname in update_allowance
-      include_tasks: tasks/portal-health-check-enable.yml
+      include_tasks: tasks/portal-update-allowance.yml
 
     # Update log status to 'tested'
     - name: Update log status to 'tested'
