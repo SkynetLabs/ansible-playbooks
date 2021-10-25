@@ -1,0 +1,23 @@
+- name: Update Webportal Allowance
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: "{{ parallel_deploys | default(1) }}"
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Define playbook vars
+  vars:
+    max_hosts: "{{ groups['webportals_prod'] | length - 1 }}"
+
+  tasks:
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Update the Allowance
+    - name: Update the Webportal's Allowance
+      include_tasks: tasks/portal-update-allowance.yml
