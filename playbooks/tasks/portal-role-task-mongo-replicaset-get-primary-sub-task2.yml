@@ -8,12 +8,16 @@
 #   member hosts with loop item variable {{ host_item }}.
 # - These tasks should be generally delegated to {{ host_item }} host, not run
 #   on the current Ansible host that we are handling.
+# - For subcrap testing we must set ansible_port according to the subcrap host.
 
 # Search for MongoDB primary host until you find it
+
 - name: Check that mongo container is running
   community.docker.docker_container_info:
     name: mongo
   delegate_to: "{{ host_item }}"
+  vars:
+    ansible_port: "{{ hostvars[host_item].ansible_port }}"
   register: mongo_container_result
 
 - name: Set mongo container running correctly flag
@@ -29,11 +33,15 @@
 - name: Get mongo user on host_item from .env file
   ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_USER"
   delegate_to: "{{ host_item }}"
+  vars:
+    ansible_port: "{{ hostvars[host_item].ansible_port }}"
   register: skynet_db_user_result
 
 - name: Get mongo pass on host_item from .env file
   ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_PASS"
   delegate_to: "{{ host_item }}"
+  vars:
+    ansible_port: "{{ hostvars[host_item].ansible_port }}"
   register: skynet_db_pass_result
 
 - name: Get mongo replicaset primary member
@@ -53,6 +61,8 @@
   register: mongo_primary_result
   when: mongo_container_ok
   delegate_to: "{{ host_item }}"
+  vars:
+    ansible_port: "{{ hostvars[host_item].ansible_port }}"
   ignore_errors: True
 
 - name: Set mongo primary host

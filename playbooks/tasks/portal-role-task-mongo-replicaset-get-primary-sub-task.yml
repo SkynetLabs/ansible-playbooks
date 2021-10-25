@@ -13,6 +13,6 @@
 # Searching for primary host was divided to two sub-tasks to improve Ansible
 # performance: When we find the primary host, we are skipping just one include
 # instead of skipping many tasks in block/when.
-- name: Search MongoDB primary Ansible host on another host
+- name: "Search MongoDB primary Ansible host on {{ host_item }}"
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary-sub-task2.yml
   when: mongo_primary_host | default('') == ''
