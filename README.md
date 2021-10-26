@@ -3,45 +3,46 @@
 <!-- TOC -->
 
 - [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
-  - [Requirements](#requirements)
-    - [Git repository ansible-private](#git-repository-ansible-private)
-    - [Docker](#docker)
-    - [Ansible Roles and Collections](#ansible-roles-and-collections)
-  - [Repository Organization](#repository-organization)
-  - [Playbook Execution](#playbook-execution)
-    - [Check Access](#check-access)
-    - [LastPass Login](#lastpass-login)
-  - [Playbooks](#playbooks)
-    - [Get Webportal Status](#get-webportal-status)
-    - [Restart Skynet Webportal](#restart-skynet-webportal)
-    - [Deploy Skynet Webportal](#deploy-skynet-webportal)
-      - [Deploy Playbook Actions:](#deploy-playbook-actions)
-      - [Portal Modules](#portal-modules)
-      - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
-      - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
-      - [How to Set Deploy Batch](#how-to-set-deploy-batch)
-    - [Takedown Skynet Webportal](#takedown-skynet-webportal)
-      - [Playbook Actions](#playbook-actions)
-      - [Preparation](#preparation)
-      - [Execution](#execution)
-      - [Following Portal Deployments and Restarts](#following-portal-deployments-and-restarts)
-    - [Rollback Skynet Webportal](#rollback-skynet-webportal)
-    - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
-    - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
-    - [Block Portal Skylinks](#block-portal-skylinks)
-    - [Unblock Portal Skylinks](#unblock-portal-skylinks)
-    - [Run Integration Tests](#run-integration-tests)
-    - [Run Health Checks](#run-health-checks)
-    - [Setup Portal from Scratch](#setup-portal-from-scratch)
-      - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
-      - [Playbook portals-setup-following](#playbook-portals-setup-following)
-      - [Playbook portals-deploy](#playbook-portals-deploy)
-    - [Run Docker Command](#run-docker-command)
-  - [Playbook Live Demos](#playbook-live-demos)
-  - [Troubleshooting](#troubleshooting)
-    - [Role Not Installed](#role-not-installed)
-    - [Unreachable Host](#unreachable-host)
-    - [LastPass Session Not Active](#lastpass-session-not-active)
+    - [Requirements](#requirements)
+        - [Git repository ansible-private](#git-repository-ansible-private)
+        - [Docker](#docker)
+        - [Ansible Roles and Collections](#ansible-roles-and-collections)
+    - [Repository Organization](#repository-organization)
+    - [Playbook Execution](#playbook-execution)
+        - [Check Access](#check-access)
+        - [LastPass Login](#lastpass-login)
+    - [Playbooks](#playbooks)
+        - [Get Webportal Status](#get-webportal-status)
+        - [Restart Skynet Webportal](#restart-skynet-webportal)
+        - [Deploy Skynet Webportal](#deploy-skynet-webportal)
+            - [Deploy Playbook Actions:](#deploy-playbook-actions)
+            - [Portal Modules](#portal-modules)
+            - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
+            - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
+            - [How to Set Deploy Batch](#how-to-set-deploy-batch)
+        - [Takedown Skynet Webportal](#takedown-skynet-webportal)
+            - [Playbook Actions](#playbook-actions)
+            - [Preparation](#preparation)
+            - [Execution](#execution)
+            - [Following Portal Deployments and Restarts](#following-portal-deployments-and-restarts)
+        - [Rollback Skynet Webportal](#rollback-skynet-webportal)
+        - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
+        - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
+        - [Block Portal Skylinks](#block-portal-skylinks)
+        - [Unblock Portal Skylinks](#unblock-portal-skylinks)
+        - [Run Integration Tests](#run-integration-tests)
+        - [Run Health Checks](#run-health-checks)
+        - [Setup Portal from Scratch](#setup-portal-from-scratch)
+            - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
+            - [Playbook portals-setup-following](#playbook-portals-setup-following)
+            - [Playbook portals-deploy](#playbook-portals-deploy)
+        - [Run Docker Command](#run-docker-command)
+        - [Update Allowance](#update-allowance)
+    - [Playbook Live Demos](#playbook-live-demos)
+    - [Troubleshooting](#troubleshooting)
+        - [Role Not Installed](#role-not-installed)
+        - [Unreachable Host](#unreachable-host)
+        - [LastPass Session Not Active](#lastpass-session-not-active)
 
 <!-- /TOC -->
 
@@ -425,7 +426,11 @@ To run:
 
 Playbook:
 
-- Blocks portal skylinks defined in `skylinks_block_list` variable.
+- Prompts if you want to block all skylinks from Airtable too.
+- Blocks portal skylinks defined in `skylinks_block_list` variable in Sia.
+- Removes skylinks defined in `skylinks_block_list` variable from Nginx cache.
+- Starts blocking all skylinks from Airtable (same script as is run from cron)
+  if prompt answer starts with `y` or `Y`.
 
 Preparation:  
 Create a file `skylinks-block.yml` in `my-vars` directory with defined
@@ -443,6 +448,18 @@ skylinks_block_list:
 To run:  
 `scripts/portals-block-skylinks.sh -e @my-vars/skylinks-block.yml --limit eu-fin-1`  
 `scripts/portals-block-skylinks.sh -e @my-vars/skylinks-block.yml --limit webportals_prod`
+
+If you just want to run Airtable block script, you can leave `skynet_block_list`
+empty:
+
+```yaml
+---
+skylinks_block_list: []
+```
+
+or do not define `skynet_block_list` at all and run the script this way:  
+`scripts/portals-block-skylinks.sh --limit eu-fin-1`  
+`scripts/portals-block-skylinks.sh --limit webportals_prod`
 
 ### Unblock Portal Skylinks
 
@@ -606,6 +623,30 @@ To run:
 
 The deploy script also supports the docker command execution:
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+
+### Update Allowance
+
+Playbook:
+
+- Automatically update the allowance of a webportal based on the same
+calculations of the Skynet dashboard.
+
+To run:  
+`scripts/portals-update-allowance.sh --limit eu-fin-1`
+
+The deploy script also supports the update allowance functionality. To do so,
+define a list of webportals you would like to enable auto updating the
+allowance on with `update_allowance`. This allows updating some webportals that
+need updating during deployments.
+
+Example:
+```yaml
+---
+update_allowance:
+  - eu-fin-1
+  - eu-fin-2
+```
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit depl_batch1`
 
 ## Playbook Live Demos
 
