@@ -124,7 +124,7 @@
   delay: 1
   retries: 120
   ignore_errors: True
-  when: portal_cluster_id is defined and mongo_service_ok
+  when: mongo_service_ok
 
 - name: Update mongo service ok flag
   set_fact:

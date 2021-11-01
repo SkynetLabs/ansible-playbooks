@@ -1,0 +1,1 @@
+- Add MongoDB setup (excl. replicaset initialization) to portal setup.

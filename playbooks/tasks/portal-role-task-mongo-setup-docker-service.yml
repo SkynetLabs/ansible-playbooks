@@ -6,7 +6,7 @@
 - name: Check we have mongo cluster mgkey
   assert:
     that:
-      - "{{ mongodb_config.mongo_db_mgkey is defined and mongodb_config.mongo_db_mgkey is not none and mongodb_config.mongo_db_mgkey != '' }}"
+      - "{{ webportal_common_config.mongo_db_mgkey is defined and webportal_common_config.mongo_db_mgkey is not none and webportal_common_config.mongo_db_mgkey != '' }}"
 
 - name: Check mongo/mgkey file exists and it is not directory
   ansible.builtin.stat:
@@ -16,7 +16,7 @@
 - name: Ensure mongo/mgkey file content is up-to-date
   ansible.builtin.copy:
     dest: "{{ mongo_mgkey_file }}"
-    content: "{{ mongodb_config.mongo_db_mgkey }}"
+    content: "{{ webportal_common_config.mongo_db_mgkey }}"
   become: True
   # Perform only if mongo/mgkey is a regular file (not a dictionary)
   when: mgkey_stat_result.stat.isreg | default(False)
@@ -64,7 +64,7 @@
     - name: Create mongo/mgkey file
       ansible.builtin.copy:
         dest: "{{ mongo_mgkey_file }}"
-        content: "{{ mongodb_config.mongo_db_mgkey }}"
+        content: "{{ webportal_common_config.mongo_db_mgkey }}"
         owner: "999"
         group: "999"
         mode: "0400"
@@ -91,7 +91,7 @@
       community.docker.docker_container:
         image: "{{ mongodb_image_version }}"
         name: mongo-setup
-        command: "-keyFile=/data/mgkey --replSet={{ mongodb_config.skynet_db_replicaset }}"
+        command: "-keyFile=/data/mgkey --replSet={{ webportal_common_config.skynet_db_replicaset }}"
         env:
           MONGO_INITDB_ROOT_USERNAME: "{{ mongodb_config.skynet_db_user }}"
           MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_config.skynet_db_pass }}"

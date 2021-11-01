@@ -34,14 +34,11 @@
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
 # skyd depends on mongo.
-- block:
-    - name: Include ensuring MongoDB node is a member of replicaset
-      include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-member.yml
-      when: portal_cluster_id is defined
+- name: Include ensuring MongoDB node is a member of replicaset
+  include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-member.yml
 
-    - name: Include setting MongoDB docker service
-      include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
-  when: portal_mongodb_on
+- name: Include setting MongoDB docker service
+  include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
 
 # Init, unlock wallet
 

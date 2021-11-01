@@ -17,7 +17,7 @@
     name: mongo
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
   register: mongo_container_result
 
 - name: Set mongo container running correctly flag
@@ -34,14 +34,14 @@
   ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_USER"
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
   register: skynet_db_user_result
 
 - name: Get mongo pass on host_item from .env file
   ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_PASS"
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
   register: skynet_db_pass_result
 
 - name: Get mongo replicaset primary member
@@ -62,13 +62,14 @@
   when: mongo_container_ok
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
   ignore_errors: True
 
 - name: Set mongo primary host
   set_fact:
     mongo_primary_host: "{{ item }}"
   when: >-
+    not (mongo_primary_result.skipped | default(False)) and
     not (mongo_primary_result.failed | default(False)) and
     hostvars[item].ansible_host + ':' + (hostvars[item].subcrap_mongo_port | default('27017')) == mongo_primary_result.transformed_output
   loop: "{{ mongo_cluster_hosts }}"

@@ -18,7 +18,6 @@
 
 - name: Load portal cluster config from LastPass (if cluster is defined for a host)
   include_tasks: tasks/lastpass-load-yaml-note.yml
-  when: portal_cluster_id is defined
   loop:
     - lastpass_path: "{{ lastpass_portal_config_cluster }}"
       var_name: webportal_cluster_config

@@ -23,74 +23,40 @@
   loop: "{{ webportal_server_config_defaults | dict2items }}"
   no_log: True
 
-- name: Set MongoDB flag
+# Get MongoDB config
+# NOTE: Server config preference:
+# Some MongoDB configuration can be set at common (cluster) level or at
+# server level (e.g. db user, db password). For these we prefer server
+# config over common (cluster) config.
+
+- name: Set MongoDB config keys with preference of server config over common config
   set_fact:
-    portal_mongodb_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      ('m' in webportal_server_config.portal_modules or 'a' in webportal_server_config.portal_modules) }}
+    mongodb_config_keys_server_preference:
+      - skynet_db_user
+      - skynet_db_pass
 
-# Get MongoDB config (if MongoDB is on)
-- block:
-    # MongoDB configuration can be set at common (cluster) level or at server
-    # level. For some config keys we prefer server config (e.g. db user,
-    # db password), for others we prefer common (cluster) config (e.g. mgkey,
-    # replicaset name).
+- name: Set MongoDB config with preference of server config over common config
+  set_fact:
+    mongodb_config: "{{ mongodb_config | default({}) | combine({item: webportal_server_config[item] | default(webportal_common_config[item]) }) }}"
+  no_log: True
+  ignore_errors: True
+  register: mongodb_config_server_preference_result
+  loop: "{{ mongodb_config_keys_server_preference }}"
 
-    # Server config preference
+# Fail if not ok
+- name: Fail if there are missing MongoDB config items
+  fail:
+    msg: |
+      Portal configuration error for MongoDB:
 
-    - name: Set MongoDB config keys with preference of server config over common config
-      set_fact:
-        mongodb_config_keys_server_preference:
-          - skynet_db_user
-          - skynet_db_pass
+      For MongoDB you must configure all of the following items
+      in server or common config:
 
-    - name: Set MongoDB config with preference of server config over common config
-      set_fact:
-        mongodb_config: "{{ mongodb_config | default({}) | combine({item: webportal_server_config[item] | default(webportal_common_config[item]) }) }}"
-      no_log: True
-      ignore_errors: True
-      register: mongodb_config_server_preference_result
-      loop: "{{ mongodb_config_keys_server_preference }}"
-
-    # Common config preference
-
-    - name: Set MongoDB config keys with preference of common config over server config
-      set_fact:
-        mongodb_config_keys_common_preference:
-          - mongo_db_mgkey
-          - skynet_db_replicaset
-
-    - name: Set MongoDB config with preference of common config over server config
-      set_fact:
-        mongodb_config: "{{ mongodb_config | default({}) | combine({item: webportal_common_config[item] | default(webportal_server_config[item]) }) }}"
-      no_log: True
-      ignore_errors: True
-      register: mongodb_config_common_preference_result
-      loop: "{{ mongodb_config_keys_common_preference }}"
-
-    # Fail if not ok
-    - name: Fail if there are missing MongoDB config items
-      fail:
-        msg: |
-          Portal configuration error for MongoDB:
-
-          For MongoDB you must configure all of the following items
-          in server or common config:
-
-          Items with server config preference (over common config):
-          {% for key in mongodb_config_keys_server_preference %}
-          - {{ key }}
-          {% endfor %}
-
-          Items with common config preference (over server config):
-          {% for key in mongodb_config_keys_common_preference %}
-          - {{ key }}
-          {% endfor %}
-      failed_when: >-
-        mongodb_config_server_preference_result.failed | default(False) or
-        mongodb_config_common_preference_result.failed | default(False)
-  when: portal_mongodb_on
+      Items with server config preference (over common config):
+      {% for key in mongodb_config_keys_server_preference %}
+      - {{ key }}
+      {% endfor %}
+  failed_when: mongodb_config_server_preference_result.failed | default(False)
 
 - name: Set Accounts flag
   set_fact:
