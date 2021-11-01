@@ -28,10 +28,10 @@
   set_fact:
     mongo_service_ok: "{{ not (docker_mongo_result.failed | default(False)) }}"
 
-- name: Log docker compose on error
+- name: Log docker compose result on error
   debug:
     msg: |
-      Docker compose failed:
+      Starting mongo servise by docker compose failed:
 
       {{ docker_mongo_result | to_nice_json }}
   when: not mongo_service_ok
@@ -66,6 +66,40 @@
   # Log only when checking container was performed (didn't fail previously)
   when: not (mongo_container_result.skipped | default(False)) and not mongo_service_ok
 
+- name: Check mongo container admin login
+  community.mongodb.mongodb_shell:
+    # Use secure localhost connection unless on subcrap test cluster
+    login_host: "{{ 'localhost' if (subcrap_mongo_port is not defined) else ansible_host }}"
+    # Use default port unless on subcrap test cluster
+    login_port: "{{ subcrap_mongo_port | default('27017') }}"
+    login_user: "{{ mongodb_config.skynet_db_user }}"
+    login_password: "{{ mongodb_config.skynet_db_pass }}"
+    mongo_cmd: "docker exec mongo mongo"
+    eval: |
+      db.serverStatus()
+    # transformed_output can't be parsed correctly by this module, keep it raw
+    transform: raw
+  register: mongo_server_status_result
+  until: "'\"ok\" : 1' in mongo_server_status_result.transformed_output"
+  delay: 1
+  retries: 20
+  ignore_errors: True
+  when: mongo_service_ok
+
+- name: Update mongo service ok flag
+  set_fact:
+    mongo_service_ok: "{{ not (mongo_server_status_result.failed | default(False)) }}"
+  when: mongo_service_ok
+
+- name: Log mongo server status when on ok
+  debug:
+    msg: |
+      MongoDB node server status:
+
+      {{ mongo_server_status_result | to_nice_json }}
+  # Log only when checking replicaset status was performed (didn't fail previously)
+  when: not (mongo_server_status_result.skipped | default(False)) and not mongo_service_ok
+
 - name: Check replicaset status of the MongoDB node
   community.mongodb.mongodb_shell:
     # Use secure localhost connection unless on subcrap test cluster
@@ -85,11 +119,12 @@
     # transformed_output can't be parsed correctly by this module, keep it raw
     transform: raw
   register: mongo_replicaset_result
+  # Checking this only for mongo cluster
   until: mongo_replicaset_result.transformed_output in ['PRIMARY', 'SECONDARY']
   delay: 1
   retries: 120
   ignore_errors: True
-  when: mongo_service_ok
+  when: portal_cluster_id is defined and mongo_service_ok
 
 - name: Update mongo service ok flag
   set_fact:

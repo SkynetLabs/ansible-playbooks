@@ -32,43 +32,64 @@
 
 # Get MongoDB config (if MongoDB is on)
 - block:
-    - name: Set MongoDB config keys
+    # MongoDB configuration can be set at common (cluster) level or at server
+    # level. For some config keys we prefer server config (e.g. db user,
+    # db password), for others we prefer common (cluster) config (e.g. mgkey,
+    # replicaset name).
+
+    # Server config preference
+
+    - name: Set MongoDB config keys with preference of server config over common config
       set_fact:
-        mongodb_config_keys:
+        mongodb_config_keys_server_preference:
           - skynet_db_user
           - skynet_db_pass
 
-    # MongoDB configuration (mongodb_config_keys above) can be set at common
-    # (cluster) level or at server level. Server level configuration overrides
-    # common level for these keys.
-    - name: Set MongoDB config (server config can override common config)
+    - name: Set MongoDB config with preference of server config over common config
       set_fact:
         mongodb_config: "{{ mongodb_config | default({}) | combine({item: webportal_server_config[item] | default(webportal_common_config[item]) }) }}"
       no_log: True
       ignore_errors: True
-      register: mongodb_config_result
-      loop: "{{ mongodb_config_keys }}"
+      register: mongodb_config_server_preference_result
+      loop: "{{ mongodb_config_keys_server_preference }}"
 
-    - name: Fail if there are some missing MongoDB config items
+    # Common config preference
+
+    - name: Set MongoDB config keys with preference of common config over server config
+      set_fact:
+        mongodb_config_keys_common_preference:
+          - mongo_db_mgkey
+          - skynet_db_replicaset
+
+    - name: Set MongoDB config with preference of common config over server config
+      set_fact:
+        mongodb_config: "{{ mongodb_config | default({}) | combine({item: webportal_common_config[item] | default(webportal_server_config[item]) }) }}"
+      no_log: True
+      ignore_errors: True
+      register: mongodb_config_common_preference_result
+      loop: "{{ mongodb_config_keys_common_preference }}"
+
+    # Fail if not ok
+    - name: Fail if there are missing MongoDB config items
       fail:
         msg: |
           Portal configuration error for MongoDB:
 
-          For MongoDB you must configure all of the following items:
-          {% for key in mongodb_config_keys %}
-          - {{ key }}
-          {% endfor %}
-          in server or common config.
+          For MongoDB you must configure all of the following items
+          in server or common config:
 
-          For these items server config overrides common config if the item is defined in both of them.
-          
-          The following item(s) are not configured:
-          {% for key in mongodb_config_keys %}
-          {% if mongodb_config[key] is not defined %}
+          Items with server config preference (over common config):
+          {% for key in mongodb_config_keys_server_preference %}
           - {{ key }}
-          {% endif %}
           {% endfor %}
-      failed_when: mongodb_config_result.failed | default(False)
+
+          Items with common config preference (over server config):
+          {% for key in mongodb_config_keys_common_preference %}
+          - {{ key }}
+          {% endfor %}
+      failed_when: >-
+        mongodb_config_server_preference_result.failed | default(False) or
+        mongodb_config_common_preference_result.failed | default(False)
   when: portal_mongodb_on
 
 - name: Set Accounts flag

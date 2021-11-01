@@ -10,6 +10,14 @@
 - name: Include getting MongoDB replicaset primary host
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary.yml
 
+# If default SSH port is not used on the delegated host (primary member host),
+# set delegated SSH port. The fact is set only on the current inventory host,
+# on the delegated host it must be accessed via hostvars this way:
+# {{ hostvars[inventory_hostname].delegated_ansible_port }}
+- name: Set delegated Ansible port
+  set_fact:
+    delegated_ansible_port: "{{ hostvars[mongo_primary_host].ansible_port }}"
+
 - name: Check if MongoDB node is part of the replicaset
   community.mongodb.mongodb_shell:
     # Use secure localhost connection unless on subcrap test cluster
@@ -33,7 +41,7 @@
   register: mongo_primary_result
   delegate_to: "{{ mongo_primary_host }}"
   vars:
-    ansible_port: "{{ delegated_ssh_port }}"
+    ansible_port: "{{ hostvars[inventory_hostname].delegated_ansible_port }}"
 
 - name: Set host in MongoDB replicaset configuration
   set_fact:
@@ -65,7 +73,7 @@
   register: mongo_add_result
   delegate_to: "{{ mongo_primary_host }}"
   vars:
-    ansible_port: "{{ delegated_ssh_port }}"
+    ansible_port: "{{ hostvars[inventory_hostname].delegated_ansible_port }}"
   when: not host_in_replicaset
 
 - name: Fail if adding a MongoDB node to replicaset config was not successful
