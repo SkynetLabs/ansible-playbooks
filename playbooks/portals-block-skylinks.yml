@@ -14,22 +14,13 @@
       default: "Defaults to: No"
 
   tasks:
-    
+
     # Added a non-loop remote task, so that unreachable hosts fail faster
     - name: Starting to block skylinks
       ansible.builtin.ping:
-    
-    - name: Block skylinks in Sia
-      ansible.builtin.command: "docker exec sia siac skynet blocklist add {{ item }}"
-      loop: "{{ skylinks_block_list | default([]) }}"
 
-    - name: Remove skylinks from Nginx cache
-      community.docker.docker_container_exec:
-        container: nginx
-        argv:
-          - "/bin/bash"
-          - "-c"
-          - "find /data/nginx/cache/ -type f | xargs -r grep -Els '^Skynet-Skylink: {{ item }}' | xargs -r rm"
+    - name: Block skylinks via webportal blocklist script
+      ansible.builtin.command: "{{ webportal_dir }}/scripts/blocklist-skylink.sh {{ item }}"
       loop: "{{ skylinks_block_list | default([]) }}"
 
     - block:
