@@ -17,7 +17,7 @@
       community.general.ufw:
         rule: limit
         direction: in
-        port: '22'
+        port: "{{ default_ssh_port | string }}"
         proto: tcp
 
     - name: Allow outgoing traffic by default
@@ -64,7 +64,7 @@
       community.general.ufw:
         rule: limit
         direction: in
-        port: '22'
+        port: "{{ default_ssh_port | string }}"
         proto: tcp
     
     - name: Enable Firewall

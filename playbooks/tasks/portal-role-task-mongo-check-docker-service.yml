@@ -13,6 +13,10 @@
 - name: Include getting present docker compose files
   include_tasks: tasks/portal-docker-compose-files-get-present.yml
 
+- name: Set MongoDB start timestamp
+  set_fact:
+    mongodb_start_timestamp: "{{ ansible_date_time.iso8601_micro[:-1] }}"
+
 - name: Start mongo service
   community.docker.docker_compose:
     project_src: "{{ webportal_dir }}"
@@ -37,10 +41,16 @@
   when: not mongo_service_ok
 
 - name: Wait for mongo container initialization before checking status
-  wait_for:
-    timeout: 10
-  delegate_to: localhost
-  when: mongo_service_ok
+  ansible.builtin.shell: "docker logs mongo | grep '\"Waiting for connections\"'"
+  vars:
+    fmt: "%Y-%m-%dT%H:%M:%S.%f"
+  register: mongo_ready_result
+  until: >-
+    mongo_ready_result.stdout_lines | length > 0 and
+    (mongo_ready_result.stdout_lines[-1] | from_json).t['$date'][:23] | to_datetime(fmt) > mongodb_start_timestamp | to_datetime(fmt)
+  delay: 1
+  retries: 10
+  when: mongo_service_ok and docker_mongo_result.changed | default(False)
 
 - name: Check mongo container is running
   community.docker.docker_container_info:

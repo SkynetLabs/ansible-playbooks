@@ -33,7 +33,7 @@
   register: mongo_primary_result
   delegate_to: "{{ mongo_primary_host }}"
   vars:
-    ansible_port: "{{ hostvars[mongo_primary_host].ansible_port | default(22) }}"
+    ansible_port: "{{ hostvars[mongo_primary_host].ansible_port | default(default_ssh_port) }}"
 
 - name: Set host in MongoDB replicaset configuration
   set_fact:
@@ -65,7 +65,7 @@
   register: mongo_add_result
   delegate_to: "{{ mongo_primary_host }}"
   vars:
-    ansible_port: "{{ hostvars[mongo_primary_host].ansible_port | default(22) }}"
+    ansible_port: "{{ hostvars[mongo_primary_host].ansible_port | default(default_ssh_port) }}"
   when: not host_in_replicaset
 
 - name: Fail if adding a MongoDB node to replicaset config was not successful

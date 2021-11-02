@@ -17,7 +17,7 @@
     name: mongo
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(default_ssh_port) }}"
   register: mongo_container_result
 
 - name: Set mongo container running correctly flag
@@ -34,14 +34,14 @@
   ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_USER"
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(default_ssh_port) }}"
   register: skynet_db_user_result
 
 - name: Get mongo pass on host_item from .env file
   ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $SKYNET_DB_PASS"
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(default_ssh_port) }}"
   register: skynet_db_pass_result
 
 - name: Get mongo replicaset primary member
@@ -62,7 +62,7 @@
   when: mongo_container_ok
   delegate_to: "{{ host_item }}"
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port | default(22) }}"
+    ansible_port: "{{ hostvars[host_item].ansible_port | default(default_ssh_port) }}"
   ignore_errors: True
 
 - name: Set mongo primary host
