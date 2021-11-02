@@ -76,29 +76,19 @@
   # Log only when checking container was performed (didn't fail previously)
   when: not (mongo_container_result.skipped | default(False)) and not mongo_service_ok
 
-- name: Check mongo container admin login
-  community.mongodb.mongodb_shell:
-    # Use secure localhost connection unless on subcrap test cluster
-    login_host: "{{ 'localhost' if (subcrap_mongo_port is not defined) else ansible_host }}"
-    # Use default port unless on subcrap test cluster
-    login_port: "{{ subcrap_mongo_port | default('27017') }}"
-    login_user: "{{ mongodb_config.skynet_db_user }}"
-    login_password: "{{ mongodb_config.skynet_db_pass }}"
-    mongo_cmd: "docker exec mongo mongo"
-    eval: |
-      db.serverStatus()
-    # transformed_output can't be parsed correctly by this module, keep it raw
-    transform: raw
-  register: mongo_server_status_result
-  until: "'\"ok\" : 1' in mongo_server_status_result.transformed_output"
-  delay: 1
-  retries: 20
-  ignore_errors: True
+- name: Include checking mongo container admin login
+  include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
+  vars:
+    mongodb_shell:
+      eval: "db.serverStatus()"
+      until: "'\"ok\" : 1' in mongo_shell_result.transformed_output"
+      retries: 20
   when: mongo_service_ok
+  register: mongo_checking_admin_result
 
 - name: Update mongo service ok flag
   set_fact:
-    mongo_service_ok: "{{ not (mongo_server_status_result.failed | default(False)) }}"
+    mongo_service_ok: "{{ not (mongo_shell_result.failed | default(False)) }}"
   when: mongo_service_ok
 
 - name: Log mongo server status when on ok
@@ -106,39 +96,29 @@
     msg: |
       MongoDB node server status:
 
-      {{ mongo_server_status_result | to_nice_json }}
+      {{ mongo_shell_result | to_nice_json }}
   # Log only when checking replicaset status was performed (didn't fail previously)
-  when: not (mongo_server_status_result.skipped | default(False)) and not mongo_service_ok
+  when: not (mongo_checking_admin_result.skipped | default(False)) and not mongo_service_ok
 
-- name: Check replicaset status of the MongoDB node
-  community.mongodb.mongodb_shell:
-    # Use secure localhost connection unless on subcrap test cluster
-    login_host: "{{ 'localhost' if (subcrap_mongo_port is not defined) else ansible_host }}"
-    # Use default port unless on subcrap test cluster
-    login_port: "{{ subcrap_mongo_port | default('27017') }}"
-    login_user: "{{ mongodb_config.skynet_db_user }}"
-    login_password: "{{ mongodb_config.skynet_db_pass }}"
-    mongo_cmd: "docker exec mongo mongo"
-    eval: |
-      rs.status().members.forEach(m => {
-        if (m.name == '{{ ansible_host }}:{{ subcrap_mongo_port | default('27017') }}')
-        {
-          print(m.stateStr)
-        }
-      })
-    # transformed_output can't be parsed correctly by this module, keep it raw
-    transform: raw
-  register: mongo_replicaset_result
-  # Checking this only for mongo cluster
-  until: mongo_replicaset_result.transformed_output in ['PRIMARY', 'SECONDARY']
-  delay: 1
-  retries: 120
-  ignore_errors: True
+- name: Include checking replicaset status of the MongoDB node
+  include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
+  vars:
+    mongodb_shell:
+      eval: |
+        rs.status().members.forEach(m => {
+          if (m.name == '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}')
+          {
+            print(m.stateStr)
+          }
+        })
+      until: mongo_shell_result.transformed_output in ['PRIMARY', 'SECONDARY']
+      retries: 120
   when: mongo_service_ok
+  register: checking_replicaset_result
 
 - name: Update mongo service ok flag
   set_fact:
-    mongo_service_ok: "{{ not (mongo_replicaset_result.failed | default(False)) }}"
+    mongo_service_ok: "{{ not (mongo_shell_result.failed | default(False)) }}"
   when: mongo_service_ok
 
 - name: Log mongo replicaset status when on ok
@@ -146,6 +126,6 @@
     msg: |
       MongoDB node resplicaset status:
 
-      {{ mongo_replicaset_result | to_nice_json }}
+      {{ mongo_shell_result | to_nice_json }}
   # Log only when checking replicaset status was performed (didn't fail previously)
-  when: not (mongo_replicaset_result.skipped | default(False)) and not mongo_service_ok
+  when: not (checking_replicaset_result.skipped | default(False)) and not mongo_service_ok

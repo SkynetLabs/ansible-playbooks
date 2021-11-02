@@ -44,32 +44,23 @@
     ansible_port: "{{ hostvars[host_item].ansible_port | default(default_ssh_port) }}"
   register: skynet_db_pass_result
 
-- name: Get mongo replicaset primary member
-  community.mongodb.mongodb_shell:
-    # Use secure localhost connection unless on subcrap test cluster
-    login_host: "{{ 'localhost' if (hostvars[host_item].subcrap_mongo_port is not defined) else hostvars[host_item].ansible_host }}"
-    # Use default port unless on subcrap test cluster
-    login_port: "{{ hostvars[host_item].subcrap_mongo_port | default('27017') }}"
-    # Use delegated host_item's mongo user, because we delegate this task
-    login_user: "{{ skynet_db_user_result.stdout }}"
-    # Use delegated host_item's mongo password, because we delegate this task
-    login_password: "{{ skynet_db_pass_result.stdout }}"
-    mongo_cmd: "docker exec mongo mongo"
-    eval: "rs.status().members.forEach(m => {if (m.stateStr == 'PRIMARY') {print(m.name)}})"
-    # transformed_output can't be parsed correctly by this module, keep it raw
-    transform: raw
-  register: mongo_primary_result
-  when: mongo_container_ok
-  delegate_to: "{{ host_item }}"
+- name: Include getting mongo replicaset primary member
+  include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
   vars:
-    ansible_port: "{{ hostvars[host_item].ansible_port | default(default_ssh_port) }}"
-  ignore_errors: True
+    mongodb_shell_delegated:
+      host: "{{ host_item }}"
+      user: "{{ skynet_db_user_result.stdout }}"
+      password: "{{ skynet_db_pass_result.stdout }}"
+      eval: "rs.status().members.forEach(m => {if (m.stateStr == 'PRIMARY') {print(m.name)}})"
+      ignore_errors: True
+  when: mongo_container_ok
+  register: mongo_getting_primary_result
 
 - name: Set mongo primary host
   set_fact:
     mongo_primary_host: "{{ item }}"
   when: >-
-    not (mongo_primary_result.skipped | default(False)) and
-    not (mongo_primary_result.failed | default(False)) and
-    hostvars[item].ansible_host + ':' + (hostvars[item].subcrap_mongo_port | default('27017')) == mongo_primary_result.transformed_output
+    not (mongo_getting_primary_result.skipped | default(False)) and
+    not (mongo_shell_delegated_result.failed | default(False)) and
+    hostvars[item].ansible_host + ':' + (hostvars[item].subcrap_mongo_port | default(default_mongo_port | string)) == mongo_shell_delegated_result.transformed_output
   loop: "{{ mongo_cluster_hosts }}"
