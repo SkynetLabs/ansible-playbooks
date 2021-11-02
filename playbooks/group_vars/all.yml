@@ -2,6 +2,8 @@
 # =============================================================================
 # General common variables
 
+default_ssh_port: 22
+
 # Times
 five_minutes_in_secs: 300
 ten_minutes_in_secs: 600

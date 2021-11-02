@@ -1,0 +1,129 @@
+---
+
+# Ensure MongoDB docker service is setup correctly
+# TODO: This ansible playbook task, should be moved to portal role
+
+- name: Check we have mongo cluster mgkey
+  assert:
+    that:
+      - >-
+        {{ webportal_common_config.mongo_db_mgkey is defined and
+        webportal_common_config.mongo_db_mgkey is not none and
+        webportal_common_config.mongo_db_mgkey != '' }}
+
+- name: Check mongo/mgkey file exists and it is not directory
+  ansible.builtin.stat:
+    path: "{{ mongo_mgkey_file }}"
+  register: mgkey_stat_result
+
+- name: Ensure mongo/mgkey file content is up-to-date
+  ansible.builtin.copy:
+    dest: "{{ mongo_mgkey_file }}"
+    content: "{{ webportal_common_config.mongo_db_mgkey }}"
+  become: True
+  # Perform only if mongo/mgkey is a regular file (not a dictionary)
+  when: mgkey_stat_result.stat.isreg | default(False)
+  register: mgkey_update_result
+
+- name: Include checking mongo service is running correctly
+  include_tasks: tasks/portal-role-task-mongo-check-docker-service.yml
+  when: mgkey_stat_result.stat.isreg | default(False) and not mgkey_update_result.changed
+
+- name: Log mongo service status if not ok
+  debug:
+    msg: |
+      Mongo service does NOT run correctly.
+      We will reset the mongo service.
+  when: not (mongo_service_ok | default(False))
+
+# Reset mongo service if it is not running correctly
+- block:
+    - name: Stop and remove mongo container
+      community.docker.docker_container:
+        name: mongo
+        state: absent
+        container_default_behavior: no_defaults
+
+    - name: Remove mongo/db directory
+      ansible.builtin.file:
+        path: "{{ mongo_db_dir }}"
+        state: absent
+      become: True
+    
+    - name: Create empty mongo/db directory
+      ansible.builtin.file:
+        path: "{{ mongo_db_dir }}"
+        state: directory
+        owner: "999"
+        group: "999"
+      become: True
+
+    - name: Remove mongo/mgkey file/directory
+      ansible.builtin.file:
+        path: "{{ mongo_mgkey_file }}"
+        state: absent
+      become: True
+
+    - name: Create mongo/mgkey file
+      ansible.builtin.copy:
+        dest: "{{ mongo_mgkey_file }}"
+        content: "{{ webportal_common_config.mongo_db_mgkey }}"
+        owner: "999"
+        group: "999"
+        mode: "0400"
+      become: True
+
+    # Get MongoDB image version from docker-compose.mongodb.yml file
+
+    - name: Read docker-compose.mongodb.yml
+      slurp:
+        src: "{{ webportal_dir }}/docker-compose.mongodb.yml"
+      register: docker_compose_mongodb_slurp
+
+    - name: Parse docker-compose.mongodb.yml
+      set_fact:
+        docker_compose_mongodb_vars: "{{ docker_compose_mongodb_slurp['content'] | b64decode | from_yaml }}"
+
+    - name: Get mongo image version
+      set_fact:
+        mongodb_image_version: "{{ docker_compose_mongodb_vars.services.mongo.image }}"
+
+    # Initialize MongoDB
+
+    - name: Initialize mongo database with admin credentials
+      community.docker.docker_container:
+        image: "{{ mongodb_image_version }}"
+        name: mongo-setup
+        command: "-keyFile=/data/mgkey --replSet={{ webportal_common_config.skynet_db_replicaset }}"
+        env:
+          MONGO_INITDB_ROOT_USERNAME: "{{ mongodb_config.skynet_db_user }}"
+          MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_config.skynet_db_pass }}"
+        published_ports: "{{ default_mongo_port }}:{{ default_mongo_port }}"
+        auto_remove: True
+        volumes:
+          - "{{ mongo_db_dir }}:/data/db"
+          - "{{ mongo_mgkey_file }}:/data/mgkey"
+        container_default_behavior: no_defaults
+      no_log: True
+
+    - name: Wait for MongoDB initialization finished
+      ansible.builtin.command: docker logs mongo-setup
+      register: mongo_setup_logs_result
+      until: "'MongoDB init process complete' in mongo_setup_logs_result.stdout"
+      delay: 1
+      retries: 60
+
+    - name: Remove mongo setup container
+      community.docker.docker_container:
+        name: mongo-setup
+        state: absent
+        container_default_behavior: no_defaults
+
+    - name: Include checking mongo service is running correctly
+      include_tasks: tasks/portal-role-task-mongo-check-docker-service.yml
+
+    - name: Fail if mongo service is not running correctly after reset
+      fail:
+        msg: "Mongo service doesn't run correctly after reset"
+      when: not mongo_service_ok
+  when: not (mongo_service_ok | default(False))

@@ -18,7 +18,7 @@
 
 - name: Set ufw rules
   vars:
-    default_ufw_rule: { rule: 'limit', port: '{{ ssh_port | default("22") }}', proto: 'tcp', direction: "in" }
+    default_ufw_rule: { rule: 'limit', port: '{{ ssh_port | default(default_ssh_port | string) }}', proto: 'tcp', direction: "in" }
   community.general.ufw:
     rule: "{{ item.rule }}"
     port: "{{ item.port }}"

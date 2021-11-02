@@ -1,6 +1,6 @@
 ---
 
-# xxx This ansible playbook task, should be moved to portal role
+# TODO: This ansible playbook task, should be moved to portal role
 
 - name: Checkout skynet-webportal repository
   ansible.builtin.git:
@@ -23,13 +23,22 @@
 - name: Include saving portal config
   include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
 
-# xxx add subdomain check (only install portal to subdomain for now)
+# TODO: add subdomain check (only install portal to subdomain for now)
 
 - name: Create .env file
   ansible.builtin.template:
     src: .env.j2
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
+
+# Setup MongoDB
+# NOTE: MongoDB docker service must be setup before Sia docker service, because
+# skyd depends on mongo.
+- name: Include ensuring MongoDB node is a member of replicaset
+  include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-member.yml
+
+- name: Include setting MongoDB docker service
+  include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
 
 # Init, unlock wallet
 
@@ -51,7 +60,7 @@
     dest: "{{ setup_status_file }}"
     force: no
 
-# xxx unite Load and Get into a role task: load portal setup status
+# TODO: Unite Load and Get into a role task: load portal setup status
 - name: Load portal setup status file
   ansible.builtin.slurp:
     src: "{{ setup_status_file }}"
@@ -62,7 +71,8 @@
 
 - block:
 
-    # xxx use community.docker.docker_prune (requires community.docker upgrade) with long timeout
+    # TODO: Use community.docker.docker_prune (requires community.docker
+    # upgrade) with long timeout.
     # Prune docker
     - name: Prune docker
       ansible.builtin.command: docker system prune --force
@@ -88,7 +98,8 @@
   # Don't rebuild when initializing sia with existing seed is in progress
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
-# xxx use community.docker.docker_prune (requires community.docker upgrade) with long timeout
+# TODO: Use community.docker.docker_prune (requires community.docker upgrade)
+# with long timeout
 # Prune docker
 - name: Prune docker
   ansible.builtin.command: docker system prune --force
@@ -133,7 +144,7 @@
 
 # Init a wallet with existing seed
 
-# xxx (2nd appearance) unite Load and Get into a role task: load portal setup status
+# TODO: (2nd appearance) unite Load and Get into a role task: load portal setup status
 - name: Load portal setup status file
   ansible.builtin.slurp:
     src: "{{ setup_status_file }}"
@@ -240,13 +251,13 @@
     dest: "{{ setup_status_file }}"
     content: ""
 
-#xxx create an address
+# TODO: Create an address?
 # - name: Create a new address
 #   ansible.builtin.command: docker exec sia siac wallet address
 #   register: wallet_address_result
-# xxx log address
+# TODO: Log address
 
-# xxx: Should we setup allowance just once?
+# TODO: Should we setup allowance just once?
 - name: Set allowance
   ansible.builtin.command: >
     docker exec sia siac renter setallowance
@@ -264,7 +275,7 @@
   failed_when: set_allowance_result.stdout.find("Allowance updated. 8 setting(s) changed.") == -1
 
 # Setup health checks
-# xxx move to role task file
+# TODO: Move to role task file
 - block:
     
     - name: Install Python modules for health checks
