@@ -38,6 +38,28 @@
 
 # Reset mongo service if it is not running correctly
 - block:
+    - name: Ask user if it is ok to delete, reset MongoDB database
+      pause:
+        prompt: |-
+          Your MongoDB database doesn't run as expected.
+
+          If you do not have any data in your database
+          it is safe to continue (MongoDB database will be deleted and reset).
+          
+          If you have production data in your database
+          you should fix this issue manually and rerun this playbook.
+          
+          Do you want to reset MongoDB database on {{ inventory_hostname }} (y/n)?
+      register: reset_db_result
+      delegate_to: localhost
+
+    - name: Stop the playbook if the user doesn't want to delete, reset MongoDB database
+      fail:
+        msg: |
+          Your MongoDB database doesn't run as expected,
+          you have to fix it manually and then rerun this playbook.
+      when: reset_db_result.user_input[:1] not in 'yY'
+    
     - name: Stop and remove mongo container
       community.docker.docker_container:
         name: mongo
