@@ -33,13 +33,9 @@
 
       when: "'webportals_takedown' in group_names"
 
-    # Disable health check
-    - name: Include disabling portal health check
-      include_tasks: tasks/portal-health-check-disable.yml
-
-    # Stop portal docker services
-    - name: Include stopping portal docker services
-      include_tasks: tasks/portal-docker-services-stop.yml
+    # Disable health checks and stop docker services
+    - name: Include disabling health check and stopping portal docker services
+      include_tasks: tasks/portal-stop.yml
 
     # Get last working config (status.tested)
     - name: Include getting last working portal versions (status.tested)

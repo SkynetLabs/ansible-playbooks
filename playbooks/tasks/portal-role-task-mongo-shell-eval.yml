@@ -1,7 +1,8 @@
 ---
 
 # Run MongoDB shell command
-# TODO: This ansible playbook task, should be moved to portal role
+# TODO: This ansible playbook task, should be copied to portal role and also
+# kept for playbooks.
 
 - name: Run mongo shell command
   community.mongodb.mongodb_shell:
@@ -19,4 +20,4 @@
   until: mongodb_shell.until
   delay: 1
   retries: "{{ mongodb_shell.retries }}"
-  ignore_errors: True
+  ignore_errors: "{{ mongodb_shell.ignore_errors | default(False) }}"

@@ -1,0 +1,12 @@
+---
+
+# Disable health checks and stop docker services
+
+- name: Include checking majority of MongoDB voting members
+  include_tasks: tasks/portal-mongo-replicaset-check-majority.yml
+
+- name: Include disabling portal health check
+  include_tasks: tasks/portal-health-check-disable.yml
+
+- name: Include stopping portal docker services
+  include_tasks: tasks/portal-docker-services-stop.yml
