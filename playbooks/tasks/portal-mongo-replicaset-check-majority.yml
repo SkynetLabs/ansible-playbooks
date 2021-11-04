@@ -32,7 +32,7 @@
         mongodb_shell:
           eval: |
             votingMembers = rs.config().members
-              .filter(m => m.priority > 0)
+              .filter(m => m.votes > 0)
               .map(m => m.host)
             onlineVotingMembers = rs.status().members
               .filter(m => m.stateStr == 'PRIMARY' || m.stateStr == 'SECONDARY')
