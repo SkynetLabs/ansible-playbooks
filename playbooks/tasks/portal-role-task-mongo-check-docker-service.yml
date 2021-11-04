@@ -83,6 +83,7 @@
       eval: "db.serverStatus()"
       until: "'\"ok\" : 1' in mongo_shell_result.transformed_output"
       retries: 20
+      ignore_errors: True
   when: mongo_service_ok
   register: mongo_checking_admin_result
 
@@ -113,6 +114,7 @@
         })
       until: mongo_shell_result.transformed_output in ['PRIMARY', 'SECONDARY']
       retries: 120
+      ignore_errors: True
   when: mongo_service_ok
   register: checking_replicaset_result
 
