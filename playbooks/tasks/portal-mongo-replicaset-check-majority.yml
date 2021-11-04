@@ -35,18 +35,20 @@
               .filter(m => m.priority > 0)
               .map(m => m.host)
             onlineVotingMembers = rs.status().members
-              .filter(m => m.stateStr == 'PRIMARY' || m.stateStr == 'SECONDARY')
+              .filter(m => (m.stateStr == 'PRIMARY' || m.stateStr == 'SECONDARY') && m.health == 1)
               .map(m => m.name)
               .filter(m => votingMembers.includes(m))
             batchMembers = [{% for h in ansible_play_batch -%}
               '{{ hostvars[h].ansible_host + ':' + (hostvars[h].subcrap_mongo_port | default(default_mongo_port) | string) }}'{{ loop.last | ternary('', ', ') }}
               {%- endfor -%}]
             onlineVotingMembersAfter = onlineVotingMembers.filter(m => !batchMembers.includes(m))
+            thisMemberIsVoting = votingMembers.includes('{{ ansible_host + ':' + (subcrap_mongo_port | default(default_mongo_port) | string) }}')
             result = {
               "votingMembers": votingMembers,
               "onlineVotingMembers": onlineVotingMembers,
               "batchMembers": batchMembers,
               "onlineVotingMembersAfter": onlineVotingMembersAfter,
+              "thisMemberIsVoting": thisMemberIsVoting,
               "replicasetMajorityOk": onlineVotingMembersAfter.length > votingMembers.length/2
             }
           until: True
@@ -64,7 +66,7 @@
           - Voting members in config: {{ mongo_replicaset_result.votingMembers | length }}
             {{ mongo_replicaset_result.votingMembers }}
 
-          - Voting members currently online: {{ mongo_replicaset_result.onlineVotingMembers | length }}
+          - Voting members currently online and healthy: {{ mongo_replicaset_result.onlineVotingMembers | length }}
             {{ mongo_replicaset_result.onlineVotingMembers }}
 
           - Members in the current Ansible batch: {{ mongo_replicaset_result.batchMembers | length }}
@@ -81,6 +83,7 @@
           - Don't stop so many voting members in one Ansible batch
           - Reconfigure voting members (move voting from an offline member to some online member)
       when: >-
+        mongo_replicaset_result.thisMemberIsVoting and
         mongo_replicaset_result.votingMembers | length > 2 and
         not mongo_replicaset_result.replicasetMajorityOk
   when:
