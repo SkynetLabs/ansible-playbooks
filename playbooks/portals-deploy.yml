@@ -86,7 +86,7 @@
     # Update the allowance if prompted
     - name: Include Updating the Allowance
       # Only execute allowance check if portal is manually defined
-      when: inventory_hostname in update_allowance
+      when: update_allowance is defined and inventory_hostname in update_allowance
       include_tasks: tasks/portal-update-allowance.yml
 
     # Update log status to 'tested'
