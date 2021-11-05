@@ -66,10 +66,21 @@
         state: absent
         container_default_behavior: no_defaults
 
-    - name: Remove mongo/db directory
+    - name: Ensure mongo/backups directory exists
       ansible.builtin.file:
+        path: "{{ mongo_backups_dir }}"
+        owner: "{{ webportal_user }}"
+        group: "{{ webportal_user }}"
+        state: directory
+      become: True
+
+    - name: Backup and remove mongo/db directory
+      community.general.archive:
         path: "{{ mongo_db_dir }}"
-        state: absent
+        dest: "{{ mongo_backups_dir }}/db-backup-{{ ansible_date_time.iso8601 }}.tar.gz"
+        owner: "{{ webportal_user }}"
+        group: "{{ webportal_user }}"
+        remove: True
       become: True
     
     - name: Create empty mongo/db directory

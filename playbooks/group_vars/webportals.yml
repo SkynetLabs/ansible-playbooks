@@ -60,8 +60,10 @@ setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
 devops_scripts_dir: "{{ devops_dir }}/scripts"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
-mongo_db_dir: "{{ webportal_dir}}/docker/data/mongo/db"
-mongo_mgkey_file: "{{ webportal_dir}}/docker/data/mongo/mgkey"
+mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
+mongo_db_dir: "{{ mongo_data_dir }}/db"
+mongo_backups_dir: "{{ mongo_data_dir }}/backups"
+mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
 
 # Default service ports
 default_mongo_port: 27017
