@@ -53,7 +53,7 @@
       register: reset_db_result
       delegate_to: localhost
 
-    - name: Stop the playbook if the user doesn't want to delete, reset MongoDB database
+    - name: Stop the playbook if the user doesn't want to delete and reset MongoDB database
       fail:
         msg: |
           Your MongoDB database doesn't run as expected,
