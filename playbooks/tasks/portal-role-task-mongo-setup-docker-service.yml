@@ -38,7 +38,7 @@
 
 # Reset mongo service if it is not running correctly
 - block:
-    - name: Ask user if it is ok to delete, reset MongoDB database
+    - name: Ask user if it is ok to delete and reset MongoDB database
       pause:
         prompt: |-
           Your MongoDB database doesn't run as expected.
