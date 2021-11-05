@@ -59,13 +59,9 @@
     - name: Include preparing portal prerequisities
       include_tasks: tasks/portals-prepare.yml
 
-    # Disable health check
-    - name: Include disabling portal health check
-      include_tasks: tasks/portal-health-check-disable.yml
-
-    # Stop portal docker services
-    - name: Include stopping portal docker services
-      include_tasks: tasks/portal-docker-services-stop.yml
+    # Disable health checks and stop docker services
+    - name: Include disabling health check and stopping portal docker services
+      include_tasks: tasks/portal-stop.yml
 
     # Rebuild docker images, start the docker services and log activities
     - name: Include starting portal docker services
@@ -86,7 +82,7 @@
     # Update the allowance if prompted
     - name: Include Updating the Allowance
       # Only execute allowance check if portal is manually defined
-      when: inventory_hostname in update_allowance
+      when: update_allowance is defined and inventory_hostname in update_allowance
       include_tasks: tasks/portal-update-allowance.yml
 
     # Update log status to 'tested'
