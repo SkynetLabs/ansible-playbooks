@@ -38,16 +38,51 @@
 
 # Reset mongo service if it is not running correctly
 - block:
+    - name: Ask user if it is ok to delete and reset MongoDB database
+      pause:
+        prompt: |-
+          Your MongoDB database doesn't run as expected.
+
+          If you do not have any data in your database
+          it is safe to continue.
+          Your MongoDB database will be backupped to
+          {{ mongo_backups_dir }}, deleted and reset.
+          
+          If you have production data in your database
+          you should fix this issue manually and rerun this playbook.
+
+          Do you want to reset MongoDB database on {{ inventory_hostname }} (y/n)?
+      register: reset_db_result
+      delegate_to: localhost
+
+    - name: Stop the playbook if the user doesn't want to delete and reset MongoDB database
+      fail:
+        msg: |
+          Your MongoDB database doesn't run as expected,
+          you have to fix it manually and then rerun this playbook.
+      when: reset_db_result.user_input[:1] not in 'yY'
+    
     - name: Stop and remove mongo container
       community.docker.docker_container:
         name: mongo
         state: absent
         container_default_behavior: no_defaults
 
-    - name: Remove mongo/db directory
+    - name: Ensure mongo/backups directory exists
       ansible.builtin.file:
+        path: "{{ mongo_backups_dir }}"
+        owner: "{{ webportal_user }}"
+        group: "{{ webportal_user }}"
+        state: directory
+      become: True
+
+    - name: Backup and remove mongo/db directory
+      community.general.archive:
         path: "{{ mongo_db_dir }}"
-        state: absent
+        dest: "{{ mongo_backups_dir }}/db-backup-{{ ansible_date_time.iso8601 }}.tar.gz"
+        owner: "{{ webportal_user }}"
+        group: "{{ webportal_user }}"
+        remove: True
       become: True
     
     - name: Create empty mongo/db directory
