@@ -16,6 +16,8 @@
     name: geerlingguy.docker
     apply:
       become: True
+  vars:
+    docker_package_state: latest
 
 - name: Reset SSH connection to reload new user groups (docker)
   ansible.builtin.meta:
