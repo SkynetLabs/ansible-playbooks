@@ -29,6 +29,14 @@
       community.general.ufw:
         default: deny
         direction: incoming
+    
+    - name: Deny malicious traffic from ip ranges
+      community.general.ufw:
+        rule: "deny"
+        proto: "any"
+        direction: "in"
+        from_ip: "{{ item }}"
+      loop: "{{ malicious_ip_ranges_denied }}"
 
     - name: Allow specific incoming ports
       community.general.ufw:
