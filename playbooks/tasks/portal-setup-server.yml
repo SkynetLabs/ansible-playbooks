@@ -9,6 +9,8 @@
   loop:
     - python3-pip
     - git
+    # Install libffi-dev as a dependency for pip3 docker-compose
+    - libffi-dev
   become: True
 
 - name: Include role to install Docker
