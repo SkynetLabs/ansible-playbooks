@@ -16,9 +16,11 @@
       delegate_to: localhost
     
     - name: Deny malicious traffic from ip ranges directly in iptables
-      # Using '-I' instead of '-A' to insert deny rules at the beginning of iptables
-      # Using 'Docker-User' instead of 'INPUT' to limit access to docker containers
-      command: "sudo iptables -I DOCKER-USER -s {{ item }} -j DROP"
+      ansible.builtin.iptables:
+        action: insert
+        chain: DOCKER-USER
+        source: "{{ item }}"
+        jump: DROP
       loop: "{{ private_vars.malicious_ip_ranges_denied }}"
 
     - name: Reset ufw (reset ufw rules and disables ufw firewall)
