@@ -9,6 +9,18 @@
     update_cache: True
 
 - block:
+    - name: Load private variables from Ansible private repository
+      ansible.builtin.include_vars:
+        file: "{{ private_vars_file }}"
+        name: private_vars
+      delegate_to: localhost
+    
+    - name: Deny malicious traffic from ip ranges directly in iptables
+      # Using '-I' instead of '-A' to insert deny rules at the beginning of iptables
+      # Using 'Docker-User' instead of 'INPUT' to limit access to docker containers
+      command: "sudo iptables -I DOCKER-USER -s {{ item }} -j DROP"
+      loop: "{{ private_vars.malicious_ip_ranges_denied }}"
+
     - name: Reset ufw (reset ufw rules and disables ufw firewall)
       community.general.ufw:
         state: reset
@@ -29,20 +41,6 @@
       community.general.ufw:
         default: deny
         direction: incoming
-
-    - name: Load private variables from Ansible private repository
-      ansible.builtin.include_vars:
-        file: "{{ private_vars_file }}"
-        name: private_vars
-      delegate_to: localhost
-    
-    - name: Deny malicious traffic from ip ranges
-      community.general.ufw:
-        rule: "deny"
-        proto: "any"
-        direction: "in"
-        from_ip: "{{ item }}"
-      loop: "{{ private_vars.malicious_ip_ranges_denied }}"
 
     - name: Allow specific incoming ports
       community.general.ufw:
