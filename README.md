@@ -72,10 +72,13 @@ Ansible playbooks can use libraries (roles and collections) deployed to Ansible
 Galaxy or just to Github. The roles and collections a playbook uses must be
 installed prior to the playbook execution.
 
-To install all roles and collections required for Skynet Labs playbooks, execute:
+Our Ansible scripts are installing Ansible roles and collections (defined in
+`requirements.yml`) automatically.
 
-`scripts/install-ansible-roles-and-collections.sh`
-
+When you are developing Ansible playbooks and don't want yet to commit new
+`requirements.yml` file, you can force installing new/updated roles and
+collections by deleting `my-logs/requirements-installed.txt` file and executing
+a playbook.
 ## Repository Organization
 
 - `ansible_collections`

@@ -68,6 +68,25 @@ else
     infinity > /dev/null
 fi
 
+# Update Ansible requirements (Ansible roles and collections) if not up-to-date
+# Get the latest git commit of ./requirements.yml file
+requirements_commit=$(git log -n 1 --pretty=format:%H -- requirements.yml)
+
+# Get the git commit of the latest installed requirements
+requirements_installed_file=my-logs/requirements-installed.txt
+if [ -f "$requirements_installed_file" ]; then
+    requirements_installed=$(cat $requirements_installed_file)
+fi
+
+# Install requirements
+if [ "$requirements_installed" = "$requirements_commit" ]; then
+    echo "Ansible requirements (roles and collections) are up-to-date"
+else
+    echo "Updating Ansible requirements (roles and collections)..."
+    docker exec ansiblecm ansible-galaxy install -r requirements.yml --force
+    echo $requirements_commit > $requirements_installed_file
+fi
+
 # Execute the playbook from Ansible CM in a Docker container
 echo "Executing:"
 echo "    $cmd $args"
