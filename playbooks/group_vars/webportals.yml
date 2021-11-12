@@ -175,3 +175,5 @@ docker_services_exclude_waiting:
 # Localhost vars
 # my-logs path relative to ./playbooks directory
 local_logs_dir: "../my-logs"
+# Path relative to ./playbooks/vars directory
+private_vars_file: "../../../ansible-private/private-vars/private-vars.yml"
