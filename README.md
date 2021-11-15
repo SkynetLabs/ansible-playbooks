@@ -501,8 +501,10 @@ private variables are stored. Default path is in `ansible-private` repository,
 in `private-vars/private-vars.yml` file. In this file there are defined 2 lists
 of IPs or Ip ranges: `incoming_ips_ip_ranges_block` and
 `incoming_ips_ip_ranges_unblock`. To block an IP/IP range, add it to the block
-list, to unblock the previously blocked IP/IP range, remove it from the block
-list and add it to the unblock list and execute the playbook.
+list, execute the playbook and keep the IP/IP range in the list so it is
+blocked also later on newly setup portals. To unblock the previously blocked
+IP/IP range, remove it from the block list and add it to the unblock list and
+execute the playbook.
 
 Example `private-vars.yml` file:
 ```yaml
