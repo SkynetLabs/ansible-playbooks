@@ -1,2 +1,2 @@
-- Add blocking malicious IP ranges to ufw firewall setup, load list from
-  private variables.
+- Add blocking and unblocking incoming traffic from IPs or IP ranges, load
+  block and unblock lists from private variables.

@@ -9,20 +9,6 @@
     update_cache: True
 
 - block:
-    - name: Load private variables from Ansible private repository
-      ansible.builtin.include_vars:
-        file: "{{ private_vars_file }}"
-        name: private_vars
-      delegate_to: localhost
-    
-    - name: Deny malicious traffic from ip ranges directly in iptables
-      ansible.builtin.iptables:
-        action: insert
-        chain: DOCKER-USER
-        source: "{{ item }}"
-        jump: DROP
-      loop: "{{ private_vars.malicious_ip_ranges_denied }}"
-
     - name: Reset ufw (reset ufw rules and disables ufw firewall)
       community.general.ufw:
         state: reset

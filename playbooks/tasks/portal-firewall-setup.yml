@@ -1,0 +1,9 @@
+---
+
+# Setup portal ufw firewall rules
+
+- name: Include blocking and unblocking IPs and IP ranges in iptables
+  include_tasks: tasks/portal-firewall-iptables-block-unblock.yml
+
+- name: Include setting ufw firewall
+  include_tasks: tasks/portal-firewall-ufw-setup.yml
