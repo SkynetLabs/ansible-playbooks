@@ -1,0 +1,83 @@
+- name: Update All Apt Packages
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 3
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    docker_compose_build: False
+    set_portal_versions: False
+    portal_action: "portal-apt-update"
+    lastpass_required: True
+
+  tasks:
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Don't restart portals on takedown
+    - block:
+        - name: Stop play for portals in webportals_takedown group
+          debug:
+            msg: "Will not restart portal in webportals_takedown group"
+
+        - name: Stop play for portals in webportals_takedown group
+          meta: end_host
+
+      when: "'webportals_takedown' in group_names"
+
+    # Check/install Ansible prerequisities
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
+
+    # Disable health checks and stop docker services
+    - name: Include disabling health check and stopping portal docker services
+      include_tasks: tasks/portal-stop.yml
+
+    # Update all apt packages
+    - name: Update all apt packages
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cache: True
+      become: True
+
+    # Start the docker services and log activities
+    - name: Include starting portal docker services
+      include_tasks: tasks/portal-docker-services-start.yml
+
+    # Run portal integration tests
+    - name: Include running portal integration tests
+      include_tasks: tasks/portal-integration-tests-run.yml
+
+    # Include running portal health checks
+    - name: Include running portal health checks
+      include_tasks: tasks/portal-health-checks-run.yml
+
+    # Update log status to 'tested'
+    - name: Update log status to 'tested'
+      include_tasks: tasks/portal-logs-update-status.yml
+      vars:
+        tag_from: "started"
+        tag_to: "tested"
+
+    # Enable health check
+    - name: Include enabling portal health check
+      # do not enable health checks on hosts from out_of_LB group
+      when: ('out_of_LB' not in group_names)
+      include_tasks: tasks/portal-health-check-enable.yml
+
+    # Get portal status
+    - name: Include getting portal status
+      include_tasks: tasks/portal-status-get-status.yml
+
+    # Report portal status to Discord
+    - name: Include reporting status to Discord
+      include_tasks: tasks/portal-status-report-to-discord.yml
