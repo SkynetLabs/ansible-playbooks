@@ -1,0 +1,30 @@
+---
+
+# Block and unblock incoming traffic from defined IPs or IP ranges
+
+- name: Load private variables from Ansible private repository
+  ansible.builtin.include_vars:
+    file: "{{ private_vars_file }}"
+    name: private_vars
+  delegate_to: localhost
+
+# Incoming traffic to Skynet portal goes to Docker containers. When we want
+# to block IPs or IP ranges, we can't do it via ufw Ansible module, because
+# we need to add rules to DOCKER-USER iptables group, we have to do it via
+# Ansible iptables module.
+
+- name: Block malicious traffic from IPs or IP ranges in iptables
+  ansible.builtin.iptables:
+    action: insert
+    chain: DOCKER-USER
+    source: "{{ item }}"
+    jump: DROP
+  loop: "{{ private_vars.incoming_ips_ip_ranges_block }}"
+
+- name: Unblock previously blocked traffic from IPs or IP ranges in iptables
+  ansible.builtin.iptables:
+    chain: DOCKER-USER
+    source: "{{ item }}"
+    jump: DROP
+    state: absent
+  loop: "{{ private_vars.incoming_ips_ip_ranges_unblock }}"

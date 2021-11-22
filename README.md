@@ -30,6 +30,7 @@
         - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
         - [Block Portal Skylinks](#block-portal-skylinks)
         - [Unblock Portal Skylinks](#unblock-portal-skylinks)
+        - [Block and Unblock Incoming Traffic to Portals](#block-and-unblock-incoming-traffic-to-portals)
         - [Run Integration Tests](#run-integration-tests)
         - [Run Health Checks](#run-health-checks)
         - [Setup Portal from Scratch](#setup-portal-from-scratch)
@@ -487,6 +488,52 @@ skylinks_unblock_list:
 To run:  
 `scripts/portals-unblock-skylinks.sh -e @my-vars/skylinks-unblock.yml --limit eu-fin-1`  
 `scripts/portals-unblock-skylinks.sh -e @my-vars/skylinks-unblock.yml --limit webportals_prod`
+
+### Block and Unblock Incoming Traffic to Portals
+
+Playbook:
+
+- Blocks incoming traffic from IPs or IP ranges defined in
+  `private_vars.incoming_ips_ip_ranges_block` list.
+- Unblocks previously blocked incoming traffic from IPs or IP ranges defined in
+  `private_vars.incoming_ips_ip_ranges_unblock` list.
+
+Preparation:  
+`private_vars_file` defined in `webportals.yml` defines a filepath where
+private variables are stored. Default path is in `ansible-private` repository,
+in `private-vars/private-vars.yml` file. In this file there are defined 2 lists
+of IPs or Ip ranges: `incoming_ips_ip_ranges_block` and
+`incoming_ips_ip_ranges_unblock`. To block an IP/IP range, add it to the block
+list, execute the playbook and keep the IP/IP range in the list so it is
+blocked also later on newly setup portals. To unblock the previously blocked
+IP/IP range, remove it from the block list and add it to the unblock list and
+execute the playbook.
+
+Example `private-vars.yml` file:
+```yaml
+incoming_ips_ip_ranges_block:
+- "1.2.3.4"
+- "4.5.6.7"
+- "11.22.33.0/24"
+- "22.33.44.0/24"
+
+incoming_ips_ip_ranges_unblock: []
+```
+
+Example `private-vars.yml` file to unblock previously blocked IPs/IP ranges:
+```yaml
+incoming_ips_ip_ranges_block:
+- "1.2.3.4"
+- "11.22.33.0/24"
+
+incoming_ips_ip_ranges_unblock:
+- "4.5.6.7"
+- "22.33.44.0/24"
+```
+
+To run:  
+`scripts/portals-block-unblock-incoming-traffic.sh --limit eu-fin-1`  
+`scripts/portals-block-unblock-incoming-traffic.sh --limit webportals_prod`
 
 ### Run Integration Tests
 
