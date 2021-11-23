@@ -1,0 +1,24 @@
+- name: Send Funds to Webportal
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: "{{ parallel_deploys | default(1) }}"
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Define playbook vars
+  vars:
+    max_hosts: "{{ groups['webportals_prod'] | length - 1 }}"
+
+  tasks:
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Send Funds to Webportal
+    - name: Send Funds to Webportal
+      include_tasks: tasks/portal-send-funds.yml
+      when: wallet_fund_amount is defined
