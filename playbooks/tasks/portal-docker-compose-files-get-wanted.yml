@@ -17,7 +17,11 @@
 
 - name: Set portal modules var
   set_fact:
-    portal_modules: "{{ portal_modules_result.stdout }}"
+    # Add mandatory mongo portal module if mongo ('m') or accounts ('a') are not present
+    portal_modules: >-
+      {{ portal_modules_result.stdout
+      if ('m' in portal_modules_result.stdout or 'a' in portal_modules_result.stdout)
+      else 'm' + portal_modules_result.stdout }}
 
 - name: Set flag for accounts module
   set_fact:
