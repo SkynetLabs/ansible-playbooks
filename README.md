@@ -38,6 +38,7 @@
             - [Playbook portals-setup-following](#playbook-portals-setup-following)
             - [Playbook portals-deploy](#playbook-portals-deploy)
         - [Run Docker Command](#run-docker-command)
+        - [GZIP Logs](#gzip-logs)
         - [Update Allowance](#update-allowance)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
@@ -649,6 +650,15 @@ Execute (e.g. on `eu-fin-5`):
 
 To finish portal setup and deployment execute portal deploy playbook (see
 separate section above).
+
+### GZIP Logs
+
+Playbook:
+
+- GZIP log files on the portal to save disk space.
+
+To run:  
+`scripts/portals-gzip-logs.sh --limit eu-fin-1`
 
 ### Run Docker Command
 
