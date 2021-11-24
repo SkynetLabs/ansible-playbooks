@@ -1,0 +1,67 @@
+- name: Ensure Latest Docker is Installed
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: True
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    docker_compose_build: False
+    set_portal_versions: False
+    portal_action: "portal-ensure-latest-packages"
+    lastpass_required: True
+
+  tasks:
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    - name: Include disabling health check and stopping portal docker services
+      include_tasks: tasks/portal-stop.yml
+
+    - name: Upgrade all apt packages
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cache: True
+      become: True
+
+    - block:
+        - name: Stop play for portals in webportals_takedown group
+          debug:
+            msg: "Will not restart portal in webportals_takedown group"
+
+        - name: Stop play for portals in webportals_takedown group
+          meta: end_host
+      when: "'webportals_takedown' in group_names"
+
+    - name: Include starting portal docker services
+      include_tasks: tasks/portal-docker-services-start.yml
+
+    - name: Include running portal integration tests
+      include_tasks: tasks/portal-integration-tests-run.yml
+
+    - name: Include running portal health checks
+      include_tasks: tasks/portal-health-checks-run.yml
+
+    - name: Update log status to 'tested'
+      include_tasks: tasks/portal-logs-update-status.yml
+      vars:
+        tag_from: "started"
+        tag_to: "tested"
+
+    - name: Include enabling portal health check
+      # do not enable health checks on hosts from out_of_LB group
+      when: ('out_of_LB' not in group_names)
+      include_tasks: tasks/portal-health-check-enable.yml
+
+    - name: Include getting portal status
+      include_tasks: tasks/portal-status-get-status.yml
+
+    - name: Include reporting status to Discord
+      include_tasks: tasks/portal-status-report-to-discord.yml
