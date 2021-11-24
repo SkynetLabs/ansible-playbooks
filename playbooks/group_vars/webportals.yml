@@ -177,3 +177,16 @@ docker_services_exclude_waiting:
 local_logs_dir: "../my-logs"
 # Path relative to ./playbooks/vars directory
 private_vars_file: "../../../ansible-private/private-vars/private-vars.yml"
+
+# Portal log file paths
+portal_log_files:
+  - "/home/user/skynet-webportal/docker/data/sia/renter/contractor.log"
+  - "/home/user/skynet-webportal/docker/data/sia/renter/hostdb.log"
+  - "/home/user/skynet-webportal/docker/data/sia/renter/renter.log"
+  - "/home/user/skynet-webportal/docker/data/sia/renter/repair.log"
+  - "/home/user/skynet-webportal/docker/data/sia/siamux/siamux.log"
+
+# The size limit at which log files will be gzipped 1GB
+# 1GB 1073741824
+# 5GB 5368709120
+portal_log_size_gzip_limit: 5368709120

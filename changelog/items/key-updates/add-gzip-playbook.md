@@ -1,0 +1,1 @@
+- Add playbook for gzipping logs

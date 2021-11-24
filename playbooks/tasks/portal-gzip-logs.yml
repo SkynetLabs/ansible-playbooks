@@ -1,0 +1,24 @@
+# GZIP webportal logs
+
+# Stat all the portal_log_files.
+- name: Stat Files
+  ansible.builtin.stat:
+    path: "{{ file }}"
+  register: loop_results
+  loop: "{{ portal_log_files }}"
+  loop_control:
+    loop_var: file
+  when: portal_log_files is defined
+  become: True
+
+# GZIP any files over the portal_log_size_gzip_limit
+- name: GZIP Files
+  community.general.archive:
+    path: "{{ file.stat.path }}"
+    dest: "{{ file.stat.path + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + '.gz' }}"
+    remove: yes
+  loop: "{{ loop_results.results | from_yaml | list }}"
+  loop_control:
+    loop_var: file
+    label: "{{ file.stat.path }}"
+  when: file.stat.size | int > portal_log_size_gzip_limit | int

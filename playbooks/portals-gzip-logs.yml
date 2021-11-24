@@ -1,0 +1,77 @@
+- name: GZIP Skynet Webportals Logs
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    docker_compose_build: False
+    set_portal_versions: False
+    portal_action: "portal-gzip-logs"
+    lastpass_required: True
+
+  tasks:
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Check/install Ansible prerequisities
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
+
+    # Disable health checks and stop docker services
+    - name: Include disabling health check and stopping portal docker services
+      include_tasks: tasks/portal-stop.yml
+
+    # gzip logs
+    - name: GZIP Webportal Logs
+      include_tasks: tasks/portal-gzip-logs.yml
+
+    # Start the docker services and log activities
+    - name: Include starting portal docker services
+      include_tasks: tasks/portal-docker-services-start.yml
+
+    # Run portal integration tests
+    - name: Include running portal integration tests
+      include_tasks: tasks/portal-integration-tests-run.yml
+
+    # Include running portal health checks
+    - name: Include running portal health checks
+      include_tasks: tasks/portal-health-checks-run.yml
+
+    # Takedown portals in takedown group
+    - block:
+        # Include getting wanted docker-compose files
+        - name: Include getting wanted docker-compose files
+          include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
+
+        # Start just sia docker service
+        - name: Start just sia docker service
+          community.docker.docker_compose:
+            project_src: "{{ webportal_dir }}"
+            files: "{{ webportal_docker_compose_files_wanted }}"
+            build: False
+            nocache: True
+            pull: True
+            services: sia
+            state: present
+          become: True
+          become_user: "user"
+
+        - name: Stop play for portals in webportals_takedown group
+          meta: end_host
+
+      when: "'webportals_takedown' in group_names"
+
+    # Enable health check
+    - name: Include enabling portal health check
+      # do not enable health checks on hosts from out_of_LB group
+      when: ('out_of_LB' not in group_names)
+      include_tasks: tasks/portal-health-check-enable.yml
