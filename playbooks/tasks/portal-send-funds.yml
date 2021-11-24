@@ -9,6 +9,7 @@
 - name: Grab Address From stdout
   set_fact:
     wallet_address: "{{ docker_wallet_address_result.stdout | replace('Created new address: ','') }}"
+  when: docker_wallet_address_result is defined
 
 # Send amount defined in vars file from remote host to current host
 - name: Send Funds

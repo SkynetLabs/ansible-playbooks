@@ -21,4 +21,6 @@
     # Send Funds to Webportal
     - name: Send Funds to Webportal
       include_tasks: tasks/portal-send-funds.yml
-      when: wallet_fund_amount is defined
+      when:
+        - wallet_fund_amount is defined
+        - funding_portal is defined
