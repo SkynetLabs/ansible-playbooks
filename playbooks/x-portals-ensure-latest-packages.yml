@@ -1,4 +1,4 @@
-- name: Ensure Latest Docker is Installed
+- name: Ensure Latest Apt Packages Are Installed
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: True
@@ -24,10 +24,9 @@
     - name: Include disabling health check and stopping portal docker services
       include_tasks: tasks/portal-stop.yml
 
-    - name: Upgrade all apt packages
+    - name: Perform apt-get dist-upgrade to update all apt packages
       ansible.builtin.apt:
-        name: "*"
-        state: latest
+        upgrade: dist
         update_cache: True
       become: True
 
