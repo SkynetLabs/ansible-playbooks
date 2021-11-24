@@ -66,6 +66,16 @@
         direction: in
         port: "{{ default_ssh_port | string }}"
         proto: tcp
+
+    # Using this setting has a limitation: If the firewall is reloaded manually
+    # (not set via this Ansible task), the limit is set back to default values.
+    # If this causes issues, this script should be updated.
+    - name: Increase SSH limit 10x for scripts
+      ansible.builtin.replace:
+        path: /etc/ufw/user.rules
+        regexp: ^(-A ufw-user-input .* --dport 22 .* )--seconds \d+ --hitcount \d+( -j ufw-user-limit)$
+        # Default limit is: --seconds 30 --hitcount 6
+        replace: \1--seconds 30 --hitcount 60\2
     
     - name: Enable Firewall
       community.general.ufw:

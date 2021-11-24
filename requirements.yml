@@ -8,7 +8,7 @@ roles:
   
   # Role for installing Docker and docker-compose on servers
   - name: geerlingguy.docker
-    version: 3.1.2
+    version: 4.1.1
   
   # Role for setting up Skynet Webportal
   - name: skynetlabs.skynet_webportal
