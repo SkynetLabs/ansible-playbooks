@@ -4,7 +4,7 @@
         {
             "title": "{{ host_vars.inventory_hostname }}",
             "description": "Ansible action: {{ portal_action }}{{ '\\n' -}}
-            {{ 'Portal is online' if (host_vars.web_result.status | default(-1) == 200) else '**Portal is not online**' }}{{ '\\n' -}}
+            {{ '**Portal is disabled**' if low_disk_space else ('Portal is online' if (host_vars.web_result.status | default(-1) == 200) else '**Portal is not online**') }}{{ '\\n' -}}
             {{ '\\n' -}}
             Portal repository:{{ '\\n' -}}
             - git tags: {{ host_vars.portal_repo_all_tags if host_vars.portal_repo_all_tags is defined else '-- failed to get the value --' }}{{ '\\n' -}}
@@ -25,7 +25,7 @@
                     + 'First 20 files:\\n'
                     + '\\n'.join(host_vars.portal_modified_files.stdout.split('\n')[:20] |  map('regex_replace', '^', '- '))
             }}",
-            "color": {{ 50782 if (host_vars.web_result.status | default(-1) == 200) else 16711680 }}
+            "color": {{ 16753920 if low_disk_space else (50782 if (host_vars.web_result.status | default(-1) == 200) else 16711680) }}
         }
     ]
 }
