@@ -27,4 +27,4 @@
     container_default_behavior: no_defaults
     detach: False
     auto_remove: True
-  loop: "{{ renter_log_lins }}"
+  loop: "{{ renter_log_lines }}"
