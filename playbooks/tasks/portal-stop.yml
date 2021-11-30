@@ -1,5 +1,4 @@
 ---
-
 # Disable health checks and stop docker services
 
 - name: Include checking majority of MongoDB voting members
@@ -10,6 +9,3 @@
 
 - name: Include stopping portal docker services
   include_tasks: tasks/portal-docker-services-stop.yml
-
-- name: Include cleaning sia renter.log file
-  include_tasks: tasks/portal-logs-clean-renter-log.yml
