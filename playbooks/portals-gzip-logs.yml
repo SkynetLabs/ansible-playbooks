@@ -48,6 +48,11 @@
 
     # Takedown portals in takedown group
     - block:
+        # Stop the docker services again. Use portal-stop to include mongo
+        # voting members check for safety.
+        - name: Include disabling health check and stopping portal docker services
+          include_tasks: tasks/portal-stop.yml
+
         # Include getting wanted docker-compose files
         - name: Include getting wanted docker-compose files
           include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
