@@ -6,9 +6,6 @@
   # Set parallel concurrency, 'free' means hosts do not wait for each other.
   strategy: free
 
-  # Stop on first error, do not execute on the next host
-  any_errors_fatal: True
-
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
