@@ -1,0 +1,1 @@
+- Add support for Blocker module (load it's docker compose file).

@@ -129,6 +129,7 @@ webportal_docker_compose_files_mandatory:
 webportal_docker_compose_files_optional:
   - "docker-compose.mongodb.yml"
   - "docker-compose.accounts.yml"
+  - "docker-compose.blocker.yml"
   - "docker-compose.jaeger.yml"
   - "docker-compose.override.yml"
 
@@ -136,6 +137,7 @@ webportal_docker_compose_files_optional:
 # should be added to docker-compose build/up command.
 webportal_docker_compose_files_dict:
   a: "docker-compose.accounts.yml"
+  b: "docker-compose.blocker.yml"
   j: "docker-compose.jaeger.yml"
   m: "docker-compose.mongodb.yml"
 
