@@ -180,11 +180,11 @@ private_vars_file: "../../../ansible-private/private-vars/private-vars.yml"
 
 # Portal log file paths
 portal_log_files:
-  - "/home/user/skynet-webportal/docker/data/sia/renter/contractor.log"
-  - "/home/user/skynet-webportal/docker/data/sia/renter/hostdb.log"
-  - "/home/user/skynet-webportal/docker/data/sia/renter/renter.log"
-  - "/home/user/skynet-webportal/docker/data/sia/renter/repair.log"
-  - "/home/user/skynet-webportal/docker/data/sia/siamux/siamux.log"
+  - "{{ webportal_dir }}/docker/data/sia/renter/contractor.log"
+  - "{{ webportal_dir }}/docker/data/sia/renter/hostdb.log"
+  - "{{ webportal_dir }}/docker/data/sia/renter/renter.log"
+  - "{{ webportal_dir }}/docker/data/sia/renter/repair.log"
+  - "{{ webportal_dir }}/docker/data/sia/siamux/siamux.log"
 
 # The size limit at which log files will be gzipped 1GB
 # 1GB 1073741824
