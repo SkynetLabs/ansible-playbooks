@@ -1,7 +1,6 @@
 ---
 # Enable portal health check to add portal to load balancer
 
-# Check if the health check container is running
 - name: Check health check container is running
   community.docker.docker_container_info:
     name: health-check
@@ -13,6 +12,29 @@
     (health_check_docker_container_result.container is not defined) or
     (not health_check_docker_container_result.container.State.Running)
 
-# Mark the health check as enabled via the cli command
+- name: Get fresh hardware facts (incl. disk usage)
+  ansible.builtin.setup:
+    gather_subset:
+      - '!all'
+      - '!any'
+      - hardware
+
+- name: Set low disk space flag
+  set_fact:
+    # Expects webportal data to be stored on "/" mount disk
+    low_disk_space: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int < portal_health_check_disable_free_disk_space_limit_bytes | int }}"
+
+- block:
+    - name: Update log status to 'tested-disabled'
+      include_tasks: tasks/portal-logs-update-status.yml
+      vars:
+        tag_from: "tested"
+        tag_to: "tested-disabled"
+
+    - name: Disable portal health check to keep portal out of load balancer
+      command: docker exec health-check cli disable 'critical free disk space'
+  when: low_disk_space
+
 - name: Enable portal health check to add portal to load balancer
   command: docker exec health-check cli enable
+  when: not low_disk_space

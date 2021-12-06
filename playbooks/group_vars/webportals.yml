@@ -129,6 +129,7 @@ webportal_docker_compose_files_mandatory:
 webportal_docker_compose_files_optional:
   - "docker-compose.mongodb.yml"
   - "docker-compose.accounts.yml"
+  - "docker-compose.blocker.yml"
   - "docker-compose.jaeger.yml"
   - "docker-compose.override.yml"
 
@@ -136,6 +137,7 @@ webportal_docker_compose_files_optional:
 # should be added to docker-compose build/up command.
 webportal_docker_compose_files_dict:
   a: "docker-compose.accounts.yml"
+  b: "docker-compose.blocker.yml"
   j: "docker-compose.jaeger.yml"
   m: "docker-compose.mongodb.yml"
 
@@ -152,8 +154,10 @@ skynet_js_docker_test_image: "node:14-buster-slim"
 local_temp_skynetlabs_git_repos: "/tmp/SkynetLabs-ansible/git-repos"
 local_temp_skynetlabs_git_repos_skynet_js: "{{ local_temp_skynetlabs_git_repos }}/skynet-js"
 
-# Health check disabling delay
+# Health checks
 portal_health_check_disable_delay_secs: 0
+# Disable portal when free disk space is lower then x GiB (60 GiB recommended)
+portal_health_check_disable_free_disk_space_limit_bytes: "{{ 60e+9 | int }}"
 
 # Waiting for sia full setup and /daemon/ready
 sia_full_setup_timeout_secs: 900
