@@ -709,7 +709,7 @@ Playbook:
 Preparation:  
 Define a `wallet_fund_amount` variable in your `portal_versions.yml` file to
 define how much should be sent between the portals. Define a `funding_portal`
-variable in your `portal_versions.yml` file o define the portal that should send
+variable in your `portal_versions.yml` file to define the portal that should send
 the funds.
 
 Example:
