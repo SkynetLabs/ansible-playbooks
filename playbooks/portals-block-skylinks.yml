@@ -27,32 +27,37 @@
     - name: Starting to block skylinks
       ansible.builtin.ping:
 
-    - ansible.builtin.assert:
+    - name: Assert we have defined skylinks block list (could be empty)
+      ansible.builtin.assert:
         that: skylinks_block_list is defined
         fail_msg: |
           Please define 'skylinks_block_list' variable with some skylinks to block
           or as an empty list.
           Forgot to include loading var file this way: '... -e @my-vars/skylinks-block.yml ...'?
 
-    - name: Include getting log filename prefix
-      include_tasks: tasks/portal-get-log-filename-prefix.yml
+    # Block skylinks from list
+    - block:
+        - name: Include getting log filename prefix
+          include_tasks: tasks/portal-get-log-filename-prefix.yml
 
-    - name: Set blocklist filepath
-      set_fact:
-        blocklist_filepath: "{{ logs_dir }}/{{ log_filename_prefix }}.blocklist"
+        - name: Set blocklist filepath
+          set_fact:
+            blocklist_filepath: "{{ logs_dir }}/{{ log_filename_prefix }}.blocklist"
 
-    - name: Create file with skylinks to block
-      ansible.builtin.copy:
-        dest: "{{ blocklist_filepath }}"
-        content: |
-          {% for skylink in skylinks_block_list %}
-          {{ skylink }}
-          {% endfor %}
+        - name: Create file with skylinks to block
+          ansible.builtin.copy:
+            dest: "{{ blocklist_filepath }}"
+            content: |
+              {% for skylink in skylinks_block_list %}
+              {{ skylink }}
+              {% endfor %}
 
-    # Block with file (not loop over skylinks) so that we search 
-    - name: Block skylinks via webportal blocklist script
-      ansible.builtin.command: "{{ webportal_dir }}/scripts/blocklist-skylink.sh {{ blocklist_filepath }}"
+        # Block with file (not loop over skylinks) so that we search 
+        - name: Block skylinks via webportal blocklist script
+          ansible.builtin.command: "{{ webportal_dir }}/scripts/blocklist-skylink.sh {{ blocklist_filepath }}"
+      when: skylinks_block_list | length > 0
 
+    # Block skylinks from Airtable
     - block:
         - name: Start blocking all skylinks from Airtable
           debug:
