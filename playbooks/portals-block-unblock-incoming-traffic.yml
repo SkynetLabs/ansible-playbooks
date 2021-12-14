@@ -3,8 +3,10 @@
   remote_user: "{{ webportal_user }}"
   gather_facts: False
 
-  # Set parallel concurrency, 'free' means hosts do not wait for each other.
-  strategy: free
+  # Execute playbook on hosts in parallel as fast as possible (do not wait for
+  # other hosts), when one host is finished, next starts (limited by serial).
+  strategy: host_pinned
+  serial: 3
 
   # Playbook specific vars
   vars:
