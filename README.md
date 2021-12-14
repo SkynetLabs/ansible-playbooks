@@ -584,6 +584,9 @@ Requires:
   - SSH key added to `root` authorized keys
 - Ansible inventory
   - Ansible hostname (e.g. `eu-fin-5`) added to (one of) `webportals` group
+    - Example: `us-va-3 ansible_host=us-va-3.siasky.net`
+  - `initial_root_like_user` set if the server is initialized with a non `root` user i.e. `debian` as the initial root user.
+    - Example: `us-va-6 ansible_host=us-va-6.siasky.net initial_root_like_user=debian`
 - LastPass
   - Desired password added for the user `user`
   - Active LastPass session (see `LastPass Login` section above)
