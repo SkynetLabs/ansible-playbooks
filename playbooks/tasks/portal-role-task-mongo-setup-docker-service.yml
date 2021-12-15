@@ -1,5 +1,4 @@
 ---
-
 # Ensure MongoDB docker service is setup correctly
 # TODO: This ansible playbook task, should be moved to portal role
 
@@ -47,7 +46,7 @@
           it is safe to continue.
           Your MongoDB database will be backupped to
           {{ mongo_backups_dir }}, deleted and reset.
-          
+
           If you have production data in your database
           you should fix this issue manually and rerun this playbook.
 
@@ -61,7 +60,7 @@
           Your MongoDB database doesn't run as expected,
           you have to fix it manually and then rerun this playbook.
       when: reset_db_result.user_input[:1] not in 'yY'
-    
+
     - name: Stop and remove mongo container
       community.docker.docker_container:
         name: mongo
@@ -84,7 +83,8 @@
         group: "{{ webportal_user }}"
         remove: True
       become: True
-    
+      when: mgkey_stat_result.stat.exists
+
     - name: Create empty mongo/db directory
       ansible.builtin.file:
         path: "{{ mongo_db_dir }}"

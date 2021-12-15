@@ -1,5 +1,4 @@
 ---
-
 # Find primary node in the MongoDB replicaset (subtask to loop over)
 # TODO: This ansible playbook task, should be moved to portal role
 

@@ -1,5 +1,4 @@
 ---
-
 # TODO: This ansible playbook task, should be moved to portal role
 
 - name: Checkout skynet-webportal repository
@@ -34,8 +33,8 @@
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
 # skyd depends on mongo.
-- name: Include ensuring MongoDB node is a member of replicaset
-  include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-member.yml
+# - name: Include ensuring MongoDB node is a member of replicaset
+#   include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-member.yml
 
 - name: Include setting MongoDB docker service
   include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
@@ -70,7 +69,6 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
-
     # TODO: Use community.docker.docker_prune (requires community.docker
     # upgrade) with long timeout.
     # Prune docker
@@ -78,7 +76,7 @@
       ansible.builtin.command: docker system prune --force
       async: "{{ docker_prune_timeout_secs }}"
       poll: 5
-    
+
     - name: Start Sia docker container
       community.docker.docker_compose:
         project_src: "{{ webportal_dir }}"
@@ -88,13 +86,12 @@
         nocache: True
         pull: True
         state: present
-    
+
     - name: Update portal setup status
       ansible.builtin.copy:
         dest: "{{ setup_status_file }}"
         content: ""
 
-  
   # Don't rebuild when initializing sia with existing seed is in progress
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
@@ -133,12 +130,12 @@
   fail:
     msg: |
       Sia blockchain is not yet synced:
-      
+
       {{ siac_consensus_result.stdout }}
 
       Wait for Sia blockchain synced and rerun the playbook.
       To check sync status, execute (on the server):
-      
+
         docker exec sia siac consensus
   when: "'Synced: Yes' not in siac_consensus_result.stdout"
 
@@ -154,7 +151,6 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
-
     - name: Initialize a wallet with existing seed
       ansible.builtin.expect:
         command: docker exec -it sia siac wallet init-seed
@@ -164,17 +160,16 @@
       ignore_errors: True
       # Fail on unknown errors, timeout is expected and is handled later.
       failed_when: sia_init_seed_result.rc != 0 and sia_init_seed_result.msg != 'command exceeded timeout'
-    
+
     - name: "Set portal setup status to initializing wallet with existing seed"
       ansible.builtin.copy:
         dest: "{{ setup_status_file }}"
         content: "initializing"
-  
+
   when: not sia_wallet_initialized and sia_wallet_seed_defined and use_existing_sia_seed_if_exists and setup_status != 'initializing'
 
 # Init a new wallet
 - block:
-    
     - name: Init a new wallet
       ansible.builtin.command: docker exec sia siac wallet init
       register: wallet_init_result
@@ -183,22 +178,22 @@
       set_fact:
         new_sia_wallet_seed: "{{ wallet_init_result.stdout | regex_search('Recovery seed:\\n(.*)\\n', '\\1') | first }}"
       no_log: True
-    
+
     - name: Update portal config with new seed
       set_fact:
         webportal_server_config: "{{ webportal_server_config | combine(updated) }}"
       vars:
         updated:
           sia_wallet_seed: "{{ new_sia_wallet_seed }}"
-    
+
     - name: Include saving portal config
       include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
-    
+
     - name: Update .env file
       ansible.builtin.template:
         src: .env.j2
         dest: "{{ webportal_dir }}/.env"
-  
+
   when: not sia_wallet_initialized and not (sia_wallet_seed_defined and use_existing_sia_seed_if_exists)
 
 - name: Check wallet
@@ -232,17 +227,17 @@
       You can check initialization status, executing (on the server):
 
         docker exec -it sia siac wallet unlock
-      
+
       You don't have to unlock the wallet manually,
       as a wallet password you can supply empty string and check you don't
       get the following message:
-      
+
         Could not unlock wallet: [... another wallet rescan is already underway]
-      
+
       Alternatively execute (on the server):
-      
+
         docker logs sia && echo
-      
+
       to check wallet scan progress.
   when: sia_wallet_unlock_result.rc | default(0) != 0 and 'another wallet rescan is already underway' in sia_wallet_unlock_result.stdout
 
@@ -277,7 +272,6 @@
 # Setup health checks
 # TODO: Move to role task file
 - block:
-    
     - name: Install Python modules for health checks
       pip:
         name: "{{ item }}"
@@ -287,13 +281,13 @@
         - python-dotenv
         - requests
         - elasticsearch-curator
-    
+
     - name: Update hardcoded username in cron file
       ansible.builtin.replace:
         path: "{{ webportal_cron_file }}"
         regexp: "/home/user/"
         replace: "{{ webportal_user_home_dir }}/"
-    
+
     - name: Add health checks cron entries to user crontab
       command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
 
