@@ -121,6 +121,7 @@
             - unzip
             - curl
             - awscli
+            - rsync
           become: True
 
         # Setup terminfo for alacritty terminal via ssh
