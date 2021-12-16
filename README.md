@@ -20,6 +20,7 @@
             - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
             - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
             - [How to Set Deploy Batch](#how-to-set-deploy-batch)
+        - [Stop A Skynet Webportal](#stop-a-skynet-webportal)
         - [Takedown Skynet Webportal](#takedown-skynet-webportal)
             - [Playbook Actions](#playbook-actions)
             - [Preparation](#preparation)
@@ -317,6 +318,15 @@ want to divide deployment into batches, set:
 batch_size: 1
 batch_number: 1
 ```
+
+### Stop A Skynet Webportal
+
+#### Playbook Actions
+This playbook shuts down a portal by removing it from the load balancer and
+stopping all the docker services.
+
+#### Execution
+`scripts/portals-stop.sh --limit eu-ger-1`
 
 ### Takedown Skynet Webportal
 
