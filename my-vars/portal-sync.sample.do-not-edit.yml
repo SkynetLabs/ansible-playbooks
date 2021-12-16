@@ -1,0 +1,20 @@
+---
+
+# List of source/destination pairs to sync:
+portal_sync_list:
+  # src_host: Inventory hostname to sync dir from.
+  # src_dir: Source directory to sync.
+  # dest_host: Inventory hostname to sync dir to.
+  # dest_dir: Destination directory to sync.
+  # dest_remove_extra_files:
+  # - Remove files present in destination directory that are not present in source directory.
+  # - Optional, default: False if not set.
+
+  # Paths are relative to user home directory.
+
+  # Example:
+  - src_host: "us-xx-1-old"
+    src_dir: "skynet-webportal"
+    dest_host: "us-xx-1-new"
+    dest_dir: "skynet-webportal"
+    dest_remove_extra_files: True
