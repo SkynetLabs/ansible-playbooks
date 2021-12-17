@@ -53,15 +53,21 @@ else
 
   # Start Ansible Control Machine and keep it running. This is especially
   # needed for LastPass session.
+  # Volume and env var with SSH_AUTH_SOCK is used so we can perform SSH agent
+  # forwarding from local machine (a docker host machine) to Ansible Control
+  # Machine in docker which can then perform SSH agent forwarding between
+  # remote hosts.
   docker run -it --rm \
     --entrypoint sleep \
     -e ANSIBLE_STDOUT_CALLBACK=debug \
     -e LPASS_AGENT_TIMEOUT=$lpass_timeout \
     -v ~/.ssh:/root/.ssh:ro \
+    -v $SSH_AUTH_SOCK:/ssh-agent \
     -v $(pwd):/tmp/playbook:Z \
     -v $(pwd)/../ansible-private:/tmp/ansible-private \
     -v /tmp/SkynetLabs-ansible:/tmp/SkynetLabs-ansible \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    --env SSH_AUTH_SOCK=/ssh-agent \
     --detach \
     --name ansiblecm \
     $ansible_image \
