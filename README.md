@@ -39,6 +39,7 @@
             - [Playbook portals-deploy](#playbook-portals-deploy)
         - [Run Docker Command](#run-docker-command)
         - [Update Allowance](#update-allowance)
+        - [Send Funds](#send-funds)
     - [Playbook Live Demos](#playbook-live-demos)
     - [Troubleshooting](#troubleshooting)
         - [Role Not Installed](#role-not-installed)
@@ -583,6 +584,9 @@ Requires:
   - SSH key added to `root` authorized keys
 - Ansible inventory
   - Ansible hostname (e.g. `eu-fin-5`) added to (one of) `webportals` group
+    - Example: `us-va-3 ansible_host=us-va-3.siasky.net`
+  - `initial_root_like_user` set if the server is initialized with a non `root` user i.e. `debian` as the initial root user.
+    - Example: `us-va-6 ansible_host=us-va-6.siasky.net initial_root_like_user=debian`
 - LastPass
   - Desired password added for the user `user`
   - Active LastPass session (see `LastPass Login` section above)
@@ -697,6 +701,31 @@ update_allowance:
   - eu-fin-2
 ```
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit depl_batch1`
+
+
+### Send Funds
+
+Playbook:
+
+- Send funds from one portal to another.
+
+Preparation:  
+Define a `wallet_fund_amount` variable in your `portal_versions.yml` file to
+define how much should be sent between the portals. Define a `funding_portal`
+variable in your `portal_versions.yml` file to define the portal that should send
+the funds.
+
+Example:
+```yaml
+---
+wallet_fund_amount: 100KS
+funding_portal: eu-pol-4
+```
+
+To run:  
+`scripts/portals-send-funds.sh -e @my-vars/portal_versions.yml --limit eu-fin-1`
+
+In this example, `eu-pol-4` will send 100KS to `eu-fin-1`.
 
 ## Playbook Live Demos
 

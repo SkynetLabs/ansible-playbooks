@@ -1,8 +1,16 @@
 - name: Block Skynet Webportal Skylinks
   hosts: webportals
-  strategy: free # Execute playbook on hosts in parallel as fast as possible (do not wait for other hosts)
+  # Execute playbook on hosts in parallel as fast as possible (do not wait for
+  # other hosts), when one host is finished, next starts (limited by serial).
+  # When using free strategy without serial set, the playbook execution was
+  # clogged.
+  strategy: host_pinned
+  serial: 3
   remote_user: "{{ webportal_user }}"
   gather_facts: False
+
+  vars:
+    portal_action: "portal-skylinks-block"
 
   vars_prompt:
     - name: run_airtable
@@ -19,10 +27,37 @@
     - name: Starting to block skylinks
       ansible.builtin.ping:
 
-    - name: Block skylinks via webportal blocklist script
-      ansible.builtin.command: "{{ webportal_dir }}/scripts/blocklist-skylink.sh {{ item }}"
-      loop: "{{ skylinks_block_list | default([]) }}"
+    - name: Assert we have defined skylinks block list (could be empty)
+      ansible.builtin.assert:
+        that: skylinks_block_list is defined
+        fail_msg: |
+          Please define 'skylinks_block_list' variable with some skylinks to block
+          or as an empty list.
+          Forgot to include loading var file this way: '... -e @my-vars/skylinks-block.yml ...'?
 
+    # Block skylinks from list
+    - block:
+        - name: Include getting log filename prefix
+          include_tasks: tasks/portal-get-log-filename-prefix.yml
+
+        - name: Set blocklist filepath
+          set_fact:
+            blocklist_filepath: "{{ logs_dir }}/{{ log_filename_prefix }}.blocklist"
+
+        - name: Create file with skylinks to block
+          ansible.builtin.copy:
+            dest: "{{ blocklist_filepath }}"
+            content: |
+              {% for skylink in skylinks_block_list %}
+              {{ skylink }}
+              {% endfor %}
+
+        # Block with file (not loop over skylinks) so that we search 
+        - name: Block skylinks via webportal blocklist script
+          ansible.builtin.command: "{{ webportal_dir }}/scripts/blocklist-skylink.sh {{ blocklist_filepath }}"
+      when: skylinks_block_list | length > 0
+
+    # Block skylinks from Airtable
     - block:
         - name: Start blocking all skylinks from Airtable
           debug:
