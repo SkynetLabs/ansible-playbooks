@@ -1,0 +1,1 @@
+- Make `SERVER_DOMAIN` mandatory because of Blocker module.
