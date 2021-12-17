@@ -3,15 +3,16 @@
 # Ensure MongoDB docker service is setup correctly
 # TODO: This ansible playbook task, should be moved to portal role
 
-- name: Check we have mongo cluster mgkey configured in secure storage
+- name: Check we have mongo cluster mgkey
   assert:
     that:
       - >-
         {{ webportal_common_config.mongo_db_mgkey is defined and
         webportal_common_config.mongo_db_mgkey is not none and
         webportal_common_config.mongo_db_mgkey != '' }}
+    fail_msg: "mongo_db_mgkey is not defined in your secret storage for this cluster."
 
-- name: Check mongo/mgkey file exists and it is not directory
+- name: Stat mongo/mgkey file or directory
   ansible.builtin.stat:
     path: "{{ mongo_mgkey_file }}"
   register: mgkey_stat_result
@@ -21,7 +22,7 @@
     dest: "{{ mongo_mgkey_file }}"
     content: "{{ webportal_common_config.mongo_db_mgkey }}"
   become: True
-  # Perform only if mongo/mgkey is a regular file (not a dictionary)
+  # Perform only if mongo/mgkey is a regular file (not a directory)
   when: mgkey_stat_result.stat.isreg | default(False)
   register: mgkey_update_result
 
@@ -36,32 +37,42 @@
       We will reset the mongo service.
   when: not (mongo_service_ok | default(False))
 
+- name: Stat mongo/db file or directory
+  ansible.builtin.stat:
+    path: "{{ mongo_db_dir }}"
+  register: mongo_db_dir_stat_result
+
 # Reset mongo service if it is not running correctly
 - block:
     - name: Ask user if it is ok to delete and reset MongoDB database
-      pause:
+      ansible.builtin.pause:
         prompt: |-
           Your MongoDB database doesn't run as expected.
 
           If you do not have any data in your database
           it is safe to continue.
-          Your MongoDB database will be backupped to
-          {{ mongo_backups_dir }}, deleted and reset.
+          Your MongoDB database will be backupped to:
+          {{ mongo_backups_dir }}
+          then deleted and reset.
           
           If you have production data in your database
           you should fix this issue manually and rerun this playbook.
 
-          Do you want to reset MongoDB database on {{ inventory_hostname }} (y/n)?
+          Do you want to reset MongoDB database on {{ inventory_hostname }}?
+          (y/n)
       register: reset_db_result
       delegate_to: localhost
+      when: mongo_db_dir_stat_result.stat.exists
 
     - name: Stop the playbook if the user doesn't want to delete and reset MongoDB database
       fail:
         msg: |
           Your MongoDB database doesn't run as expected,
           you have to fix it manually and then rerun this playbook.
-      when: reset_db_result.user_input[:1] not in 'yY'
-    
+      when: >-
+        mongo_db_dir_stat_result.stat.exists and
+        reset_db_result.user_input[:1].lower() != 'y'
+
     - name: Stop and remove mongo container
       community.docker.docker_container:
         name: mongo
@@ -75,6 +86,7 @@
         group: "{{ webportal_user }}"
         state: directory
       become: True
+      when: mongo_db_dir_stat_result.stat.exists
 
     - name: Backup and remove mongo/db directory
       community.general.archive:
@@ -84,6 +96,7 @@
         group: "{{ webportal_user }}"
         remove: True
       become: True
+      when: mongo_db_dir_stat_result.stat.exists
     
     - name: Create empty mongo/db directory
       ansible.builtin.file:

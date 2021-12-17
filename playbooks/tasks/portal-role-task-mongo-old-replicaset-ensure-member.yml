@@ -8,7 +8,7 @@
 #   not on the current Ansible host that we are handling.
 
 - name: Include getting MongoDB replicaset primary host
-  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary.yml
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
 
 - name: Include checking if MongoDB node is part of the replicaset
   include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
@@ -60,3 +60,20 @@
     (mongo_shell_delegated_result.failed | default(False) or
     mongo_shell_delegated_result.transformed_output is not defined or
     '\"ok\" : 1,' not in mongo_shell_delegated_result.transformed_output)
+
+- name: Wait till MongoDB node is part of the replicaset
+  include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
+  vars:
+    mongodb_shell_delegated:
+      host: "{{ mongo_primary_host }}"
+      eval: |
+        rs.config().members.forEach(m => {
+          if (m.host == '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}')
+          {
+            print('is-member')
+          }
+        })
+  register: is_replicaset_member_result
+  until: 'is-member' is in is_replicaset_member_result.stdout
+  delay: 1
+  retries: 120

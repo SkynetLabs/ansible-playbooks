@@ -20,20 +20,28 @@
           - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
         fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
 
+    # xxxqqq-migration-rerun-begin-1
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
       args:
         apply:
           become: True
     
-    - name: Include firewall setup
-      include_tasks: tasks/portal-firewall-setup.yml
+    - name: Include setting ufw firewall
+      include_tasks: tasks/portal-firewall-ufw-setup.yml
       args:
         apply:
           become: True
     
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
+
+    - name: Include blocking and unblocking IPs and IP ranges in iptables
+      include_tasks: tasks/portal-firewall-iptables-block-unblock.yml
+      args:
+        apply:
+          become: True
+     # xxxqqq-migration-rerun-end-1
 
     - name: Include getting log filename prefix
       include_tasks: tasks/portal-get-log-filename-prefix.yml
@@ -44,6 +52,7 @@
     - name: Include logging Ansible version
       include_tasks: tasks/playbook-logs-ansible-log-version.yml
 
+    # xxxqqq-migration-rerun-begin-2
     # Setup environment (dotfiles) and dev tools
     - block:
         
@@ -132,7 +141,8 @@
             state: absent
 
       when: webportal_setup_dotfiles_and_dev_tools
-      
+    # xxxqqq-migration-rerun-end-2
+
     - name: Include role to setup Skynet Webportal
       include_role:
         name: skynetlabs.skynet_webportal
