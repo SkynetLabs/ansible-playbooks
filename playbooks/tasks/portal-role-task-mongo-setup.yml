@@ -190,13 +190,12 @@
   run_once: True
   register: mongo_replicaset_init
 
-# # xxxqqq comment out for migration us-pa-1-new
-# # Ensure MongoDB nodes are in replicaset
+# Ensure MongoDB nodes are in replicaset
 
-# - name: Include ensuring MongoDB node is a replicaset non-voting member
-#   include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
-#   # Skip for host initializing MongoDB replicaset
-#   when: mongo_replicaset_init.skipped | default(False)
+- name: Include ensuring MongoDB node is a replicaset non-voting member
+  include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
+  # Skip for host initializing MongoDB replicaset
+  when: mongo_replicaset_init.skipped | default(False)
 
 # # Add first 7 MongoDB nodes as voting members
 # - block:

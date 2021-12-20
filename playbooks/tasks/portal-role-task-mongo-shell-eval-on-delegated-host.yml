@@ -3,13 +3,12 @@
 # Run MongoDB shell command on MongoDB primary host
 # TODO: This ansible playbook task, should be moved to portal role
 
-# xxxqqq:
+# input:
 # - mongodb_shell_delegated:
 #   - host
 #   - eval
 #   - ignore_errors
-# res: mongo_shell_delegated_result
-# keep: when
+# output: mongo_shell_delegated_result
 
 - name: Run mongo shell command on MongoDB primary host
   community.mongodb.mongodb_shell:
