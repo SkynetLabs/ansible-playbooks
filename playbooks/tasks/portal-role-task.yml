@@ -111,7 +111,7 @@
   register: sia_wallet_result
   until: "'Wallet status:' in sia_wallet_result.stdout"
   delay: 1
-  retries: 30
+  retries: 120
 
 - name: Set wallet initialized
   set_fact:
