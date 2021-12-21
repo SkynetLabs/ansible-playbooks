@@ -15,11 +15,7 @@
 
 - name: Set portal modules var
   set_fact:
-    # Add mandatory mongo portal module if mongo ('m') or accounts ('a') are not present
-    portal_modules: >-
-      {{ portal_modules_result.stdout
-      if ('m' in portal_modules_result.stdout or 'a' in portal_modules_result.stdout)
-      else 'm' + portal_modules_result.stdout }}
+    portal_modules: "{{ portal_modules_result.stdout }}"
 
 - name: Set flag for accounts module
   set_fact:
@@ -29,26 +25,6 @@
   set_fact:
     jaeger_on: "{{ 'j' in portal_modules }}"
 
-- name: Stat docker-compose.accounts.yml
-  stat:
-    path: "{{ webportal_dir }}/docker-compose.accounts.yml"
-  register: docker_compose_accounts_stat
-
-- name: Stat docker-compose.jaeger.yml
-  stat:
-    path: "{{ webportal_dir }}/docker-compose.jaeger.yml"
-  register: docker_compose_jaeger_stat
-
-- name: Check docker-compose.accounts.yml exists
-  fail:
-    msg: Accounts are wanted but docker-compose.accounts.yml file is missing
-  when: accounts_on and not docker_compose_accounts_stat.stat.exists
-
-- name: Check docker-compose.jaeger.yml exists
-  fail:
-    msg: Jaeger is wanted but docker-compose.jaeger.yml file is missing
-  when: jaeger_on and not docker_compose_jaeger_stat.stat.exists
-
 - name: Check webportal_docker_compose_files_dict contains all wanted portal modules
   assert:
     that:
@@ -56,19 +32,55 @@
     fail_msg: "Module {{ item }} is not defined in webportal_docker_compose_files_dict"
   loop: "{{ portal_modules | list }}"
 
-- name: Add optional docker-compose files in order defined by PORTAL_MODULES
+# Add optional docker-compose files defined by PORTAL_MODULES
+# See https://github.com/SkynetLabs/skynet-webportal/blob/master/dc
+
+- name: Add accounts docker-compose files
   set_fact:
-    # If Accounts (a) is specified, but MongoDB (m) is not specified, add also
-    # mongodb docker compose file.
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
-      ([webportal_docker_compose_files_dict['m']] if (item == 'a' and 'm' not in portal_modules) else []) +
-      [webportal_docker_compose_files_dict[item]] }}
-  loop: "{{ portal_modules | list }}"
+      [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['a']] }}
+  when: "'a' in portal_modules"
+
+- name: Add blocker docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: >-
+      {{ webportal_docker_compose_files_wanted +
+      [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b']] }}
+  when: "'b' in portal_modules"
+
+- name: Add jaeger docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: >-
+      {{ webportal_docker_compose_files_wanted +
+      [webportal_docker_compose_files_dict['j']] }}
+  when: "'j' in portal_modules"
+
+- name: Add malware-scanner docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: >-
+      {{ webportal_docker_compose_files_wanted +
+      [webportal_docker_compose_files_dict['b'], webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['s']] }}
+  when: "'s' in portal_modules"
+
+- name: Add mongo docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: >-
+      {{ webportal_docker_compose_files_wanted +
+      [webportal_docker_compose_files_dict['m']] }}
+  when: "'m' in portal_modules"
+
+- name: Add abuse docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: >-
+      {{ webportal_docker_compose_files_wanted +
+      [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b'], webportal_docker_compose_files_dict['u']] }}
+  when: "'u' in portal_modules"
 
 - name: Add docker-compose.override.yml file to the list
   set_fact:
     webportal_docker_compose_files_wanted: "{{ webportal_docker_compose_files_wanted + ['docker-compose.override.yml'] }}"
 
-- debug:
+- name: List all wanted docker compose files
+  debug:
     msg: "Ordered list of wanted docker-compose files:\n{{ webportal_docker_compose_files_wanted }}"
