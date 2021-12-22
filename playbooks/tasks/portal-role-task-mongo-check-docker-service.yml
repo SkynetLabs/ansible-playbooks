@@ -49,7 +49,7 @@
     mongo_ready_result.stdout_lines | length > 0 and
     (mongo_ready_result.stdout_lines[-1] | from_json).t['$date'][:23] | to_datetime(fmt) > mongodb_start_timestamp | to_datetime(fmt)
   delay: 1
-  retries: 60
+  retries: 20
   when: mongo_service_ok and docker_mongo_result.changed | default(False)
 
 - name: Check mongo container is running
