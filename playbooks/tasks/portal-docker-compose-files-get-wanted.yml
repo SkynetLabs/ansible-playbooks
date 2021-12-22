@@ -68,7 +68,6 @@
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m']] }}
-  when: "'m' in portal_modules"
 
 - name: Add abuse docker-compose files
   set_fact:
