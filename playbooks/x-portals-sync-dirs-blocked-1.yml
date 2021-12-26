@@ -16,7 +16,8 @@
       ansible.builtin.shell: cat ~/.ssh/id_ed25519.pub
       register: ssh_key_result
 
-    - debug:
+    - name: Print public key
+      debug:
         msg: |
           SSH key to copy add to old server /home/user/.ssh/authorized_keys:
           {{ ssh_key_result.stdout }}
