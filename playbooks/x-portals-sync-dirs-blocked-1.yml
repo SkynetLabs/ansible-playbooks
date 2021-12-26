@@ -1,0 +1,22 @@
+- name: Sync directories between portal servers
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+  vars:
+    max_hosts: 1
+
+  tasks:
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    - name: Create new ssh key
+      ansible.builtin.shell: "ssh-keygen -o -a 100 -t ed25519 -f ~/.ssh/id_ed25519 -C 'user@{{ inventory_hostname}}-new-server' -g -N ''"
+
+    - name: Get new SSH key content
+      ansible.builtin.shell: cat ~/.ssh/id_ed25519.pub
+      register: ssh_key_result
+
+    - debug:
+        msg: |
+          SSH key to copy add to old server /home/user/.ssh/authorized_keys:
+          {{ ssh_key_result.stdout }}

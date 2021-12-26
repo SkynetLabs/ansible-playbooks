@@ -1,0 +1,49 @@
+- name: Sync directories between portal servers
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+  vars:
+    max_hosts: 1
+
+  tasks:
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    - name: Pull docker rsync image
+      community.docker.docker_image:
+        name: "{{ rsync_docker_image }}"
+        source: pull
+
+    - name: Transfer docker image to blocked host
+      ansible.builtin.shell: |
+        docker save {{ rsync_docker_image }} | bzip2 | ssh user@{{ hostvars[inventory_hostname + '-old'].ansible_host }} docker load
+
+    # - debug:
+    #     msg: |
+    #       rsync -avz
+    #         {{ '--delete' if item.dest_remove_extra_files | default(False) }}
+    #         --rsync-path="docker run --rm -i -v '{{ webportal_user_home_dir }}/.ssh:/root/.ssh' -v '{{ webportal_user_home_dir }}:/mnt' {{ rsync_docker_image }} rsync"
+    #         "{{ webportal_user}}@{{ hostvars[item.src_host].ansible_host }}:/mnt/{{ item.src_dir }}/"
+    #         "/mnt/{{ item.dest_dir}}"
+    #   loop: "{{ portal_sync_list }}"
+
+    - name: Sync source and destination directories
+      community.docker.docker_container:
+        # This docker container (incl. volumes) is run on the destination host.
+        name: rsync
+        image: "{{ rsync_docker_image }}"
+        volumes:
+          - "{{ webportal_user_home_dir }}/.ssh:/root/.ssh"
+          - "{{ webportal_user_home_dir }}:/mnt"
+        # Command defined in --rsync-path is executed on the source host.
+        command: >
+          rsync -avz
+            {{ '--delete' if item.dest_remove_extra_files | default(False) }}
+            --rsync-path="docker run --rm -i -v '{{ webportal_user_home_dir }}/.ssh:/root/.ssh' -v '{{ webportal_user_home_dir }}:/mnt' {{ rsync_docker_image }} rsync"
+            "{{ webportal_user}}@{{ hostvars[item.src_host].ansible_host }}:/mnt/{{ item.src_dir }}/"
+            "/mnt/{{ item.dest_dir}}"
+        container_default_behavior: no_defaults
+        detach: False
+        cleanup: True
+      loop: "{{ portal_sync_list }}"
+      register: rsync_result
