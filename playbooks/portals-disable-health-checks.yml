@@ -13,6 +13,7 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    portal_action: "portal-disable-health-checks"
 
   tasks:
     # Check '--limit' is used. This is to protect against taking the entire
