@@ -12,11 +12,9 @@ machine.  There is currently no need to fork this repo.
 
 ### Git repository ansible-private
 
-Fork the
+Head over to the
 [ansible-private-sample](https://github.com/SkynetLabs/ansible-private-sample)
-repo and rename it to `ansible-private` and make it a private Github repository.
-Then when cloning the `ansible-private` repository, make sure it is a sibling of
-the `ansible-playbooks` repository.
+repo and follow the process of coping that repo outlined in the README.
 
 `ansible-private` contains `inventory/hosts.ini` file which defines a list of
 our servers which we target with our Ansible scripts.  `hosts.ini` definition is
