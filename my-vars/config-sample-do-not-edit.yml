@@ -35,6 +35,18 @@ lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 lastpass_portal_config_server_subfolder: "portal-server-configs"
 
 ###############################################################################
+# SSH Access
+#
+# During portals-setup-following, ansible can add a list of authorized pubkeys
+# to your server. This is helpful if you are planning on managing a server with
+# a team. Ansible is set up to pull this list from a url, like a github repo. If
+# you leave the variable blank, no additional keys will be added.
+#
+# Example
+# webportal_user_authorized_keys: "https://raw.githubusercontent.com/SkynetLabs/skynet-webportal/master/setup-scripts/support/authorized_keys"
+webportal_user_authorized_keys: ""
+
+###############################################################################
 # OPTIONAL
 #
 # Below are a list of variables that are optional depending on the playbook you
