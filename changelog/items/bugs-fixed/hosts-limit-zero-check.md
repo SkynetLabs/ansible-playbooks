@@ -1,0 +1,1 @@
+- Fix bug in the host limit check for handling the case of only one host.
