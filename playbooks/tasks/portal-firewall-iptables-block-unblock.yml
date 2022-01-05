@@ -1,5 +1,4 @@
 ---
-
 # Block and unblock incoming traffic from defined IPs or IP ranges
 
 - name: Load private variables from Ansible private repository
@@ -20,6 +19,7 @@
     source: "{{ item }}"
     jump: DROP
   loop: "{{ private_vars.incoming_ips_ip_ranges_block }}"
+  when: private_vars.incoming_ips_ip_ranges_block is defined
 
 - name: Unblock previously blocked traffic from IPs or IP ranges in iptables
   ansible.builtin.iptables:
@@ -28,3 +28,4 @@
     jump: DROP
     state: absent
   loop: "{{ private_vars.incoming_ips_ip_ranges_unblock }}"
+  when: private_vars.incoming_ips_ip_ranges_unblock is defined

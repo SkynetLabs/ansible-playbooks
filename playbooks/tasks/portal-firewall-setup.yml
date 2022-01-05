@@ -1,5 +1,4 @@
 ---
-
 # Setup portal ufw firewall rules
 
 - name: Include blocking and unblocking IPs and IP ranges in iptables
