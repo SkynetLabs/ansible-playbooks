@@ -614,6 +614,10 @@ This playbook can be run successfully just once, then root access is disabled.
 Execute (e.g. on `eu-fin-5`):  
 `scripts/portals-setup-initial.sh --limit eu-fin-5`
 
+If you are using any no default variable values, i.e. LastPass folder names,
+include your config file in the command.
+`scripts/portals-setup-initial.sh -e @my-vars/config.yml --limit eu-fin-5`
+
 #### Playbook portals-setup-following
 
 Requires:
