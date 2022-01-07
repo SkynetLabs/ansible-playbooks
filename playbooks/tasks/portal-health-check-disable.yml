@@ -69,7 +69,7 @@
       delay: 5
       retries: "{{ portal_download_check_num_retries }}"
       # Only fail the task if there is an error reported to stderr, unless it
-      # is # the Module not loaded error. Otherwise we will continue on after the
+      # is the Module not loaded error. Otherwise we will continue on after the
       # retries are complete.
       failed_when:
         - docker_renter_downloads.stderr != ''
