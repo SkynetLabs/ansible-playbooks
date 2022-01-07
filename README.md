@@ -95,7 +95,7 @@ a playbook.
   - `last-portal-versions.yml` could be used to rerun portal deploy on another
     host (more info below).
 - `my-vars`
-  - content ignored by git (with exception of `config.yml`)
+  - content ignored by git (with exception of `config-sample-do-not-edit.yml`)
   - you can store your variables for playbook executions (more info below)
 - `playbooks`
   - stores our Ansible playbooks
