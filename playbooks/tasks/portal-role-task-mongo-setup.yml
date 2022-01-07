@@ -197,6 +197,7 @@
   # Skip for host initializing MongoDB replicaset
   when: mongo_replicaset_init.skipped | default(False)
 
+# TODO: Finish and add back
 # # Add first 7 MongoDB nodes as voting members
 # - block:
 #     - name: Include adding MongoDB node as voting members
