@@ -86,7 +86,7 @@ webportal_git_config:
   - name: user.name
     value: "SkynetLabs Devs"
   - name: user.email
-    value: "{{ skynetlabs_devs_email }}"
+    value: "{{ git_checkout_email }}"
 
 # TODO: default in role: False
 webportal_setup_dotfiles_and_dev_tools: True
