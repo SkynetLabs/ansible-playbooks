@@ -1,6 +1,6 @@
 ---
 
-# Find primary node in the MongoDB replicaset
+# Check if MongoDB replicaset is online and find primary node in the replicaset
 # TODO: This ansible playbook task, should be moved to portal role
 
 # Get mongo cluster hosts

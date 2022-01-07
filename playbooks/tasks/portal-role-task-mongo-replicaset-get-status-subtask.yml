@@ -1,6 +1,7 @@
 ---
 
-# Find primary node in the MongoDB replicaset (subtask to loop over)
+# Check if MongoDB replicaset is online and find primary node in the
+# replicaset (subtask to loop over)
 # TODO: This ansible playbook task, should be moved to portal role
 
 # Notes:
