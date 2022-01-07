@@ -56,7 +56,7 @@ a playbook.
   - `last-portal-versions.yml` could be used to rerun portal deploy on another
     host (more info below).
 - `my-vars`
-  - content ignored by git (with exception of `portal-versions.sample.do-not-edit.yml`)
+  - content ignored by git (with exception of `config-sample-do-not-edit.yml`)
   - you can store your variables for playbook executions (more info below)
 - `playbooks`
   - stores our Ansible playbooks
@@ -192,10 +192,10 @@ order in `PORTAL_MODULES`.
 #### How to set portal, skyd, accounts versions
 
 - Go to `my-vars`.
-- Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
+- Copy `config-sample-do-not-edit.yml` as `config.yml`
 - Set `skynet-webportal`, `skyd` and `accounts` versions you want to deploy in
-  `portal-versions.yml` (or whatever you named the file).
-- Start the playbook with `-e @my-vars/portal-versions.yml` (see below).
+  `config.yml` (or whatever you named the file).
+- Start the playbook with `-e @my-vars/config.yml` (see below).
 
 Alternatively you can use settings from the last playbook execution on
 another host:
@@ -203,12 +203,12 @@ another host:
 - Start the playbook with `-e @my-logs/last-portal-versions.yml`
 
 To deploy portal at `eu-ger-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1`  
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit eu-ger-1`  
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1`
 
 To deploy portal at `eu-ger-1` and `us-pa-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1,us-pa-1`  
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit eu-ger-1,us-pa-1`  
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1.us-pa-1`
 
@@ -217,9 +217,9 @@ or:
 By default portals-deploy playbook performs deployments one server at a time
 (rolling updates/deploys). You can enable parallel deployments (deploy to the
 given number of hosts in parallel) by setting optional `parallel_deploys`
-variable in used `portal-versions.yml`.
+variable in used `config.yml`.
 
-Example `portal-versions.yml`:
+Example `config.yml`:
 
 ```yaml
 ---
@@ -575,6 +575,10 @@ This playbook can be run successfully just once, then root access is disabled.
 Execute (e.g. on `eu-fin-5`):  
 `scripts/portals-setup-initial.sh --limit eu-fin-5`
 
+If you are using any no default variable values, i.e. LastPass folder names,
+include your config file in the command.
+`scripts/portals-setup-initial.sh -e @my-vars/config.yml --limit eu-fin-5`
+
 #### Playbook portals-setup-following
 
 Requires:
@@ -618,7 +622,7 @@ onscreen. Follow the instructions from the onscreen logs and restart the
 playbook when ready.
 
 Execute (e.g. on `eu-fin-5`):
-`scripts/portals-setup-following.sh -e @my-vars/portal-versions.yml --limit eu-fin-5`
+`scripts/portals-setup-following.sh -e @my-vars/config.yml --limit eu-fin-5`
 
 #### Playbook portals-deploy
 
@@ -644,10 +648,10 @@ docker_commands:
 ```
 
 To run:  
-`scripts/portals-docker-command.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+`scripts/portals-docker-command.sh -e @my-vars/config.yml --limit eu-fin-1`
 
 The deploy script also supports the docker command execution:
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit eu-fin-1`
 
 ### Update Allowance
 
@@ -671,7 +675,7 @@ update_allowance:
   - eu-fin-1
   - eu-fin-2
 ```
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit depl_batch1`
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit depl_batch1`
 
 
 ### Send Funds

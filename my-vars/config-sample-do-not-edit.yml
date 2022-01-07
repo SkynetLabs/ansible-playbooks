@@ -1,0 +1,60 @@
+# This config file can be used to set any ansible variables needed to execute
+# necessary ansible playbooks.
+
+###############################################################################
+# REQUIRED
+#
+# Below are a list of variables that require attention if the defaults are not
+# suitable.
+###############################################################################
+
+###############################################################################
+# LastPass
+#
+# LastPass is used for managing secrets with ansible, such as server config
+# files and login information.
+#
+# lastpass_ansible_dir is the folder name in lastpass that contains server login
+# information. The default is `Shared-Ansible`. You can either create this
+# folder in LastPass or rename this variable to the folder name you desired.
+#
+# NOTE: If you rename this variable, you should keep this variable defined in
+# this config file for any ansible playbook you use. Otherwise, if you keep the
+# defaults you can safely remove these from the config file.
+lastpass_ansible_dir: "Shared-Ansible"
+# The Following are the subfolder names of the lastpass_ansible_dir folder in
+# lastpass. The contents of these folders are controlled by ansible. Below are
+# the defaul values. You can either create these folders in LastPass or rename
+# these variable to the folder name you desired.
+#
+# NOTE: If you rename these variables, you should keep these variables defined
+# in this config file for any ansible playbook you use. Otherwise, if you keep
+# the defaults you can safely remove these from the config file.
+lastpass_portal_config_common_subfolder: "portal-common-configs"
+lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+lastpass_portal_config_server_subfolder: "portal-server-configs"
+
+###############################################################################
+# SSH Access
+#
+# During portals-setup-following, ansible can add a list of authorized pubkeys
+# to your server. This is helpful if you are planning on managing a server with
+# a team. Ansible is set up to pull this list from a url, like a github repo. If
+# you leave the variable blank, no additional keys will be added.
+#
+# Example
+# webportal_user_authorized_keys: "https://raw.githubusercontent.com/SkynetLabs/skynet-webportal/master/setup-scripts/support/authorized_keys"
+webportal_user_authorized_keys: ""
+
+###############################################################################
+# OPTIONAL
+#
+# Below are a list of variables that are optional depending on the playbook you
+# are running.
+###############################################################################
+
+# Set the skynet-webportal, skyd, and accounts versions by entering a git
+# branch, git tag or git commit.
+portal_repo_version: "..."
+portal_skyd_version: "..."
+portal_accounts_version: "..."
