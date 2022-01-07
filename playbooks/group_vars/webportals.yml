@@ -131,6 +131,8 @@ webportal_docker_compose_files_optional:
   - "docker-compose.accounts.yml"
   - "docker-compose.blocker.yml"
   - "docker-compose.jaeger.yml"
+  - "docker-compose.malware-scanner.yml"
+  - "docker-compose.abuse.yml"
   - "docker-compose.override.yml"
 
 # Dictionary of optional portal modules defining which docker-compose files
@@ -140,6 +142,8 @@ webportal_docker_compose_files_dict:
   b: "docker-compose.blocker.yml"
   j: "docker-compose.jaeger.yml"
   m: "docker-compose.mongodb.yml"
+  s: "docker-compose.malware-scanner.yml"
+  u: "docker-compose.abuse.yml"
 
 webportal_other_config_files:
   - ".env"

@@ -3,15 +3,12 @@
 # Run MongoDB shell command on MongoDB primary host
 # TODO: This ansible playbook task, should be moved to portal role
 
-# xxxqqq:
+# input:
 # - mongodb_shell_delegated:
 #   - host
-#   - user
-#   - password
 #   - eval
 #   - ignore_errors
-# res: mongo_shell_delegated_result
-# keep: when
+# output: mongo_shell_delegated_result
 
 - name: Run mongo shell command on MongoDB primary host
   community.mongodb.mongodb_shell:
@@ -19,8 +16,8 @@
     login_host: "{{ 'localhost' if (hostvars[mongodb_shell_delegated.host].subcrap_mongo_port is not defined) else hostvars[mongodb_shell_delegated.host].ansible_host }}"
     # Use default port unless on subcrap test cluster
     login_port: "{{ hostvars[mongodb_shell_delegated.host].subcrap_mongo_port | default(default_mongo_port | string) }}"
-    login_user: "{{ mongodb_shell_delegated.user }}"
-    login_password: "{{ mongodb_shell_delegated.password }}"
+    login_user: "{{ webportal_common_config.skynet_db_user }}"
+    login_password: "{{ webportal_common_config.skynet_db_pass }}"
     mongo_cmd: "docker exec mongo mongo"
     eval: "{{ mongodb_shell_delegated.eval }}"
     # transformed_output can't be parsed correctly by this module, keep it raw
@@ -29,4 +26,4 @@
   delegate_to: "{{ mongodb_shell_delegated.host }}"
   vars:
     ansible_port: "{{ hostvars[mongodb_shell_delegated.host].ansible_port | default(default_ssh_port) }}"
-  ignore_errors: "{{ mongodb_shell_delegated. ignore_errors | default(False) }}"
+  ignore_errors: "{{ mongodb_shell_delegated.ignore_errors | default(False) }}"

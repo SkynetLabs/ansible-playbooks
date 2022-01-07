@@ -1,0 +1,56 @@
+---
+
+# Check if MongoDB replicaset is online and find primary node in the replicaset
+# TODO: This ansible playbook task, should be moved to portal role
+
+# Get mongo cluster hosts
+
+- name: Reset mongo cluster hosts
+  set_fact:
+    mongo_cluster_hosts: []
+
+- name: Get mongo cluster hosts
+  set_fact:
+    mongo_cluster_hosts: "{{ mongo_cluster_hosts + [item] }}"
+  when: >-
+    hostvars[item].portal_cluster_id is defined and
+    hostvars[item].portal_cluster_id == portal_cluster_id
+  loop: "{{ groups['webportals'] }}"
+  delegate_to: localhost
+  run_once: True
+
+- name: Reset mongo primary host
+  set_fact:
+    mongo_primary_host: ""
+
+- name: Set mongo not running correctly count
+  set_fact:
+    mongo_not_ok_count: 0
+
+- name: Include adding the mongo node to the replicaset by primary member
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-status-subtask.yml
+  loop: "{{ mongo_cluster_hosts }}"
+  loop_control:
+    loop_var: "host_item"
+
+- name: Log MongoDB primary member Ansible host
+  debug:
+    msg: "MongoDB primary member Ansible host: {{ mongo_primary_host }}"
+  when: mongo_primary_host | default('') != ''
+
+- name: Log MongoDB primary member Ansible host not found
+  debug:
+    msg: "MongoDB primary member Ansible host was not found"
+  when: mongo_primary_host | default('') == ''
+
+- name: Log MongoDB replicaset is online
+  debug:
+    msg: "MongoDB replicaset exists on online containers: {{ mongo_replicaset_online }}"
+  when: mongo_primary_host | default('') == ''
+
+- name: Log some MongoDB hosts or containers are offline or they do not run correctly
+  debug:
+    msg: "There are some MongoDB hosts or containers offline or do not run correctly"
+  when: >-
+    mongo_primary_host | default('') == '' and
+    mongo_not_ok_count | int > 0

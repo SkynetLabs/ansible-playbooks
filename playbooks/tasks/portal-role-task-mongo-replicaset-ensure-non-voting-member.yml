@@ -8,15 +8,19 @@
 #   not on the current Ansible host that we are handling.
 
 - name: Include getting MongoDB replicaset primary host
-  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary.yml
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
+
+- name: Handle lazy evaluation of mongo primary host variable on mongo primary host
+  set_fact:
+    mongo_primary_host: "{{ mongo_primary_host }}"
+  delegate_to: "{{ mongo_primary_host }}"
+  delegate_facts: True
 
 - name: Include checking if MongoDB node is part of the replicaset
   include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
   vars:
     mongodb_shell_delegated:
       host: "{{ mongo_primary_host }}"
-      user: "{{ skynet_db_user_result.stdout }}"
-      password: "{{ skynet_db_pass_result.stdout }}"
       eval: |
         rs.config().members.forEach(m => {
           if (m.host == '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}')
@@ -42,8 +46,6 @@
   vars:
     mongodb_shell_delegated:
       host: "{{ mongo_primary_host }}"
-      user: "{{ skynet_db_user_result.stdout }}"
-      password: "{{ skynet_db_pass_result.stdout }}"
       eval: |
         rs.add({host: '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}', priority: 0, votes: 0})
   when: not host_in_replicaset
