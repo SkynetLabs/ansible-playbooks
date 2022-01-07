@@ -1,5 +1,4 @@
 ---
-
 # Limit number of hosts that can be targeted by a playbook execution
 - name: Fail if you are targeting more then max_hosts
   vars:
@@ -9,11 +8,13 @@
     msg: |
       You are executing the playbook on {{ num_hosts }} hosts
       which is more than maximum allowed {{ max_hosts }} hosts for this playbook.
-      
+
       E.g. you can't target all dev and prod webportals at once in some playbooks.
-      
+
       Use '--limit' command line flag, e.g.:
-      
+
           ... --limit host1,host2
           ... --limit group1,group2
-  when: num_hosts | int > max_hosts | int
+  when:
+    - num_hosts | int > max_hosts | int
+    - max_hosts | int > 0

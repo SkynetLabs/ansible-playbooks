@@ -1,66 +1,26 @@
 # Skynet Labs Ansible Playbooks
+> The table of contents for this README can be accessed from the menu icon by `README.md`
 
-<!-- TOC -->
-
-- [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
-    - [Requirements](#requirements)
-        - [Git repository ansible-private](#git-repository-ansible-private)
-        - [Docker](#docker)
-        - [Ansible Roles and Collections](#ansible-roles-and-collections)
-    - [Repository Organization](#repository-organization)
-    - [Playbook Execution](#playbook-execution)
-        - [Check Access](#check-access)
-        - [LastPass Login](#lastpass-login)
-    - [Playbooks](#playbooks)
-        - [Get Webportal Status](#get-webportal-status)
-        - [Restart Skynet Webportal](#restart-skynet-webportal)
-        - [Deploy Skynet Webportal](#deploy-skynet-webportal)
-            - [Deploy Playbook Actions:](#deploy-playbook-actions)
-            - [Portal Modules](#portal-modules)
-            - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
-            - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
-            - [How to Set Deploy Batch](#how-to-set-deploy-batch)
-        - [Stop A Skynet Webportal](#stop-a-skynet-webportal)
-        - [Takedown Skynet Webportal](#takedown-skynet-webportal)
-            - [Playbook Actions](#playbook-actions)
-            - [Preparation](#preparation)
-            - [Execution](#execution)
-            - [Following Portal Deployments and Restarts](#following-portal-deployments-and-restarts)
-        - [Rollback Skynet Webportal](#rollback-skynet-webportal)
-        - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
-        - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
-        - [Block Portal Skylinks](#block-portal-skylinks)
-        - [Unblock Portal Skylinks](#unblock-portal-skylinks)
-        - [Block and Unblock Incoming Traffic to Portals](#block-and-unblock-incoming-traffic-to-portals)
-        - [Run Integration Tests](#run-integration-tests)
-        - [Run Health Checks](#run-health-checks)
-        - [Setup Portal from Scratch](#setup-portal-from-scratch)
-            - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
-            - [Playbook portals-setup-following](#playbook-portals-setup-following)
-            - [Playbook portals-deploy](#playbook-portals-deploy)
-        - [Run Docker Command](#run-docker-command)
-        - [Update Allowance](#update-allowance)
-        - [Send Funds](#send-funds)
-    - [Playbook Live Demos](#playbook-live-demos)
-    - [Troubleshooting](#troubleshooting)
-        - [Role Not Installed](#role-not-installed)
-        - [Unreachable Host](#unreachable-host)
-        - [LastPass Session Not Active](#lastpass-session-not-active)
-
-<!-- /TOC -->
+This repo is a collection of ansible playbooks used to manage a Skynet
+Webportal. For more information of setting up a Skynet Webportal checkout the
+documentation [here](https://docs.siasky.net/webportal-management/overview).
 
 ## Requirements
+Clone this repository to the machine you plan to use to run the ansible
+playbooks from. This can be either your local machine or a dedicated deploy
+machine.  There is currently no need to fork this repo.
 
 ### Git repository ansible-private
 
-Git repository `ansible-private` must be sibling of this repository
-`ansible-playbooks`.
+Head over to the
+[ansible-private-sample](https://github.com/SkynetLabs/ansible-private-sample)
+repo and follow the process of coping that repo outlined in the README.
 
-`ansible-private` contains `inventory/hosts.ini` file
-which defines a list of our servers which we target with our Ansible scripts.
-`hosts.ini` definition is quite flexible, we can e.g. define server subgroups
-if needed etc. Also if you need a short term change in the `hosts.ini` you can
-edit the file locally according to your needs.
+`ansible-private` contains `inventory/hosts.ini` file which defines a list of
+our servers which we target with our Ansible scripts.  `hosts.ini` definition is
+quite flexible, we can e.g. define server subgroups if needed etc. Also if you
+need a short term change in the `hosts.ini` you can edit the file locally
+according to your needs.
 
 ### Docker
 
@@ -82,6 +42,7 @@ When you are developing Ansible playbooks and don't want yet to commit new
 `requirements.yml` file, you can force installing new/updated roles and
 collections by deleting `my-logs/requirements-installed.txt` file and executing
 a playbook.
+
 ## Repository Organization
 
 - `ansible_collections`
