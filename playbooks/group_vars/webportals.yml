@@ -96,7 +96,7 @@ webportal_setup_dotfiles_and_dev_tools: True
 
 # TODO: move to role default vars
 webportal_allowance:
-  amount: 100KS
+  amount: 10KS
   expected_storage: 10TB
   expected_upload: 4TB
   expected_download: 2TB
