@@ -64,3 +64,17 @@
       {{ webportal_server_config.portal_modules is defined and
       webportal_server_config.portal_modules is not none and
       'a' in webportal_server_config.portal_modules }}
+
+- name: Set Blocker flag
+  set_fact:
+    portal_blocker_on: >-
+      {{ webportal_server_config.portal_modules is defined and
+      webportal_server_config.portal_modules is not none and
+      'b' in webportal_server_config.portal_modules }}
+
+- name: Set Abuse Scanner flag
+  set_fact:
+    portal_abuse_scanner_on: >-
+      {{ webportal_server_config.portal_modules is defined and
+      webportal_server_config.portal_modules is not none and
+      'u' in webportal_server_config.portal_modules }}

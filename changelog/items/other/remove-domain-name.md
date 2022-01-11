@@ -1,0 +1,1 @@
+- Remove `DOMAIN_NAME` from `.env` template.
