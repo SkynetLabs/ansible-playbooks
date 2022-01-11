@@ -30,9 +30,11 @@ lastpass_ansible_dir: "Shared-Ansible"
 # NOTE: If you rename these variables, you should keep these variables defined
 # in this config file for any ansible playbook you use. Otherwise, if you keep
 # the defaults you can safely remove these from the config file.
+lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
 lastpass_portal_config_common_subfolder: "portal-common-configs"
 lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 lastpass_portal_config_server_subfolder: "portal-server-configs"
+
 
 ###############################################################################
 # SSH Access
