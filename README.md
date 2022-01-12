@@ -102,6 +102,9 @@ instructions to login to LastPass.
 After the login is successful, your LastPass session is active and
 you can execute playbooks as usually.
 
+**NOTE** if you update files or variables in LastPass, you will need to re-run
+the login script to refresh your session to be able to see the updates.
+
 ## Playbooks
 
 ### Get Webportal Status
