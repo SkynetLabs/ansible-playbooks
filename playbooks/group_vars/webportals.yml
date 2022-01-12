@@ -47,12 +47,14 @@ local_networks_denied:
 
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
+lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
 lastpass_portal_config_common_subfolder: "portal-common-configs"
 lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 lastpass_portal_config_server_subfolder: "portal-server-configs"
 lastpass_portal_config_common: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
 lastpass_portal_config_cluster: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
 lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
 
 # Portal paths settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
