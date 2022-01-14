@@ -12,24 +12,20 @@
   loop:
     - lastpass_path: "{{ lastpass_portal_config_common }}"
       var_name: webportal_common_config
-      format: from_yaml
     - lastpass_path: "{{ lastpass_portal_config_server }}"
       var_name: webportal_server_config
-      format: from_yaml
 
 - name: Load portal cluster config from LastPass (if cluster is defined for a host)
   include_tasks: tasks/lastpass-load-yaml-note.yml
   loop:
     - lastpass_path: "{{ lastpass_portal_config_cluster }}"
       var_name: webportal_cluster_config
-      format: from_yaml
 
 - name: Load jwks.json from Lastpass
-  include_tasks: tasks/lastpass-load-yaml-note.yml
+  include_tasks: tasks/lastpass-load-json-note.yml
   loop:
-    - lastpass_path: "{{ lastpass_portal_config_cluster }}"
+    - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
       var_name: accounts_jwks_data
-      format: from_json
 
 - name: Set portal cluster config missing variables to default values
   set_fact:
@@ -41,6 +37,13 @@
 - name: Update portal common config with portal cluster config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | combine(webportal_cluster_config | default({}), recursive=True) }}"
+
+- name: Set portal common config missing variables to default values
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | combine({item.key: item.value}) }}"
+  when: webportal_common_config[item.key] is not defined
+  loop: "{{ webportal_common_config_defaults | dict2items }}"
+  no_log: True
 
 - name: Reset portal cluster config (portal common config should be used instead)
   set_fact:
