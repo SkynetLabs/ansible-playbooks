@@ -69,6 +69,7 @@ mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
 mongo_db_dir: "{{ mongo_data_dir }}/db"
 mongo_backups_dir: "{{ mongo_data_dir }}/backups"
 mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
+accounts_jwks_path: "{{ webportal_dir }}/docker/accounts/conf/jwks.json"
 
 # Default service ports
 default_mongo_port: 27017
@@ -115,6 +116,10 @@ webportal_server_config_defaults:
   sia_wallet_password: ""
   sia_api_port: 9980
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
+
+webportal_cluster_config_defaults:
+  cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+  cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
 
 # TODO: move to role default vars
 # TODO: default to: False

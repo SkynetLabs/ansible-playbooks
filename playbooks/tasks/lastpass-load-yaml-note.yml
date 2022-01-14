@@ -1,5 +1,4 @@
 ---
-
 # Load yaml secure note from LastPass to Ansible variable
 
 # This tasks is supposed to be called (included) in a loop with list of
@@ -34,8 +33,8 @@
 - block:
     - name: Get LastPass data
       set_fact:
-        lastpass_data: "{{ lookup('community.general.lastpass', item.lastpass_path, field='notes') | from_yaml }}"
-    
+        lastpass_data: "{{ lookup('community.general.lastpass', item.lastpass_path, field='notes') | item.format }}"
+
     - name: Set variable value from LastPass data
       set_fact:
         "{{ item.var_name }}": "{{ {} if lastpass_data == '' else lastpass_data}}"
