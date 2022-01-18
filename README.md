@@ -1,64 +1,26 @@
 # Skynet Labs Ansible Playbooks
+> The table of contents for this README can be accessed from the menu icon by `README.md`
 
-<!-- TOC -->
-
-- [Skynet Labs Ansible Playbooks](#skynet-labs-ansible-playbooks)
-    - [Requirements](#requirements)
-        - [Git repository ansible-private](#git-repository-ansible-private)
-        - [Docker](#docker)
-        - [Ansible Roles and Collections](#ansible-roles-and-collections)
-    - [Repository Organization](#repository-organization)
-    - [Playbook Execution](#playbook-execution)
-        - [Check Access](#check-access)
-        - [LastPass Login](#lastpass-login)
-    - [Playbooks](#playbooks)
-        - [Get Webportal Status](#get-webportal-status)
-        - [Restart Skynet Webportal](#restart-skynet-webportal)
-        - [Deploy Skynet Webportal](#deploy-skynet-webportal)
-            - [Deploy Playbook Actions:](#deploy-playbook-actions)
-            - [Portal Modules](#portal-modules)
-            - [How to set portal, skyd, accounts versions](#how-to-set-portal-skyd-accounts-versions)
-            - [How to enable parallel deployments](#how-to-enable-parallel-deployments)
-            - [How to Set Deploy Batch](#how-to-set-deploy-batch)
-        - [Takedown Skynet Webportal](#takedown-skynet-webportal)
-            - [Playbook Actions](#playbook-actions)
-            - [Preparation](#preparation)
-            - [Execution](#execution)
-            - [Following Portal Deployments and Restarts](#following-portal-deployments-and-restarts)
-        - [Rollback Skynet Webportal](#rollback-skynet-webportal)
-        - [Get Skynet Webportal Versions](#get-skynet-webportal-versions)
-        - [Set Allowance Max Storage Price](#set-allowance-max-storage-price)
-        - [Block Portal Skylinks](#block-portal-skylinks)
-        - [Unblock Portal Skylinks](#unblock-portal-skylinks)
-        - [Block and Unblock Incoming Traffic to Portals](#block-and-unblock-incoming-traffic-to-portals)
-        - [Run Integration Tests](#run-integration-tests)
-        - [Run Health Checks](#run-health-checks)
-        - [Setup Portal from Scratch](#setup-portal-from-scratch)
-            - [Playbook portals-setup-initial](#playbook-portals-setup-initial)
-            - [Playbook portals-setup-following](#playbook-portals-setup-following)
-            - [Playbook portals-deploy](#playbook-portals-deploy)
-        - [Run Docker Command](#run-docker-command)
-        - [Update Allowance](#update-allowance)
-    - [Playbook Live Demos](#playbook-live-demos)
-    - [Troubleshooting](#troubleshooting)
-        - [Role Not Installed](#role-not-installed)
-        - [Unreachable Host](#unreachable-host)
-        - [LastPass Session Not Active](#lastpass-session-not-active)
-
-<!-- /TOC -->
+This repo is a collection of ansible playbooks used to manage a Skynet
+Webportal. For more information of setting up a Skynet Webportal checkout the
+documentation [here](https://docs.siasky.net/webportal-management/overview).
 
 ## Requirements
+Clone this repository to the machine you plan to use to run the ansible
+playbooks from. This can be either your local machine or a dedicated deploy
+machine.  There is currently no need to fork this repo.
 
 ### Git repository ansible-private
 
-Git repository `ansible-private` must be sibling of this repository
-`ansible-playbooks`.
+Head over to the
+[ansible-private-sample](https://github.com/SkynetLabs/ansible-private-sample)
+repo and follow the process of coping that repo outlined in the README.
 
-`ansible-private` contains `inventory/hosts.ini` file
-which defines a list of our servers which we target with our Ansible scripts.
-`hosts.ini` definition is quite flexible, we can e.g. define server subgroups
-if needed etc. Also if you need a short term change in the `hosts.ini` you can
-edit the file locally according to your needs.
+`ansible-private` contains `inventory/hosts.ini` file which defines a list of
+our servers which we target with our Ansible scripts.  `hosts.ini` definition is
+quite flexible, we can e.g. define server subgroups if needed etc. Also if you
+need a short term change in the `hosts.ini` you can edit the file locally
+according to your needs.
 
 ### Docker
 
@@ -80,6 +42,7 @@ When you are developing Ansible playbooks and don't want yet to commit new
 `requirements.yml` file, you can force installing new/updated roles and
 collections by deleting `my-logs/requirements-installed.txt` file and executing
 a playbook.
+
 ## Repository Organization
 
 - `ansible_collections`
@@ -93,7 +56,7 @@ a playbook.
   - `last-portal-versions.yml` could be used to rerun portal deploy on another
     host (more info below).
 - `my-vars`
-  - content ignored by git (with exception of `portal-versions.sample.do-not-edit.yml`)
+  - content ignored by git (with exception of `config-sample-do-not-edit.yml`)
   - you can store your variables for playbook executions (more info below)
 - `playbooks`
   - stores our Ansible playbooks
@@ -138,6 +101,9 @@ instructions to login to LastPass.
 
 After the login is successful, your LastPass session is active and
 you can execute playbooks as usually.
+
+**NOTE** if you update files or variables in LastPass, you will need to re-run
+the login script to refresh your session to be able to see the updates.
 
 ## Playbooks
 
@@ -229,10 +195,10 @@ order in `PORTAL_MODULES`.
 #### How to set portal, skyd, accounts versions
 
 - Go to `my-vars`.
-- Copy `portal-versions.sample.do-not-edit.yml` as `portal-versions.yml`
+- Copy `config-sample-do-not-edit.yml` as `config.yml`
 - Set `skynet-webportal`, `skyd` and `accounts` versions you want to deploy in
-  `portal-versions.yml` (or whatever you named the file).
-- Start the playbook with `-e @my-vars/portal-versions.yml` (see below).
+  `config.yml` (or whatever you named the file).
+- Start the playbook with `-e @my-vars/config.yml` (see below).
 
 Alternatively you can use settings from the last playbook execution on
 another host:
@@ -240,12 +206,12 @@ another host:
 - Start the playbook with `-e @my-logs/last-portal-versions.yml`
 
 To deploy portal at `eu-ger-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1`  
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit eu-ger-1`  
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1`
 
 To deploy portal at `eu-ger-1` and `us-pa-1` execute:  
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-ger-1,us-pa-1`  
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit eu-ger-1,us-pa-1`  
 or:  
 `scripts/portals-deploy.sh -e @my-logs/last-portal-versions.yml --limit eu-ger-1.us-pa-1`
 
@@ -254,9 +220,9 @@ or:
 By default portals-deploy playbook performs deployments one server at a time
 (rolling updates/deploys). You can enable parallel deployments (deploy to the
 given number of hosts in parallel) by setting optional `parallel_deploys`
-variable in used `portal-versions.yml`.
+variable in used `config.yml`.
 
-Example `portal-versions.yml`:
+Example `config.yml`:
 
 ```yaml
 ---
@@ -316,6 +282,15 @@ want to divide deployment into batches, set:
 batch_size: 1
 batch_number: 1
 ```
+
+### Stop A Skynet Webportal
+
+#### Playbook Actions
+This playbook shuts down a portal by removing it from the load balancer and
+stopping all the docker services.
+
+#### Execution
+`scripts/portals-stop.sh --limit eu-ger-1`
 
 ### Takedown Skynet Webportal
 
@@ -583,6 +558,9 @@ Requires:
   - SSH key added to `root` authorized keys
 - Ansible inventory
   - Ansible hostname (e.g. `eu-fin-5`) added to (one of) `webportals` group
+    - Example: `us-va-3 ansible_host=us-va-3.siasky.net`
+  - `initial_root_like_user` set if the server is initialized with a non `root` user i.e. `debian` as the initial root user.
+    - Example: `us-va-6 ansible_host=us-va-6.siasky.net initial_root_like_user=debian`
 - LastPass
   - Desired password added for the user `user`
   - Active LastPass session (see `LastPass Login` section above)
@@ -599,6 +577,10 @@ This playbook can be run successfully just once, then root access is disabled.
 
 Execute (e.g. on `eu-fin-5`):  
 `scripts/portals-setup-initial.sh --limit eu-fin-5`
+
+If you are using any no default variable values, i.e. LastPass folder names,
+include your config file in the command.
+`scripts/portals-setup-initial.sh -e @my-vars/config.yml --limit eu-fin-5`
 
 #### Playbook portals-setup-following
 
@@ -643,7 +625,7 @@ onscreen. Follow the instructions from the onscreen logs and restart the
 playbook when ready.
 
 Execute (e.g. on `eu-fin-5`):
-`scripts/portals-setup-following.sh -e @my-vars/portal-versions.yml --limit eu-fin-5`
+`scripts/portals-setup-following.sh -e @my-vars/config.yml --limit eu-fin-5`
 
 #### Playbook portals-deploy
 
@@ -669,10 +651,10 @@ docker_commands:
 ```
 
 To run:  
-`scripts/portals-docker-command.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+`scripts/portals-docker-command.sh -e @my-vars/config.yml --limit eu-fin-1`
 
 The deploy script also supports the docker command execution:
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit eu-fin-1`
 
 ### Update Allowance
 
@@ -696,7 +678,32 @@ update_allowance:
   - eu-fin-1
   - eu-fin-2
 ```
-`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit depl_batch1`
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit depl_batch1`
+
+
+### Send Funds
+
+Playbook:
+
+- Send funds from one portal to another.
+
+Preparation:  
+Define a `wallet_fund_amount` variable in your `portal_versions.yml` file to
+define how much should be sent between the portals. Define a `funding_portal`
+variable in your `portal_versions.yml` file to define the portal that should send
+the funds.
+
+Example:
+```yaml
+---
+wallet_fund_amount: 100KS
+funding_portal: eu-pol-4
+```
+
+To run:  
+`scripts/portals-send-funds.sh -e @my-vars/portal_versions.yml --limit eu-fin-1`
+
+In this example, `eu-pol-4` will send 100KS to `eu-fin-1`.
 
 ## Playbook Live Demos
 

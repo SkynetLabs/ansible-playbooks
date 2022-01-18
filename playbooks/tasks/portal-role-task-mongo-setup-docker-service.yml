@@ -3,7 +3,7 @@
 # Ensure MongoDB docker service is setup correctly
 # TODO: This ansible playbook task, should be moved to portal role
 
-- name: Check we have mongo cluster mgkey
+- name: Check we have mongo cluster mgkey configured in secure storage
   assert:
     that:
       - >-
@@ -38,6 +38,7 @@
 
 # Reset mongo service if it is not running correctly
 - block:
+    # TODO: This prompt/next fail don't run ok in parallel
     - name: Ask user if it is ok to delete and reset MongoDB database
       pause:
         prompt: |-
@@ -76,7 +77,12 @@
         state: directory
       become: True
 
-    - name: Backup and remove mongo/db directory
+    - name: Check mongo/db directory exists
+      ansible.builtin.stat:
+        path: "{{ mongo_db_dir }}"
+      register: mongo_db_stat_result
+
+    - name: Backup mongo/db directory
       community.general.archive:
         path: "{{ mongo_db_dir }}"
         dest: "{{ mongo_backups_dir }}/db-backup-{{ ansible_date_time.iso8601 }}.tar.gz"
@@ -84,7 +90,8 @@
         group: "{{ webportal_user }}"
         remove: True
       become: True
-    
+      when: mongo_db_stat_result.stat.exists
+
     - name: Create empty mongo/db directory
       ansible.builtin.file:
         path: "{{ mongo_db_dir }}"

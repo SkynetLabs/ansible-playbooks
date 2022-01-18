@@ -1,6 +1,8 @@
 # Check on the webportal's allowance and update if necessary
 
-# TODO: What is this doing??
+# This task pulls curl docker image from Docker Hub. We use curl docker image
+# instead of locally installed curl so that we can run curl command inside sia
+# docker network defined later as docker run ... --network="container:sia" ....
 - name: Pull curl docker image
   community.docker.docker_image:
     name: "{{ curl_docker_image }}"

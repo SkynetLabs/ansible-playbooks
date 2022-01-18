@@ -1,0 +1,72 @@
+- name: Sync directories between portal servers
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  tasks:
+    # We set this block to run once, it doesn't matter what '--limit' we use on
+    # the command line, because we define source and target hosts to sync in
+    # portal_sync_list variable. This way we can run several syncs in parallel.
+    - block:
+        - name: Check SSH agent forwarding is active on docker host machine (where Ansible Control Machine docker container runs on)
+          command: ssh-add -L
+          delegate_to: localhost
+          register: ssh_add_result
+          ignore_errors: True
+
+        - name: Fail when SSH agent forwarding on docker host machine doesn't run correctly
+          fail:
+            msg: |
+              SSH agent forwarding doesn't seem to be running correctly on your machine
+              (it is machine where Ansible Control Machine container runs on).
+
+              Command:
+                  ssh-add -L
+              must print your SSH key that you want to forward to the remote host.
+              If it prints:
+                  The agent has no identities.
+              you need to run either:
+                  ssh-add
+              to load SSH keys with default filenames or:
+                  ssh-add ~/.ssh/<your-key-name>
+              to load an SSH key with a custom filename.
+              Then verify again with:
+                  ssh-add -L
+              If your SSH agent is not active activate it according to your OS e.g.:
+                  ssh-agent bash
+              or:
+                  eval "$(ssh-agent -s)"
+              then load your SSH keys with ssh-add as described above.
+          when: ssh_add_result.failed | default(False)
+
+        - name: Include setting SSH authentication socket on delegated host
+          include_tasks: tasks/portal-dirs-sync-get-ssh-auth-sock.yml
+          loop: "{{ portal_sync_list }}"
+
+        # Forward SSH agent from the destination remote host to the rsync container
+        # using SSH_AUTH_SOCK and start rsync containers on source and destination
+        # hosts.
+        - name: Sync source and destination directories
+          community.docker.docker_container:
+            # This docker container (incl. volumes) is run on the destination host.
+            name: rsync
+            image: "{{ rsync_docker_image }}"
+            volumes:
+              - "{{ webportal_user_home_dir }}/.ssh:/root/.ssh"
+              - "{{ hostvars[item.dest_host].ssh_auth_sock }}:/ssh-agent"
+              - "{{ webportal_user_home_dir }}:/mnt"
+            env:
+              SSH_AUTH_SOCK: "/ssh-agent"
+            # Command defined in --rsync-path is executed on the source host.
+            command: >
+              rsync -avz
+                {{ '--delete' if item.dest_remove_extra_files | default(False) }}
+                --rsync-path="docker run --rm -i -v '{{ webportal_user_home_dir }}/.ssh:/root/.ssh' -v '{{ webportal_user_home_dir }}:/mnt' {{ rsync_docker_image }} rsync"
+                "{{ webportal_user}}@{{ hostvars[item.src_host].ansible_host }}:/mnt/{{ item.src_dir }}/"
+                "/mnt/{{ item.dest_dir}}"
+            container_default_behavior: no_defaults
+            detach: False
+            cleanup: True
+          delegate_to: "{{ item.dest_host }}"
+          loop: "{{ portal_sync_list }}"
+      run_once: True

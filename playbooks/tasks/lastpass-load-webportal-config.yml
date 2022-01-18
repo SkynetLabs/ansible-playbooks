@@ -1,5 +1,4 @@
 ---
-
 # Load portal configs from LastPass
 
 # Portal common and server configs are loaded and set always.
@@ -22,9 +21,29 @@
     - lastpass_path: "{{ lastpass_portal_config_cluster }}"
       var_name: webportal_cluster_config
 
+- name: Load jwks.json from Lastpass
+  include_tasks: tasks/lastpass-load-json-note.yml
+  loop:
+    - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
+      var_name: accounts_jwks_data
+
+- name: Set portal cluster config missing variables to default values
+  set_fact:
+    webportal_cluster_config: "{{ webportal_cluster_config | combine({item.key: item.value}) }}"
+  when: webportal_cluster_config[item.key] is not defined
+  loop: "{{ webportal_cluster_config_defaults | dict2items }}"
+  no_log: True
+
 - name: Update portal common config with portal cluster config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | combine(webportal_cluster_config | default({}), recursive=True) }}"
+
+- name: Set portal common config missing variables to default values
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | combine({item.key: item.value}) }}"
+  when: webportal_common_config[item.key] is not defined
+  loop: "{{ webportal_common_config_defaults | dict2items }}"
+  no_log: True
 
 - name: Reset portal cluster config (portal common config should be used instead)
   set_fact:

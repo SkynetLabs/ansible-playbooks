@@ -1,0 +1,21 @@
+# Send funds to the webportal
+
+# Need current host wallet address
+- name: Get wallet address from destination host
+  ansible.builtin.command: "docker exec sia siac wallet address"
+  register: docker_wallet_address_result
+
+# Pull the wallet address from stdout
+- name: Grab Address From stdout
+  set_fact:
+    wallet_address: "{{ docker_wallet_address_result.stdout | replace('Created new address: ','') }}"
+  when: docker_wallet_address_result is defined
+
+# Send amount defined in vars file from remote host to current host
+- name: Send Funds
+  ansible.builtin.command: "docker exec sia siac wallet send siacoins {{ wallet_fund_amount }} {{ wallet_address }}"
+  when:
+    - wallet_address is defined
+    - wallet_fund_amount is defined
+    - funding_portal is defined
+  delegate_to: "{{ funding_portal }}"

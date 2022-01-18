@@ -26,8 +26,8 @@
         apply:
           become: True
     
-    - name: Include firewall setup
-      include_tasks: tasks/portal-firewall-setup.yml
+    - name: Include setting ufw firewall
+      include_tasks: tasks/portal-firewall-ufw-setup.yml
       args:
         apply:
           become: True
@@ -132,7 +132,7 @@
             state: absent
 
       when: webportal_setup_dotfiles_and_dev_tools
-      
+
     - name: Include role to setup Skynet Webportal
       include_role:
         name: skynetlabs.skynet_webportal

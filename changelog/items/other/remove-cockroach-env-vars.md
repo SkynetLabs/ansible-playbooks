@@ -1,0 +1,1 @@
+- Remove CockroachDB variables from `.env` template.

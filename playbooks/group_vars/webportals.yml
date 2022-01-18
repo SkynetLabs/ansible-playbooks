@@ -47,9 +47,15 @@ local_networks_denied:
 
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
-lastpass_portal_config_common: "{{ lastpass_ansible_dir }}/portal-common-configs/common.yml"
-lastpass_portal_config_cluster: "{{ lastpass_ansible_dir }}/portal-cluster-configs/cluster-{{ portal_cluster_id }}.yml"
-lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/portal-server-configs/{{ inventory_hostname }}.yml"
+lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
+lastpass_portal_config_common_subfolder: "portal-common-configs"
+lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+lastpass_portal_config_server_subfolder: "portal-server-configs"
+lastpass_portal_config_common: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
+lastpass_portal_config_cluster: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}/jwks.json"
 
 # Portal paths settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
@@ -64,6 +70,7 @@ mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
 mongo_db_dir: "{{ mongo_data_dir }}/db"
 mongo_backups_dir: "{{ mongo_data_dir }}/backups"
 mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
+accounts_jwks_path: "{{ webportal_dir }}/docker/accounts/conf/jwks.json"
 
 # Default service ports
 default_mongo_port: 27017
@@ -86,14 +93,14 @@ webportal_git_config:
   - name: user.name
     value: "SkynetLabs Devs"
   - name: user.email
-    value: "{{ skynetlabs_devs_email }}"
+    value: "{{ git_checkout_email }}"
 
 # TODO: default in role: False
 webportal_setup_dotfiles_and_dev_tools: True
 
 # TODO: move to role default vars
 webportal_allowance:
-  amount: 100KS
+  amount: 10KS
   expected_storage: 10TB
   expected_upload: 4TB
   expected_download: 2TB
@@ -110,6 +117,13 @@ webportal_server_config_defaults:
   sia_wallet_password: ""
   sia_api_port: 9980
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
+
+webportal_cluster_config_defaults:
+  cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+  cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+
+webportal_common_config_defaults:
+  blocker_log_level: "info"
 
 # TODO: move to role default vars
 # TODO: default to: False
@@ -131,6 +145,8 @@ webportal_docker_compose_files_optional:
   - "docker-compose.accounts.yml"
   - "docker-compose.blocker.yml"
   - "docker-compose.jaeger.yml"
+  - "docker-compose.malware-scanner.yml"
+  - "docker-compose.abuse.yml"
   - "docker-compose.override.yml"
 
 # Dictionary of optional portal modules defining which docker-compose files
@@ -140,6 +156,8 @@ webportal_docker_compose_files_dict:
   b: "docker-compose.blocker.yml"
   j: "docker-compose.jaeger.yml"
   m: "docker-compose.mongodb.yml"
+  s: "docker-compose.malware-scanner.yml"
+  u: "docker-compose.abuse.yml"
 
 webportal_other_config_files:
   - ".env"
@@ -188,3 +206,6 @@ renter_log_lines:
   - "pt not ready yet for worker"
   - "HEALTH LOOP VERBOSE"
   - "dirupdatebatch completed"
+
+# Host migrations, sync
+rsync_docker_image: "instrumentisto/rsync-ssh:alpine3.15-r0"
