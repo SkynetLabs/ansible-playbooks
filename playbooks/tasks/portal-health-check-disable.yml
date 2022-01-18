@@ -12,6 +12,13 @@
   # NOTE: portal_action is defined by the playbook, i.e. for deploys,
   # portal_action='portal-deploy'
   command: 'docker exec health-check cli disable "{{ out_of_lb_message | default(portal_action) }}"'
+  register: docker_health_check_disable_result
+  # Only fail the task if there is an error reported to stderr, unless it
+  # is that the container is restarting, since that means the health check isn't
+  # active already.
+  failed_when:
+    - docker_health_check_disable_result.stderr != ''
+    - docker_health_check_disable_result.stderr.find("restarting") == -1
   # Only execute the CLI command if the container is up and running. Otherwise,
   # if it is not up and running, it is practically disabled.
   when:
