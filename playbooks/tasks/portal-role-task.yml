@@ -31,6 +31,14 @@
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
 
+# TODO: NOTE WIP:
+# Extract all to new mongo-setup.yml
+# - setup docker
+# - check rs status
+# - init rs (if not done), will incl. first primary
+# - add non-voting members
+# - add voting members (till first 7)
+
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
 # skyd depends on mongo.
@@ -40,6 +48,9 @@
 
 - name: Include setting MongoDB docker service
   include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
+
+- name: Include getting MongoDB replicaset status
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
 
 # Init, unlock wallet
 
