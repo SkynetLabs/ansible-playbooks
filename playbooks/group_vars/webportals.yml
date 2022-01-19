@@ -113,7 +113,7 @@ webportal_allowance:
 webportal_server_config_defaults:
   domain_name: "{{ ansible_host }}"
   portal_name: "{{ ansible_host }}"
-  portal_modules: "m"
+  portal_modules: ""
   sia_wallet_password: ""
   sia_api_port: 9980
   sia_api_password: "{{ lookup('pipe','openssl rand -base64 32') }}"
