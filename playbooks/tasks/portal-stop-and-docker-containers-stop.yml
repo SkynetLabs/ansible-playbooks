@@ -1,0 +1,35 @@
+---
+
+# Stop portal services and all other docker containers
+
+- name: Check if docker is available
+  shell: type docker
+  ignore_errors: True
+  register: docker_result
+
+- block:
+    # Stop possible portal services
+
+    - name: Check skynet-webportal/docker-compose.yml file(s) exists
+      ansible.builtin.stat:
+        path: "{{ webportal_dir }}/{{ webportal_docker_compose_files_mandatory[0] }}"
+      register: docker_compose_stat_result
+
+    - name: Include disabling health check and stopping portal docker services
+      include_tasks: tasks/portal-stop.yml
+      when: docker_compose_stat_result.stat.exists
+
+    # Stop all other possible docker containers
+    
+    - name: Get docker containers info
+      community.docker.docker_host_info:
+        containers: True
+      register: docker_host_info_result
+
+    - name: Stop all docker containers
+      community.docker.docker_container:
+        name: "{{ item }}"
+        state: stopped
+        container_default_behavior: no_defaults
+      loop: "{{ docker_info.containers | map(attribute='Id') | list }}"
+  when: docker_result.rc == 0

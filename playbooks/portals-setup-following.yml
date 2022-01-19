@@ -31,6 +31,9 @@
       args:
         apply:
           become: True
+
+    - name: Include stopping portal and other docker containers (if exist)
+      include_tasks: tasks/port-stop-and-docker-containers-stop.yml
     
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
