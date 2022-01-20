@@ -1,7 +1,0 @@
-# The number of times the portal will check for downloads before shutting down
-# the docker services after disabling the health checks.
-portal_download_check_num_retries: 60
-
-# The number of times the portal will check for uploads before shutting down the
-# docker services after disabling the health checks.
-portal_upload_check_num_retries: 60
