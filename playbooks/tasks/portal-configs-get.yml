@@ -1,5 +1,4 @@
 ---
-
 # Get portal configs
 # - Load portal configs from secrets backend (e.g. LastPass)
 # - Set default values (for unset keys)
@@ -25,6 +24,19 @@
   loop: "{{ webportal_server_config_defaults | dict2items }}"
   no_log: True
 
+# If the common/cluster config hasn't been yet saved to secrets backend, it is
+# loaded as undefined now and we set it to empty dictionary.
+- name: Set common/cluster config to empty (if it hasn't yet been saved to secrets backend)
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | default({}) }}"
+
+- name: Set portal common/cluster config missing variables to default values
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | combine({item.key: item.value}) }}"
+  when: webportal_common_config[item.key] is not defined
+  loop: "{{ webportal_common_config_defaults | dict2items }}"
+  no_log: True
+
 # Get MongoDB config
 # NOTE: Server config preference:
 # Some MongoDB configuration can be set at common (cluster) level or at
@@ -36,6 +48,9 @@
     mongodb_config_keys_server_preference:
       - skynet_db_user
       - skynet_db_pass
+      - skynet_db_host
+      - skynet_db_port
+      - skynet_db_replicaset
 
 - name: Set MongoDB config with preference of server config over common config
   set_fact:

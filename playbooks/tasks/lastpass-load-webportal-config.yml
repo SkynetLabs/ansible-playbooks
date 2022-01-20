@@ -3,6 +3,7 @@
 # Load portal configs from LastPass
 
 # Load server config
+
 - name: Include loading server config from LastPass
   include_tasks: tasks/lastpass-load-yaml-note.yml
   loop:
@@ -33,3 +34,11 @@
   set_fact:
     webportal_common_config: "{{ webportal_common_config | default({}) | combine(lookup('vars', item), recursive=True) }}"
   loop: "{{ common_cluster_configs_var_names }}"
+
+# Load jwks.json
+
+- name: Load jwks.json from Lastpass
+  include_tasks: tasks/lastpass-load-json-note.yml
+  loop:
+    - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
+      var_name: accounts_jwks_data

@@ -33,7 +33,7 @@
 - block:
     - name: Get LastPass data
       set_fact:
-        lastpass_data: "{{ lookup('community.general.lastpass', item.lastpass_path, field='notes') | from_yaml }}"
+        lastpass_data: "{{ lookup('community.general.lastpass', item.lastpass_path, field='notes') | from_json }}"
 
     - name: Set variable value from LastPass data
       set_fact:
