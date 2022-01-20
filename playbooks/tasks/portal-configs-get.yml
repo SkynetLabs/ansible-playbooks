@@ -6,6 +6,8 @@
 # - Set mongodb flag
 # - Set mongodb config (if mongodb is on)
 # - Set accounts flag
+# - Set blocker flag
+# - Set abuse flag
 
 - name: Include loading portal config
   include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
