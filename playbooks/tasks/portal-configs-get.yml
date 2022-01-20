@@ -1,5 +1,4 @@
 ---
-
 # Get portal configs
 # - Load portal configs from secrets backend (e.g. LastPass)
 # - Set default values (for unset keys)
@@ -34,6 +33,9 @@
     mongodb_config_keys_server_preference:
       - skynet_db_user
       - skynet_db_pass
+      - skynet_db_host
+      - skynet_db_port
+      - skynet_db_replicaset
 
 - name: Set MongoDB config with preference of server config over common config
   set_fact:

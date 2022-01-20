@@ -116,13 +116,21 @@ webportal_server_config_defaults:
   portal_modules: ""
   sia_wallet_password: ""
   sia_api_port: 9980
+  sia_api_password: "{{ lookup('pipe','openssl rand -base64 32') }}"
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
 
 webportal_cluster_config_defaults:
   cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
   cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+  skynet_db_host: "mongo"
+  skynet_db_pass: "{{ lookup('pipe','openssl rand -base64 32') }}"
+  skynet_db_port: "{{ default_mongo_port }}"
+  skynet_db_replicaset: "skynet"
+  skynet_db_user: "admin"
 
 webportal_common_config_defaults:
+  abuse_log_level: "info"
+  accounts_log_level: "info"
   blocker_log_level: "info"
 
 # TODO: move to role default vars
