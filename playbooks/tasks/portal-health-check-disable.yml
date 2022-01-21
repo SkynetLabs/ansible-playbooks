@@ -47,11 +47,12 @@
         docker_renter_uploads.stdout.find("No files are uploading.") != -1 or
         docker_renter_uploads.stderr.find("490 Module not loaded") != -1 or
         docker_renter_uploads.stderr.find("restarting") != -1
-      # Retry every 5 seconds for portal_upload_check_num_retries, in prod this
-      # is 60 times which is where the 5 minutes is determined in the above
-      # comment.
-      delay: 5
-      retries: "{{ portal_upload_check_num_retries }}"
+      # Retry every 5 seconds for portal_upload_check_wait_secs seconds.
+      vars:
+        delay_secs: 5
+        retries: "{{ (portal_upload_check_wait_secs / delay_secs) | int }}"
+      delay: "{{ delay_secs }}"
+      retries: "{{ retries }}"
       # Only fail the task if there is an error reported to stderr, unless it
       # is the Module not loaded error. Otherwise we will continue on after the
       # retries are complete.
@@ -70,11 +71,12 @@
         docker_renter_downloads.stdout.find("No files are downloading.") != -1 or
         docker_renter_downloads.stderr.find("490 Module not loaded") != -1 or
         docker_renter_downloads.stderr.find("restarting") != -1
-      # Retry every 5 seconds for portal_download_check_num_retries, in prod
-      # this is 60 times which is where the 5 minutes is determined in the above
-      # comment.
-      delay: 5
-      retries: "{{ portal_download_check_num_retries }}"
+      # Retry every 5 seconds for portal_download_check_wait_secs seconds.
+      vars:
+        delay_secs: 5
+        retries: "{{ (portal_download_check_wait_secs / delay_secs) | int }}"
+      delay: "{{ delay_secs }}"
+      retries: "{{ retries }}"
       # Only fail the task if there is an error reported to stderr, unless it
       # is the Module not loaded error. Otherwise we will continue on after the
       # retries are complete.

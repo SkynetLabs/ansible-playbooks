@@ -17,9 +17,9 @@
   loop: "{{ webportal_git_config }}"
 
 - name: Include getting portal configs
-  include_tasks: tasks/portal-configs-get.yml
+  include_tasks: tasks/portal-configs-load.yml
 
-- name: Include saving portal config
+- name: Include saving portal configs
   include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
 
 # TODO: add subdomain check (only install portal to subdomain for now)
@@ -30,12 +30,13 @@
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
 
-# Save JWKS file to accounts
-- name: Save jwks.json file
-  ansible.builtin.copy:
-    dest: "{{ accounts_jwks_path }}"
-    content: "{{ accounts_jwks_data }}"
-  become: True
+# # xxxqqq jwks should be cluster specific
+# # Save JWKS file to accounts
+# - name: Save jwks.json file
+#   ansible.builtin.copy:
+#     dest: "{{ accounts_jwks_path }}"
+#     content: "{{ accounts_jwks_data }}"
+#   become: True
 
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because

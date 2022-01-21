@@ -2,18 +2,17 @@
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: True
-  serial: 1              # Limit concurrency
+  serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
-  vars:                  # Playbook specific vars
+  vars: # Playbook specific vars
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
     portal_action: "portal-setup"
 
   tasks:
-    
     - name: Check '--limit' is used
       include_tasks: tasks/host-limit-check.yml
-    
+
     - name: Check supported OS and version
       assert:
         that:
@@ -25,19 +24,22 @@
       args:
         apply:
           become: True
-    
+
     - name: Include setting ufw firewall
       include_tasks: tasks/portal-firewall-ufw-setup.yml
       args:
         apply:
           become: True
-    
+
+    - name: Include stopping portal and other docker containers (if exist)
+      include_tasks: tasks/portal-stop-and-docker-containers-stop.yml
+
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
 
     - name: Include getting log filename prefix
       include_tasks: tasks/portal-get-log-filename-prefix.yml
-    
+
     - name: Include getting Ansible repo branch and commit
       include_tasks: tasks/playbook-version-get.yml
 
@@ -46,22 +48,21 @@
 
     # Setup environment (dotfiles) and dev tools
     - block:
-        
         # Setup environment (dotfiles)
 
         - name: Set dotfiles git dir
           set_fact:
             dotfiles_git_dir: "{{ webportal_user_home_dir }}/.dotfiles.git"
-        
+
         - name: Delete dotfile git directory
           ansible.builtin.file:
             path: "{{ dotfiles_git_dir }}"
             state: absent
-        
+
         - name: Set dotfiles git temporary directory
           set_fact:
             dotfiles_git_tmp_dir: "{{ webportal_user_home_dir }}/dotfilegit-tmp"
-        
+
         - name: Checkout SkynetLabs dotfiles
           ansible.builtin.git:
             repo: "{{ dotfiles_repo_url }}"
@@ -69,22 +70,22 @@
             version: init
             separate_git_dir: "{{ dotfiles_git_dir }}"
             force: True
-        
+
         - name: Delete dotfile git temporary directory
           ansible.builtin.file:
             path: "{{ dotfiles_git_tmp_dir }}"
             state: absent
-        
+
         - name: Set dotfiles command
           set_fact:
             dotfiles_command: /usr/bin/git --git-dir={{ dotfiles_git_dir }} --work-tree={{ webportal_user_home_dir }}
-        
+
         - name: Config dotfiles
           command: "{{ dotfiles_command }} config status.showUntrackedFiles no"
-        
+
         - name: Load dotfiles to user home
           command: "{{ dotfiles_command }} reset --hard HEAD"
-        
+
         # Setup dev tools
 
         - name: Run apt-get update
@@ -92,7 +93,7 @@
             update_cache: yes
             cache_valid_time: 900
           become: True
-        
+
         - name: Install dev tools
           apt:
             name: "{{ item }}"
@@ -111,7 +112,7 @@
             - curl
             - awscli
           become: True
-        
+
         # Setup terminfo for alacritty terminal via ssh
 
         - name: Download alacritty.info
@@ -119,13 +120,13 @@
             url: https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info
             dest: "{{ webportal_user_home_dir }}/alacritty.info"
             force: True
-        
+
         - name: Compile allacrity
           ansible.builtin.command:
             cmd: tic -xe alacritty,alacritty-direct alacritty.info
             chdir: "{{ webportal_user_home_dir }}"
           become: True
-        
+
         - name: Remove alacritty.info
           ansible.builtin.file:
             path: "{{ webportal_user_home_dir }}/alacritty.info"
@@ -139,20 +140,17 @@
       vars:
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
-    
-     # TODO: remove these after moved to role - begin
+
+      # TODO: remove these after moved to role - begin
 
     - set_fact:
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
-
-    - set_fact:
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
 
     - name: xxx include role task
       include_tasks: tasks/portal-role-task.yml
-    
-     # TODO: remove these after moved to role - end
+
+      # TODO: remove these after moved to role - end
 
   handlers:
-    
     - import_tasks: handlers/main.yml

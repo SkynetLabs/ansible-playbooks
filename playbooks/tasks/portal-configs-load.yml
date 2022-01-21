@@ -5,6 +5,8 @@
 # - Set mongodb flag
 # - Set mongodb config (if mongodb is on)
 # - Set accounts flag
+# - Set blocker flag
+# - Set abuse flag
 
 - name: Include loading portal config
   include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
@@ -17,10 +19,39 @@
 
 - name: Set portal config missing variables to default values
   set_fact:
-    webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}) }}"
+    webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}, recursive=True) }}"
   when: webportal_server_config[item.key] is not defined
   loop: "{{ webportal_server_config_defaults | dict2items }}"
   no_log: True
+
+# If the common/cluster config hasn't been yet saved to secrets backend, it is
+# loaded as undefined now and we set it to empty dictionary.
+- name: Set common/cluster config to empty (if it hasn't yet been saved to secrets backend)
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | default({}) }}"
+    webportal_common_config_last: "{{ webportal_common_config_last | default({}) }}"
+
+- debug:
+    msg: |
+      webportal_common_config before defaults:
+      {{ webportal_common_config | to_nice_yaml }}
+
+- name: Set portal common/cluster config missing variables to default values to the last config
+  set_fact:
+    webportal_common_config_last: "{{ webportal_common_config_last | combine({item.key: item.value}, recursive=True) }}"
+  when: webportal_common_config[item.key] is not defined
+  loop: "{{ webportal_common_config_defaults | dict2items }}"
+  no_log: True
+  register: cluster_config_missing_values_result
+
+- debug:
+    msg: |
+      xxxqqq: miss/def vals res:
+      {{ cluster_config_missing_values_result | to_nice_yaml }}
+
+- name: Merge missing values to the common/cluster config
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | combine(webportal_common_config_last, recursive=True) }}"
 
 # Get MongoDB config
 # NOTE: Server config preference:
@@ -31,11 +62,16 @@
 - name: Set MongoDB config keys with preference of server config over common config
   set_fact:
     mongodb_config_keys_server_preference:
-      - skynet_db_user
-      - skynet_db_pass
       - skynet_db_host
       - skynet_db_port
+      - skynet_db_user
+      - skynet_db_pass
       - skynet_db_replicaset
+      # Other MongoDB keys (e.g. skynet_db_user/pass/replicaset) can't be set
+      # on server level (different for each Mongo server) because they are
+      # shared through the whole cluster/replicaset.
+      #
+      # NOTE MSevey: they need to be defined here or there are errors in env generation
 
 - name: Set MongoDB config with preference of server config over common config
   set_fact:
