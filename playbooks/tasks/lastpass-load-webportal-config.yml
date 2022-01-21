@@ -44,10 +44,10 @@
       {{ config_0 }}
 
       c1:
-      {{ config_1 }}
+      {{ config_1 | default('not def')}}
 
       c1 val:
-      {{ lookup('vars', 'config_1') }}
+      {{ lookup('vars', 'config_1', default='not-def') }}
 
 - name: Create complete webportal common config
   set_fact:

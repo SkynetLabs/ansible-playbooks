@@ -26,7 +26,7 @@
 - name: Check if LastPass item exists
   local_action:
     module: ansible.builtin.command
-    cmd: "lpass ls {{ item.lastpass_path }}"
+    cmd: "lpass ls --sync now {{ item.lastpass_path }}"
   register: lastpass_ls_result
   changed_when: False
 
