@@ -147,8 +147,6 @@
 
     - set_fact:
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
-
-    - set_fact:
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
 
     - name: xxx include role task

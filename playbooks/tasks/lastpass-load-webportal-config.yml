@@ -11,34 +11,71 @@
       var_name: webportal_server_config
 
 # Load common/cluster configs defined in a list
+
 # lastpass_portal_common_and_cluster_configs_list defines a list of common/
 # cluster configs to load. Former config valuess can be overriden by later
 # config values.
 
 - name: Generate list of LastPass paths and variable names
   set_fact:
-    common_cluster_configs: "{{ common_cluster_configs | default([]) + [{'lastpass_path': item, 'var_name': 'config_' + config_index | string}] }}"
+    lastpass_common_cluster_configs: "{{ lastpass_common_cluster_configs | default([]) + [{'lastpass_path': item, 'var_name': 'config_' + config_index | string}] }}"
   loop: "{{ lastpass_portal_common_and_cluster_configs_list }}"
   loop_control:
     index_var: config_index
   
 - name: Include loading common/cluster configs from LastPass
   include_tasks: tasks/lastpass-load-yaml-note.yml
-  loop: "{{ common_cluster_configs }}"
+  loop: "{{ lastpass_common_cluster_configs }}"
 
 - name: Create list of configs variable names
   set_fact:
-    common_cluster_configs_var_names: "{{ common_cluster_configs | map(attribute='var_name') }}"
+    lastpass_common_cluster_configs_var_names: "{{ lastpass_common_cluster_configs | map(attribute='var_name') }}"
 
-- name: Create final webportal common config
+# xxxqqq debug
+- debug:
+    msg: |
+      cfgs list:
+      {{ lastpass_portal_common_and_cluster_configs_list }}
+
+      lp vars:
+      {{ lastpass_common_cluster_configs_var_names }}
+
+      c0:
+      {{ config_0 }}
+
+      c1:
+      {{ config_1 }}
+
+      c1 val:
+      {{ lookup('vars', 'config_1') }}
+
+- name: Create complete webportal common config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | default({}) | combine(lookup('vars', item), recursive=True) }}"
-  loop: "{{ common_cluster_configs_var_names }}"
+  # We can skip last config if it is not defined, because Ansible will generate
+  # it. We shouldn't skip previous configs as this seems like misconfiguration.
+  when: not ((item == lastpass_common_cluster_configs_var_names | last) and lookup('vars', item, default='not-defined') == 'not-defined')
+  loop: "{{ lastpass_common_cluster_configs_var_names }}"
 
-# Load jwks.json
+# webportal_common_config contains all common/cluster config values from the
+# LastPass configs list. webportal_common_config_last config contains config
+# values from the last config in the list. We will later set default/missing
+# values to this config and will save this config to LastPass.
+- name: Create last (least specific) webportal common/cluster config
+  set_fact:
+    webportal_common_config_last: "{{ lookup('vars', lastpass_common_cluster_configs_var_names | last, default={}) }}"
 
-- name: Load jwks.json from Lastpass
-  include_tasks: tasks/lastpass-load-json-note.yml
-  loop:
-    - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
-      var_name: accounts_jwks_data
+# xxxqqq debug
+- debug:
+    msg: |
+      cfg last:
+      {{ webportal_common_config_last }}
+
+# # xxxqqq jwks should be cluster specific
+# # Load jwks.json
+
+# - name: Load jwks.json from Lastpass
+#   include_tasks: tasks/lastpass-load-json-note.yml
+#   loop:
+#     - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
+#       var_name: accounts_jwks_data

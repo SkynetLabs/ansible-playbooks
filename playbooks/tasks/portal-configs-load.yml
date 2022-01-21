@@ -19,7 +19,7 @@
 
 - name: Set portal config missing variables to default values
   set_fact:
-    webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}) }}"
+    webportal_server_config: "{{ webportal_server_config | combine({item.key: item.value}, recursive=True) }}"
   when: webportal_server_config[item.key] is not defined
   loop: "{{ webportal_server_config_defaults | dict2items }}"
   no_log: True
@@ -29,13 +29,29 @@
 - name: Set common/cluster config to empty (if it hasn't yet been saved to secrets backend)
   set_fact:
     webportal_common_config: "{{ webportal_common_config | default({}) }}"
+    webportal_common_config_last: "{{ webportal_common_config_last | default({}) }}"
 
-- name: Set portal common/cluster config missing variables to default values
+- debug:
+    msg: |
+      webportal_common_config before defaults:
+      {{ webportal_common_config | to_nice_yaml }}
+
+- name: Set portal common/cluster config missing variables to default values to the last config
   set_fact:
-    webportal_common_config: "{{ webportal_common_config | combine({item.key: item.value}) }}"
+    webportal_common_config_last: "{{ webportal_common_config_last | combine({item.key: item.value}, recursive=True) }}"
   when: webportal_common_config[item.key] is not defined
   loop: "{{ webportal_common_config_defaults | dict2items }}"
   no_log: True
+  register: cluster_config_missing_values_result
+
+- debug:
+    msg: |
+      xxxqqq: miss/def vals res:
+      {{ cluster_config_missing_values_result | to_nice_yaml }}
+
+- name: Merge missing values to the common/cluster config
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | combine(webportal_common_config_last, recursive=True) }}"
 
 # Get MongoDB config
 # NOTE: Server config preference:
