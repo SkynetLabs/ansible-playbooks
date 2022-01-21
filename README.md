@@ -539,10 +539,6 @@ To run:
 
 ### Setup Portal from Scratch
 
-Work in progress:  
-The setup playbooks currently setup single portal without Jaeger, Accounts and
-cluster.
-
 Setup process requires 3 playbooks:
 
 - `portals-setup-initial.sh` (run once)
@@ -569,7 +565,7 @@ Playbook (as `root`):
 
 - Installs `sudo`
 - Creates passworded user
-- Adds SSH keys from `skynet-webportal` repo
+- Adds SSH keys from `skynet-webportal` repo (defined by `webportal_user_authorized_keys` variable in `my-vars/config.yml`)
 - Performs basic security setup
   - Disables `root` access, ...
 
@@ -578,7 +574,7 @@ This playbook can be run successfully just once, then root access is disabled.
 Execute (e.g. on `eu-fin-5`):  
 `scripts/portals-setup-initial.sh --limit eu-fin-5`
 
-If you are using any no default variable values, i.e. LastPass folder names,
+If you are using any no default variable values, i.e. LastPass folder names or `webportal_user_authorized_keys`,
 include your config file in the command.
 `scripts/portals-setup-initial.sh -e @my-vars/config.yml --limit eu-fin-5`
 
