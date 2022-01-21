@@ -1,5 +1,4 @@
 ---
-
 # Stop portal services and all other docker containers
 
 - name: Check if docker is available
@@ -20,7 +19,7 @@
       when: docker_compose_stat_result.stat.exists
 
     # Stop all other possible docker containers
-    
+
     - name: Get docker containers info
       community.docker.docker_host_info:
         containers: True
@@ -31,5 +30,5 @@
         name: "{{ item }}"
         state: stopped
         container_default_behavior: no_defaults
-      loop: "{{ docker_info.containers | map(attribute='Id') | list }}"
+      loop: "{{ docker_host_info_result.containers | map(attribute='Id') | list }}"
   when: docker_result.rc == 0
