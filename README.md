@@ -782,3 +782,43 @@ Fix:
 Execute `scripts/lastpass-login.sh`.
 
 For more details see: [Playbook Execution > LastPass Login](#lastpass-login).
+
+### Host not found
+
+There are a few errors are can happen that are both related to a host not being found in the `hosts.ini` file.
+
+Example 1:
+```
+% ./scripts/portals-ping.sh --limit sev1
+Stopping Ansible Control Machine...
+Starting Ansible Control Machine...
+Ansible requirements (roles and collections) are up-to-date
+Executing:
+    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user --limit sev1 
+in a docker container...
+[WARNING]: Could not match supplied host pattern, ignoring: sev1
+ERROR! Specified hosts and/or --limit does not match any hosts
+ERROR: Error 1
+```
+
+Example 2:
+```
+❯ scripts/portals-ping.sh 
+Ansible Control Machine is running
+Ansible requirements (roles and collections) are up-to-date
+Executing:
+    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user  
+in a docker container...
+[WARNING]: Unable to parse /tmp/ansible-private/inventory/hosts.ini as an
+inventory source
+[WARNING]: No inventory was parsed, only implicit localhost is available
+[WARNING]: provided hosts list is empty, only localhost is available. Note that
+the implicit localhost does not match 'all'
+[WARNING]: Could not match supplied host pattern, ignoring: webportals
+SUCCESS: Command finished successfully
+```
+
+This can happen if the `ansiblecm` was started when you were not at the expected relative directory to `ansible-private` or started ansible before the directory existed. The fix is to stop `ansbilecm` and re-run the command.
+```
+docker stop ansiblecm
+```
