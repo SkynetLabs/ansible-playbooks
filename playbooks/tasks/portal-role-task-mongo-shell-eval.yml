@@ -10,8 +10,8 @@
     login_host: "{{ 'localhost' if (subcrap_mongo_port is not defined) else ansible_host }}"
     # Use default port unless on subcrap test cluster
     login_port: "{{ subcrap_mongo_port | default(default_mongo_port | string) }}"
-    login_user: "{{ mongodb_config.skynet_db_user }}"
-    login_password: "{{ mongodb_config.skynet_db_pass }}"
+    login_user: "{{ webportal_common_config.skynet_db_user }}"
+    login_password: "{{ webportal_common_config.skynet_db_pass }}"
     mongo_cmd: "docker exec mongo mongo"
     eval: "{{ mongodb_shell.eval }}"
     # transformed_output can't be parsed correctly by this module, keep it raw
