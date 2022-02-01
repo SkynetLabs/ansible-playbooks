@@ -124,6 +124,8 @@ webportal_server_config_defaults:
   sia_api_password: "{{ lookup('pipe','openssl rand -base64 32') }}"
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
   server_uid: "{{ lookup('pipe','openssl rand -hex 8') }}"
+  accounts_test_user_email: "{{ lookup('pipe','openssl rand -hex 8') }}@test.com"
+  accounts_test_user_password: "{{ lookup('pipe','openssl rand -hex 8') }}"
 
 webportal_common_config_defaults:
   abuse_log_level: "info"
