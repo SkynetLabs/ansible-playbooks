@@ -1,5 +1,4 @@
 ---
-
 # Clean Portal sia/renter/renter.log file
 
 # Note: This task should be performed while sia is stopped
@@ -13,6 +12,11 @@
   debug:
     msg: "{{ inventory_hostname + ' renter.log cleaning start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
 
+# This action cleans the renter log by removing lines with the sed tool in order
+# to shrink the log size
+#
+# NOTE: To update the lines that are pruned, update the renter_log_lines
+# variable
 - name: Clean renter.log file
   community.docker.docker_container:
     name: clean-renter-logs
@@ -23,7 +27,4 @@
     container_default_behavior: no_defaults
     detach: False
     auto_remove: True
-  loop:
-    - "pt not ready yet for worker"
-    - "HEALTH LOOP VERBOSE"
-    - "dirupdatebatch completed"
+  loop: "{{ renter_log_lines }}"
