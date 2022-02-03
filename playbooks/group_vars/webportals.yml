@@ -120,6 +120,7 @@ webportal_server_config_defaults:
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
 
 webportal_cluster_config_defaults:
+  s3_backup_path: ""
   cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
   cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
   skynet_db_host: "mongo"
