@@ -44,11 +44,6 @@
   no_log: True
   register: cluster_config_missing_values_result
 
-- debug:
-    msg: |
-      xxxqqq: miss/def vals res:
-      {{ cluster_config_missing_values_result | to_nice_yaml }}
-
 - name: Merge missing values to the common/cluster config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | combine(webportal_common_config_last, recursive=True) }}"

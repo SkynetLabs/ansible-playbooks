@@ -33,8 +33,13 @@ lastpass_ansible_dir: "Shared-Ansible"
 lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
 lastpass_portal_config_common_subfolder: "portal-common-configs"
 lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+# Common config is optional. It is useful if you run several clusters and want
+# to extract some common values from multiple cluster configs to a common
+# config. Otherwise you can use just one or several cluster configs.
+lastpass_portal_common_and_cluster_configs_list:
+  # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
+  - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
 lastpass_portal_config_server_subfolder: "portal-server-configs"
-
 
 ###############################################################################
 # SSH Access

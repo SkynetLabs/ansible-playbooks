@@ -31,8 +31,14 @@
         apply:
           become: True
 
+    - name: Check docker was setup
+      command: docker ps
+      register: docker_ps_result
+      ignore_errors: True
+
     - name: Include stopping portal and other docker containers (if exist)
       include_tasks: tasks/portal-stop-and-docker-containers-stop.yml
+      when: docker_ps_result.failed | default(False) != True
 
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml

@@ -30,13 +30,15 @@
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
 
-# # xxxqqq jwks should be cluster specific
-# # Save JWKS file to accounts
-# - name: Save jwks.json file
-#   ansible.builtin.copy:
-#     dest: "{{ accounts_jwks_path }}"
-#     content: "{{ accounts_jwks_data }}"
-#   become: True
+# xxxqqq
+- meta: end_host
+
+# Save JWKS file to accounts
+- name: Save jwks.json file
+  ansible.builtin.copy:
+    dest: "{{ accounts_jwks_path }}"
+    content: "{{ accounts_jwks_data }}"
+  become: True
 
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because

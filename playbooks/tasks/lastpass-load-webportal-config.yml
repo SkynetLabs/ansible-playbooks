@@ -31,24 +31,6 @@
   set_fact:
     lastpass_common_cluster_configs_var_names: "{{ lastpass_common_cluster_configs | map(attribute='var_name') }}"
 
-# xxxqqq debug
-- debug:
-    msg: |
-      cfgs list:
-      {{ lastpass_portal_common_and_cluster_configs_list }}
-
-      lp vars:
-      {{ lastpass_common_cluster_configs_var_names }}
-
-      c0:
-      {{ config_0 }}
-
-      c1:
-      {{ config_1 | default('not def')}}
-
-      c1 val:
-      {{ lookup('vars', 'config_1', default='not-def') }}
-
 - name: Create complete webportal common config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | default({}) | combine(lookup('vars', item), recursive=True) }}"
@@ -65,17 +47,10 @@
   set_fact:
     webportal_common_config_last: "{{ lookup('vars', lastpass_common_cluster_configs_var_names | last, default={}) }}"
 
-# xxxqqq debug
-- debug:
-    msg: |
-      cfg last:
-      {{ webportal_common_config_last }}
+# Load jwks.json
 
-# # xxxqqq jwks should be cluster specific
-# # Load jwks.json
-
-# - name: Load jwks.json from Lastpass
-#   include_tasks: tasks/lastpass-load-json-note.yml
-#   loop:
-#     - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
-#       var_name: accounts_jwks_data
+- name: Load jwks.json from Lastpass
+  include_tasks: tasks/lastpass-load-json-note.yml
+  loop:
+    - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
+      var_name: accounts_jwks_data
