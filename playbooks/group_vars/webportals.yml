@@ -127,7 +127,8 @@ webportal_server_config_defaults:
   accounts_test_user_email: "{{ lookup('pipe','openssl rand -hex 8') }}@example.com"
   accounts_test_user_password: "{{ lookup('pipe','openssl rand -hex 8') }}"
 
-webportal_common_config_defaults:
+webportal_cluster_config_defaults:
+  s3_backup_path: ""
   abuse_log_level: "info"
   accounts_log_level: "info"
   blocker_log_level: "info"
@@ -219,6 +220,13 @@ docker_services_exclude_waiting:
 local_logs_dir: "../my-logs"
 # Path relative to ./playbooks/vars directory
 private_vars_file: "../../../ansible-private/private-vars/private-vars.yml"
+
+# renter_log_lines defines the strings to match with sed to remove from the sia
+# renter.log file
+renter_log_lines:
+  - "pt not ready yet for worker"
+  - "HEALTH LOOP VERBOSE"
+  - "dirupdatebatch completed"
 
 # Host migrations, sync
 rsync_docker_image: "instrumentisto/rsync-ssh:alpine3.15-r0"
