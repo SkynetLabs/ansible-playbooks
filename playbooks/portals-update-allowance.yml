@@ -11,7 +11,7 @@
 
   # Define playbook vars
   vars:
-    max_hosts: "{{ groups['webportals_prod'] | length - 1 }}"
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
 
   tasks:
     # Check '--limit' is used
