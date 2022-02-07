@@ -19,6 +19,36 @@
           - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
         fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
 
+    # Stop docker services gracefully - begin
+    
+    # If we rerun this playbook on live/production server, we need to stop
+    # docker services gracefully (wait for uploads/downloads to finish) first
+    # before we continue with server setup, because setup might disrupt them.
+
+    # TODO: Handlers should be configured later as plugins (LastPass/plaintext/
+    # Docker secrets/Hashicorp Vault/...)
+    - name: Set load/save handlers for secure storage
+      set_fact:
+        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
+        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+
+    - name: Include getting portal configs
+      include_tasks: tasks/portal-configs-load.yml
+
+    - name: Include saving portal configs
+      include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+
+    - name: Check docker was setup
+      command: docker ps
+      register: docker_ps_result
+      ignore_errors: True
+
+    - name: Include stopping portal and other docker containers (if exist)
+      include_tasks: tasks/portal-stop-and-docker-containers-stop.yml
+      when: docker_ps_result.failed | default(False) != True
+
+    # Stop docker services gracefully - end
+
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
       args:
@@ -30,15 +60,6 @@
       args:
         apply:
           become: True
-
-    - name: Check docker was setup
-      command: docker ps
-      register: docker_ps_result
-      ignore_errors: True
-
-    - name: Include stopping portal and other docker containers (if exist)
-      include_tasks: tasks/portal-stop-and-docker-containers-stop.yml
-      when: docker_ps_result.failed | default(False) != True
 
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
@@ -143,15 +164,6 @@
     - name: Include role to setup Skynet Webportal
       include_role:
         name: skynetlabs.skynet_webportal
-      vars:
-        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
-        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
-
-      # TODO: remove these after moved to role - begin
-
-    - set_fact:
-        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
-        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
 
     - name: xxx include role task
       include_tasks: tasks/portal-role-task.yml

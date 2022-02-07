@@ -31,11 +31,6 @@
     webportal_common_config: "{{ webportal_common_config | default({}) }}"
     webportal_common_config_last: "{{ webportal_common_config_last | default({}) }}"
 
-- debug:
-    msg: |
-      webportal_common_config before defaults:
-      {{ webportal_common_config | to_nice_yaml }}
-
 - name: Set portal common/cluster config missing variables to default values to the last config
   set_fact:
     webportal_common_config_last: "{{ webportal_common_config_last | combine({item.key: item.value}, recursive=True) }}"

@@ -16,12 +16,6 @@
     value: "{{ item.value }}"
   loop: "{{ webportal_git_config }}"
 
-- name: Include getting portal configs
-  include_tasks: tasks/portal-configs-load.yml
-
-- name: Include saving portal configs
-  include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
-
 # TODO: add subdomain check (only install portal to subdomain for now)
 
 - name: Create .env file
@@ -29,9 +23,6 @@
     src: .env.j2
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
-
-# xxxqqq
-- meta: end_host
 
 # Save JWKS file to accounts
 - name: Save jwks.json file

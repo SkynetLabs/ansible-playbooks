@@ -127,7 +127,7 @@ webportal_server_config_defaults:
   accounts_test_user_email: "{{ lookup('pipe','openssl rand -hex 8') }}@example.com"
   accounts_test_user_password: "{{ lookup('pipe','openssl rand -hex 8') }}"
 
-webportal_cluster_config_defaults:
+webportal_common_config_defaults:
   s3_backup_path: ""
   abuse_log_level: "info"
   accounts_log_level: "info"
