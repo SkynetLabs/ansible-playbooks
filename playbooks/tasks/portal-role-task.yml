@@ -287,10 +287,10 @@
       --payment-contract-initial-funding {{ webportal_allowance.payment_contract_initial_funding }}
       --period {{ webportal_allowance.period }}
   register: set_allowance_result
-  when: allowance_is_not_set
   # Verify result to prevent mistakes and misconfiguration, because
   # setallowance might not fail but just switch to interactive mode.
   failed_when: set_allowance_result.stdout.find("Allowance updated. 8 setting(s) changed.") == -1
+  when: allowance_is_not_set
 
 # Setup health checks
 # TODO: Move to role task file
