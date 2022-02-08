@@ -77,14 +77,6 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
-    # TODO: Use community.docker.docker_prune (requires community.docker
-    # upgrade) with long timeout.
-    # Prune docker
-    - name: Prune docker
-      ansible.builtin.command: docker system prune --force
-      async: "{{ docker_prune_timeout_secs }}"
-      poll: 5
-
     - name: Start Sia docker container
       community.docker.docker_compose:
         project_src: "{{ webportal_dir }}"
@@ -105,9 +97,9 @@
 
 # TODO: Use community.docker.docker_prune (requires community.docker upgrade)
 # with long timeout
-# Prune docker
+# Prune old docker data (do not prune data produced in current build process)
 - name: Prune docker
-  ansible.builtin.command: docker system prune --force
+  ansible.builtin.command: docker system prune --force --filter "until=4h"
   async: "{{ docker_prune_timeout_secs }}"
   poll: 5
 
