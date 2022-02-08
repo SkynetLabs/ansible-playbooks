@@ -63,7 +63,7 @@
     project_src: "{{ webportal_dir }}"
     files: "{{ webportal_docker_compose_files_wanted }}"
     build: "{{ docker_compose_build }}"
-    nocache: True
+    nocache: False
     pull: True
     state: present
     # TODO: Build in parallel, when Ansible support is added
