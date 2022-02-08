@@ -77,7 +77,8 @@ mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
 mongo_db_dir: "{{ mongo_data_dir }}/db"
 mongo_backups_dir: "{{ mongo_data_dir }}/backups"
 mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
-accounts_jwks_path: "{{ webportal_dir }}/docker/accounts/conf/jwks.json"
+accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
+accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
 
 # Default service ports
 default_mongo_port: 27017

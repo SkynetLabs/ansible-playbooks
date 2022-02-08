@@ -24,12 +24,19 @@
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
 
-# Save JWKS file to accounts
-- name: Save jwks.json file
-  ansible.builtin.copy:
-    dest: "{{ accounts_jwks_path }}"
-    content: "{{ accounts_jwks_data }}"
-  become: True
+# Save JWKS file for accounts
+- block:
+    - name: Ensure accounts/conf directory exists
+      ansible.builtin.file:
+        path: "{{ accounts_conf_dir }}"
+        state: directory
+
+    - name: Save jwks.json file
+      ansible.builtin.copy:
+        dest: "{{ accounts_jwks_path }}"
+        content: "{{ accounts_jwks_data }}"
+      become: True
+  when: portal_accounts_on
 
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
@@ -259,12 +266,14 @@
 # Set Sia allowance
 
 - name: Check if allowance is already set
-  ansible.builtin.command: docker exec sia siac renter allowance
+  ansible.builtin.command: docker exec sia siac renter
   register: get_allowance_result
 
-- name: Set allowance is not set flag (allowance = 0 SC)
+- name: Set allowance is not set flag
   set_fact:
-    allowance_is_not_set: '{{ get_allowance_result.stdout is match(".*\nAllowance:\s+0 SC.*") | bool }}'
+    # When allowance is not set, command 'docker exec sia siac renter'
+    # contains line 'Allowance:      0 SC (No current allowance)'.
+    allowance_is_not_set: '{{ get_allowance_result.stdout is match(".*\nAllowance:\s+0 SC \(No current allowance\).*") | bool }}'
 
 - name: Set allowance
   ansible.builtin.command: >
