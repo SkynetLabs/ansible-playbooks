@@ -36,6 +36,15 @@ lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 # Common config is optional. It is useful if you run several clusters and want
 # to extract some common values from multiple cluster configs to a common
 # config. Otherwise you can use just one or several cluster configs.
+# Operators with a single cluster will use just one cluster-{...}.yaml in the
+# list. Operators with multiple clusters (e.g. dev and prod clusters or e.g.
+# paid-only prod1 and allow-anonymous access prod2 clusters) will have several
+# cluster-{...}.yml which is still covered with the dafault configs list. They
+# have however option to extract common, shared values for all clusters from
+# multiple cluster-{...}.yml configs to a common.yml. If a setting is present
+# in several levels (both common and cluster) the setting in earlier config in
+# the list (common.yml) is overriden with later config in the list
+# (cluster-{...}.yml).
 lastpass_portal_common_and_cluster_configs_list:
   # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
   - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
