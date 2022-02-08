@@ -21,9 +21,10 @@
 
     # Stop docker services gracefully - begin
     
-    # If we rerun this playbook on live/production server, we need to stop
-    # docker services gracefully (wait for uploads/downloads to finish) first
-    # before we continue with server setup, because setup might disrupt them.
+    # If we rerun this playbook on any server which successfully started up
+    # docker services, we need to stop them gracefully (wait for uploads/
+    # downloads to finish) first before we continue with server setup, because
+    # setup might disrupt them.
 
     # TODO: Handlers should be configured later as plugins (LastPass/plaintext/
     # Docker secrets/Hashicorp Vault/...)
