@@ -19,6 +19,16 @@
         update: True
         force: True
 
+    - name: Get authentication cookie
+      ansible.builtin.command: docker exec health-check cli __authenticate
+      # Handle error until health checks are updated to support authentication
+      ignore_errors: True
+      register: auth_cookie_result
+
+    - name: Set authentication cookie
+      set_fact:
+        auth_cookie: "{{ (auth_cookie_result.stdout | trim) if (auth_cookie_result.failed | default(False) == False) else '' }}"
+
     # Run integration tests locally against the portal
     # NOTE: Container name should be unique between portals so that portal
     # tests can be executed in parallel.
@@ -34,6 +44,7 @@
           - "{{ local_temp_skynetlabs_git_repos_skynet_js }}:/skynet-js"
         env:
           SKYNET_JS_INTEGRATION_TEST_SERVER: "https://{{ ansible_host }}"
+          SKYNET_JS_INTEGRATION_TEST_CUSTOM_COOKIE: "{{ auth_cookie }}"
         working_dir: "/skynet-js/{{ inventory_hostname }}"
         command: /bin/sh -c 'yarn && yarn run jest integration'
   
