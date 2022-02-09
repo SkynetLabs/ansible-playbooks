@@ -95,13 +95,8 @@
   # Don't rebuild when initializing sia with existing seed is in progress
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
-# TODO: Use community.docker.docker_prune (requires community.docker upgrade)
-# with long timeout
-# Prune old docker data (do not prune data produced in current build process)
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force --filter "until=4h"
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
+- name: Include prunning old docker data
+  include_tasks: tasks/portal-docker-prune-old-data.yml
 
 - name: Check wallet
   command: docker exec sia siac wallet

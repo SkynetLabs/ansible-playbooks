@@ -77,11 +77,8 @@
 
       "{{ docker_compose_services }}"
 
-# Prune old docker data (do not prune data produced in current build process)
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force --filter "until=4h"
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
+- name: Include prunning old docker data
+  include_tasks: tasks/portal-docker-prune-old-data.yml
 
 # Wait until Sia finished full setup
 - name: Wait until Sia finished full setup
