@@ -1,7 +1,8 @@
-# The number of times the portal will check for downloads before shutting down
-# the docker services after disabling the health checks.
-portal_download_check_num_retries: 0
+# Config override for dev servers (hosts in webportals_dev group)
 
-# The number of times the portal will check for uploads before shutting down the
-# docker services after disabling the health checks.
-portal_upload_check_num_retries: 0
+# Download/upload waits
+# How long to wait for active downloads/uploads to finish (in seconds) before
+# shutting down the docker services after disabling the health checks.
+# On dev servers we don't wait for active downloads/uploads to finish.
+portal_download_check_wait_secs: 0
+portal_upload_check_wait_secs: 0

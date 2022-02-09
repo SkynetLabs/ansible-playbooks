@@ -14,3 +14,7 @@
     timeout: 30
   become: True
   become_user: "user"
+  # Ignore errors e.g. when portal repo (docker compose files) is present, but
+  # .env file was not yet generated (some values in docker compose files are
+  # not valid)
+  ignore_errors: True

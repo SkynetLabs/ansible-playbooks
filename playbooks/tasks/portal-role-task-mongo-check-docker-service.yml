@@ -106,12 +106,17 @@
   vars:
     mongodb_shell:
       eval: |
-        rs.status().members.forEach(m => {
-          if (m.name == '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}')
-          {
-            print(m.stateStr)
-          }
-        })
+        rss = rs.status()
+        if (rss.ok == 1) {
+          rss.members.forEach(m => {
+            if (m.name == '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}')
+            {
+              print(m.stateStr)
+            }
+          })
+        } else {
+          rss
+        }
       until: mongo_shell_result.transformed_output in ['PRIMARY', 'SECONDARY']
       retries: 120
       ignore_errors: True

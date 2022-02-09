@@ -16,12 +16,6 @@
     value: "{{ item.value }}"
   loop: "{{ webportal_git_config }}"
 
-- name: Include getting portal configs
-  include_tasks: tasks/portal-configs-get.yml
-
-- name: Include saving portal config
-  include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
-
 # TODO: add subdomain check (only install portal to subdomain for now)
 
 - name: Create .env file
@@ -30,12 +24,19 @@
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
 
-# Save JWKS file to accounts
-- name: Save jwks.json file
-  ansible.builtin.copy:
-    dest: "{{ accounts_jwks_path }}"
-    content: "{{ accounts_jwks_data }}"
-  become: True
+# Save JWKS file for accounts
+- block:
+    - name: Ensure accounts/conf directory exists
+      ansible.builtin.file:
+        path: "{{ accounts_conf_dir }}"
+        state: directory
+
+    - name: Save jwks.json file
+      ansible.builtin.copy:
+        dest: "{{ accounts_jwks_path }}"
+        content: "{{ accounts_jwks_data }}"
+      become: True
+  when: portal_accounts_on
 
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
@@ -261,6 +262,19 @@
 # TODO: Log address
 
 # TODO: Should we setup allowance just once?
+
+# Set Sia allowance
+
+- name: Check if allowance is already set
+  ansible.builtin.command: docker exec sia siac renter
+  register: get_allowance_result
+
+- name: Set allowance is not set flag
+  set_fact:
+    # When allowance is not set, command 'docker exec sia siac renter'
+    # contains line 'Allowance:      0 SC (No current allowance)'.
+    allowance_is_not_set: '{{ get_allowance_result.stdout is match(".*\nAllowance:\s+0 SC \(No current allowance\).*") | bool }}'
+
 - name: Set allowance
   ansible.builtin.command: >
     docker exec sia siac renter setallowance
@@ -276,6 +290,7 @@
   # Verify result to prevent mistakes and misconfiguration, because
   # setallowance might not fail but just switch to interactive mode.
   failed_when: set_allowance_result.stdout.find("Allowance updated. 8 setting(s) changed.") == -1
+  when: allowance_is_not_set
 
 # Setup health checks
 # TODO: Move to role task file

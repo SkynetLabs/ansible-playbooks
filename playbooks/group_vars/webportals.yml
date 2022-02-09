@@ -47,15 +47,22 @@ local_networks_denied:
 
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
+
 lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
+lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+
 lastpass_portal_config_common_subfolder: "portal-common-configs"
 lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+lastpass_portal_common_and_cluster_configs_list:
+  # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
+  - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
 lastpass_portal_config_server_subfolder: "portal-server-configs"
-lastpass_portal_config_common: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
-lastpass_portal_config_cluster: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
 lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
-lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
-lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}/jwks.json"
+
+lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
 
 # Portal paths settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
@@ -70,7 +77,8 @@ mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
 mongo_db_dir: "{{ mongo_data_dir }}/db"
 mongo_backups_dir: "{{ mongo_data_dir }}/backups"
 mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
-accounts_jwks_path: "{{ webportal_dir }}/docker/accounts/conf/jwks.json"
+accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
+accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
 
 # Default service ports
 default_mongo_port: 27017
@@ -118,21 +126,26 @@ webportal_server_config_defaults:
   sia_api_port: 9980
   sia_api_password: "{{ lookup('pipe','openssl rand -base64 32') }}"
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
+  server_uid: "{{ lookup('pipe','openssl rand -hex 8') }}"
+  accounts_test_user_email: "{{ lookup('pipe','openssl rand -hex 8') }}@example.com"
+  accounts_test_user_password: "{{ lookup('pipe','openssl rand -hex 8') }}"
 
-webportal_cluster_config_defaults:
+# TODO: move to role default vars
+# This variable sets default values for common/cluster settings if they are not
+# defined by portal operator in common/cluster records defined by
+# lastpass_portal_common_and_cluster_configs_list.
+webportal_common_config_defaults:
   s3_backup_path: ""
+  abuse_log_level: "info"
+  accounts_log_level: "info"
+  blocker_log_level: "info"
   cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
   cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
   skynet_db_host: "mongo"
   skynet_db_pass: "{{ lookup('pipe','openssl rand -base64 32') }}"
   skynet_db_port: "{{ default_mongo_port }}"
-  skynet_db_replicaset: "skynet"
+  skynet_db_replicaset: "{{ portal_cluster_id }}"
   skynet_db_user: "admin"
-
-webportal_common_config_defaults:
-  abuse_log_level: "info"
-  accounts_log_level: "info"
-  blocker_log_level: "info"
 
 # TODO: move to role default vars
 # TODO: default to: False
@@ -180,6 +193,12 @@ skynet_js_docker_test_image: "node:14-buster-slim"
 # Local git checkouts
 local_temp_skynetlabs_git_repos: "/tmp/SkynetLabs-ansible/git-repos"
 local_temp_skynetlabs_git_repos_skynet_js: "{{ local_temp_skynetlabs_git_repos }}/skynet-js"
+
+# Download/upload waits
+# How long to wait for active downloads/uploads to finish (in seconds) before
+# shutting down the docker services after disabling the health checks.
+portal_download_check_wait_secs: 300
+portal_upload_check_wait_secs: 300
 
 # Health checks
 portal_health_check_disable_delay_secs: 0

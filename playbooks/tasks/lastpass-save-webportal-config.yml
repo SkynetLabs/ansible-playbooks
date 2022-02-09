@@ -1,17 +1,26 @@
 ---
 
-- name: Check if LastPass record exists
+# Server config
+
+- name: Check if LastPass server record exists
   local_action:
     module: ansible.builtin.command
-    cmd: "lpass ls {{ lastpass_portal_config_server }}"
+    cmd: "lpass ls --sync now {{ lastpass_portal_config_server }}"
   register: lastpass_ls_result
 
 - name: Set LastPass command add or edit
   set_fact:
     lastpass_command: "{{ 'add' if lastpass_ls_result.stdout_lines | length == 0 else 'edit' }}"
 
-- name: Update LastPass record
+- name: Update LastPass server record
   local_action:
     module: shell
-    cmd: printf '{{ webportal_server_config | to_nice_yaml(width=2048) }}' | lpass {{ lastpass_command }} --notes --non-interactive {{ lastpass_portal_config_server }}
+    cmd: printf '{{ webportal_server_config | to_nice_yaml(width=2048) }}' | lpass {{ lastpass_command }} --sync now --notes --non-interactive {{ lastpass_portal_config_server }}
   no_log: True
+
+# TODO: Saving missing cluster variables
+# Common/cluster config
+
+# Common/cluster configs list can contain 1 or more LastPass records, later
+# ones override earlier ones, we save missing/default values to the latest
+# LastPass record in the list (the most specific).
