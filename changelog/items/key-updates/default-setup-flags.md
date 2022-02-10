@@ -1,1 +1,1 @@
-- Set default setup flags for community portal operators.
+- Document default setup flags for community portal operators.

@@ -15,23 +15,24 @@
 # Ansible script to setup and later to update portal server
 # (portal-setup-following)
 #
-# Enable fail2ban (default False, recommended: True)
-security_fail2ban_enabled: False
+# Enable fail2ban (default: True)
+# security_fail2ban_enabled: True
 #
-# Set server timezone (default: False)
+# Set server timezone (default: True)
 # Based on your system, e.g. UTC timezone should be set as "UTC" or "Etc/UTC"
-webportal_server_set_timezone: False
-webportal_server_timezone: "UTC"
+# webportal_server_set_timezone: True
+# webportal_server_timezone: "UTC"
 #
-# Update server hostname (default: False)
+# Update server hostname (default: True)
 # The script will update server hostname to Ansible inventory_hostname as
 # defined in your inventory/hosts.ini (to e.g.: "skynet-node-01")
-webportal_update_hostname: False
+# webportal_update_hostname: True
 #
+# Deny outgoing traffic to local networks via UFW (default: True)
 # Some services used to scan local networks, so according to server providers'
 # advice operators can disable outgoing traffic to local networks. This might
 # disrupt existing services (other than skynet portal stack) on the server.
-ufw_deny_outgoing_to_local_network: False
+# ufw_deny_outgoing_to_local_network: True
 
 
 ###############################################################################
