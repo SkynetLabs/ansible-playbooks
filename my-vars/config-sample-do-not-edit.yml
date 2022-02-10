@@ -1,5 +1,6 @@
 # This config file can be used to set any ansible variables needed to execute
-# necessary ansible playbooks.
+# necessary ansible playbooks. These settings when used will also override
+# values defined in playbooks/group_vars/webportals.yml.
 
 ###############################################################################
 # REQUIRED
@@ -7,6 +8,31 @@
 # Below are a list of variables that require attention if the defaults are not
 # suitable.
 ###############################################################################
+
+###############################################################################
+# Server Setup
+#
+# Ansible script to setup and later to update portal server
+# (portal-setup-following)
+#
+# Enable fail2ban (default False, recommended: True)
+security_fail2ban_enabled: False
+#
+# Set server timezone (default: False)
+# Based on your system, e.g. UTC timezone should be set as "UTC" or "Etc/UTC"
+webportal_server_set_timezone: False
+webportal_server_timezone: "UTC"
+#
+# Update server hostname (default: False)
+# The script will update server hostname to Ansible inventory_hostname as
+# defined in your inventory/hosts.ini (to e.g.: "skynet-node-01")
+webportal_update_hostname: False
+#
+# Some services used to scan local networks, so according to server providers'
+# advice operators can disable outgoing traffic to local networks. This might
+# disrupt existing services (other than skynet portal stack) on the server.
+ufw_deny_outgoing_to_local_network: False
+
 
 ###############################################################################
 # LastPass

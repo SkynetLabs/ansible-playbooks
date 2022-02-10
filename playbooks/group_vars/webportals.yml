@@ -18,14 +18,14 @@ initial_users:
 # geerlingguy.security role vars
 security_sudoers_passworded: "{{ [webportal_user] }}"
 security_autoupdate_enabled: False
-security_fail2ban_enabled: True
+security_fail2ban_enabled: False
 
 # Server settings
 # Timezone
-webportal_server_set_timezone: True
+webportal_server_set_timezone: False
 webportal_server_timezone: "UTC"
 # Update server hostname to inventory hostname
-webportal_update_hostname: True
+webportal_update_hostname: False
 
 # geerlingguy.docker role vars
 docker_users: "{{ [webportal_user] }}"
@@ -34,7 +34,7 @@ docker_users: "{{ [webportal_user] }}"
 group_ufw_rules:
   - { rule: "allow", port: "80", proto: "tcp", direction: "in" }
   - { rule: "allow", port: "443", proto: "tcp", direction: "in" }
-ufw_deny_outgoing_to_local_network: True
+ufw_deny_outgoing_to_local_network: False
 local_networks_allowed:
   - "10.10.10.10/24"
 local_networks_denied:
