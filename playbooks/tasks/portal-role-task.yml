@@ -78,14 +78,6 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
-    # TODO: Use community.docker.docker_prune (requires community.docker
-    # upgrade) with long timeout.
-    # Prune docker
-    - name: Prune docker
-      ansible.builtin.command: docker system prune --force
-      async: "{{ docker_prune_timeout_secs }}"
-      poll: 5
-
     - name: Start Sia docker container
       community.docker.docker_compose:
         project_src: "{{ webportal_dir }}"
@@ -104,13 +96,8 @@
   # Don't rebuild when initializing sia with existing seed is in progress
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
-# TODO: Use community.docker.docker_prune (requires community.docker upgrade)
-# with long timeout
-# Prune docker
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
+- name: Include prunning old docker data
+  include_tasks: tasks/portal-docker-prune-old-data.yml
 
 - name: Check wallet
   command: docker exec sia siac wallet

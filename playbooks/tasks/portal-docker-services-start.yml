@@ -1,5 +1,4 @@
 ---
-
 # Start portal docker services
 
 # Include getting wanted docker-compose files
@@ -40,12 +39,6 @@
     mode: preserve
   loop: "{{ webportal_docker_compose_files_wanted + webportal_other_config_files }}"
 
-# Prune docker
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
-
 # Log status as 'starting'
 - name: Log status as 'starting'
   file:
@@ -81,14 +74,11 @@
   debug:
     msg: |
       Docker compose started following services:
-      
+
       "{{ docker_compose_services }}"
 
-# Prune docker
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
+- name: Include prunning old docker data
+  include_tasks: tasks/portal-docker-prune-old-data.yml
 
 # Wait until Sia finished full setup
 - name: Wait until Sia finished full setup
