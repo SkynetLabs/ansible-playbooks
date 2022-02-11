@@ -43,7 +43,8 @@ if [ -z "$lpass_timeout" ]; then
   lpass_timeout=$default_lpass_timeout_secs
 fi
 
-# Check if wanted image runs for the given directory
+# Check: We don't want to stop ansible CM && given playbooks directory runs
+# wanted ansible image
 if [ "$stop_ansiblecm" != "true" ] && docker ps -a --no-trunc --format "table {{.Image}} {{.Names}}" | grep "^$ansiblecm_image $ansiblecm_container$" > /dev/null; then
   echo "Ansible Control Machine with container name: $ansiblecm_container is already running"
 else
@@ -53,6 +54,8 @@ else
   # - stop containers if found
   echo "Stopping Ansible Control Machine with container name: $ansiblecm_container (if running)..."
   docker ps -a --no-trunc --format "table {{.Names}}" | grep "^$ansiblecm_container$" | xargs -r docker stop > /dev/null
+
+  # If ansible CM stop playbook was executed, we are done
   if [ "$stop_ansiblecm" == "true" ]; then
     echo "Ansible Control Machine with container name: $ansiblecm_container is stopped"
     exit 0
