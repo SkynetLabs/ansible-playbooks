@@ -68,7 +68,7 @@
 lastpass_ansible_dir: "Shared-Ansible"
 # The Following are the subfolder names of the lastpass_ansible_dir folder in
 # lastpass. The contents of these folders are controlled by ansible. Below are
-# the defaul values. You can either create these folders in LastPass or rename
+# the default values. You can either create these folders in LastPass or rename
 # these variable to the folder name you desired.
 #
 # NOTE: If you rename these variables, you should keep these variables defined
@@ -99,7 +99,7 @@ lastpass_portal_config_server_subfolder: "portal-server-configs"
 #
 # During portals-setup-following, ansible can add a list of authorized pubkeys
 # to your server. This is helpful if you are planning on managing a server with
-# a team. Ansible is set up to pull this list from a url, like a github repo. If
+# a team. Ansible is set up to pull this list from a url, like a GitHub repo. If
 # you leave the variable blank, no additional keys will be added.
 #
 # Example
@@ -114,7 +114,7 @@ webportal_user_authorized_keys: ""
 #
 # The ssl_support_email can be whatever email you would like.
 #
-# The git_checkout_email should be the email associated with your Github
+# The git_checkout_email should be the email associated with your GitHub
 # account.
 ssl_support_email: ""
 git_checkout_email: ""
