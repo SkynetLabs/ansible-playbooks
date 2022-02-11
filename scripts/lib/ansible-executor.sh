@@ -28,25 +28,30 @@ pushd $ans_dir > /dev/null
 
 # Configs
 # Current Ansible Control Machine image
-ansible_image='skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.7.0'
+ansiblecm_image='skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.7.0'
+
+# To allow running 2 or more parallel ansiblecm containers running from
+# different directories (having mounted different directories) we need to
+# distinguish them via docker container postfix. Postfix is based on the
+# checksum of the current ansible playbooks directory.
+container_postfix=$(docker run alpine sh -c "echo '$ans_dir' | cksum | cut -d ' ' -f 1")
+ansiblecm_container=ansiblecm-$container_postfix
 
 # Set LastPass session timeout
 if [ -z "$lpass_timeout" ]; then
   lpass_timeout=$default_lpass_timeout_secs
 fi
 
-# Check if we want to restart Ansible CM logging to LastPass or updating wanted image
-if [ "$restart_ansible_cm" != true ] && docker ps | grep "\s$ansible_image\s" > /dev/null; then
-  echo "Ansible Control Machine is running"
+# Check if wanted image runs for the given directory
+if docker ps -a --no-trunc --format "table {{.Image}} {{.Names}}" | grep "^$ansiblecm_image $ansiblecm_container$" > /dev/null; then
+  echo "Ansible Control Machine is already running"
 else
-  echo "Stopping Ansible Control Machine..."
-
-  # Stop older/non-wanted Ansible container versions if running
-  # - list all running docker containers
-  # - get only ansible control machines
-  # - get container id
+  # Stop Ansible containers running on older/non-wanted docker images
+  # - list all docker container names
+  # - get only ansible control machines (belonging to this ansible playbooks directory)
   # - stop containers if found
-  docker ps -a | grep ansiblecm | awk '{print $1;}' | xargs -r docker stop > /dev/null
+  echo "Stopping Ansible Control Machine (if running)..."
+  docker ps -a --no-trunc --format "table {{.Names}}" | grep "^$ansiblecm_container$" | xargs -r docker stop > /dev/null
 
   # Start current version
   echo "Starting Ansible Control Machine..."
@@ -69,8 +74,8 @@ else
     -v /var/run/docker.sock:/var/run/docker.sock \
     --env SSH_AUTH_SOCK=/ssh-agent \
     --detach \
-    --name ansiblecm \
-    $ansible_image \
+    --name $ansiblecm_container \
+    $ansiblecm_image \
     infinity > /dev/null
 fi
 
@@ -89,7 +94,7 @@ if [ "$requirements_installed" = "$requirements_commit" ]; then
     echo "Ansible requirements (roles and collections) are up-to-date"
 else
     echo "Updating Ansible requirements (roles and collections)..."
-    docker exec ansiblecm ansible-galaxy install -r requirements.yml --force
+    docker exec $ansiblecm_container ansible-galaxy install -r requirements.yml --force
     echo $requirements_commit > $requirements_installed_file
 fi
 
@@ -98,4 +103,4 @@ echo "Executing:"
 echo "    $cmd $args"
 echo "in a docker container..."
 
-docker exec -it ansiblecm $cmd $args
+docker exec -it $ansiblecm_container $cmd $args
