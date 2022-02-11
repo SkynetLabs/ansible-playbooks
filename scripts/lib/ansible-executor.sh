@@ -44,7 +44,7 @@ if [ -z "$lpass_timeout" ]; then
 fi
 
 # Check if wanted image runs for the given directory
-if docker ps -a --no-trunc --format "table {{.Image}} {{.Names}}" | grep "^$ansiblecm_image $ansiblecm_container$" > /dev/null; then
+if [ "$stop_ansiblecm" != "true" ] && docker ps -a --no-trunc --format "table {{.Image}} {{.Names}}" | grep "^$ansiblecm_image $ansiblecm_container$" > /dev/null; then
   echo "Ansible Control Machine with container name: $ansiblecm_container is already running"
 else
   # Stop Ansible containers running on older/non-wanted docker images
@@ -53,6 +53,10 @@ else
   # - stop containers if found
   echo "Stopping Ansible Control Machine with container name: $ansiblecm_container (if running)..."
   docker ps -a --no-trunc --format "table {{.Names}}" | grep "^$ansiblecm_container$" | xargs -r docker stop > /dev/null
+  if [ "$stop_ansiblecm" == "true" ]; then
+    echo "Ansible Control Machine with container name: $ansiblecm_container is stopped"
+    exit 0
+  fi
 
   # Start Ansible Control Machine and keep it running. This is especially
   # needed for LastPass session.
