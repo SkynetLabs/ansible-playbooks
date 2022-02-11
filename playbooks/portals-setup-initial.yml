@@ -60,6 +60,7 @@
     # Basic security
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
+      when: setup_basic_security
 
 # When we have initial root like user
 - name: Create temp user by initial root like user
@@ -137,6 +138,7 @@
       args:
         apply:
           become: True
+      when: setup_basic_security
 
 # When we have initial root like user
 - name: Create webportal user by temp user
@@ -175,3 +177,4 @@
       args:
         apply:
           become: True
+      when: setup_basic_security

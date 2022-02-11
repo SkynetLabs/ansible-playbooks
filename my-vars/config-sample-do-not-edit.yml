@@ -1,5 +1,6 @@
 # This config file can be used to set any ansible variables needed to execute
-# necessary ansible playbooks.
+# necessary ansible playbooks. These settings when used will also override
+# values defined in playbooks/group_vars/webportals.yml.
 
 ###############################################################################
 # REQUIRED
@@ -7,6 +8,49 @@
 # Below are a list of variables that require attention if the defaults are not
 # suitable.
 ###############################################################################
+
+###############################################################################
+# Server Setup
+#
+# Below are some of the recommended server level settings for portals. If you
+# wish to disable any of these settings, uncomment the variable and change the
+# value.
+# 
+# PLEASE NOTE: We have not tested any non-default conditions for these
+# settings, so you should be comfortable debugging the server and portal on
+# your own if you plan to change these settings. 
+#
+# Setup basic security (default: True)
+# Creates sudo users, adds SSH keys, executes geerlingguy.security Ansible
+# role (secures SSH etc.).
+# setup_basic_security: True
+#
+# Enable fail2ban (default: True)
+# Requires: setup_basic_security: True
+# Fail2ban is a security tool to protect servers from brute-force attacks for
+# various services, e.g. SSH.
+# security_fail2ban_enabled: True
+#
+# Set server timezone (default: True)
+# Based on your system, e.g. UTC timezone should be set as "UTC" or "Etc/UTC"
+# webportal_server_set_timezone: True
+# webportal_server_timezone: "UTC"
+#
+# Update server hostname (default: True)
+# The script will update server hostname to Ansible inventory_hostname as
+# defined in your inventory/hosts.ini (to e.g.: "skynet-node-01")
+# webportal_update_hostname: True
+#
+# Setup UFW firewall (default: True)
+# setup_ufw: True
+#
+# Deny outgoing traffic to local networks via UFW (default: True)
+# Requires: setup_ufw: True
+# Some services used to scan local networks, so according to server providers'
+# advice operators can disable outgoing traffic to local networks. This might
+# disrupt existing services (other than skynet portal stack) on the server.
+# ufw_deny_outgoing_to_local_network: True
+
 
 ###############################################################################
 # LastPass
