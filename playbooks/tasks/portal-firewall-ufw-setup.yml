@@ -41,22 +41,24 @@
         - 443
         - 26257
         - 27017
+    # Deny outgoing traffic to local network
+    - block:
+        - name: Allow outgoing traffic to docker local network
+          community.general.ufw:
+            rule: "allow"
+            proto: "any"
+            direction: "out"
+            to_ip: "{{ item }}"
+          loop: "{{ local_networks_allowed }}"      
 
-    - name: Allow outgoing traffic to docker local network
-      community.general.ufw:
-        rule: "allow"
-        proto: "any"
-        direction: "out"
-        to_ip: "{{ item }}"
-      loop: "{{ local_networks_allowed }}"      
-
-    - name: Deny outgoing traffic to local networks
-      community.general.ufw:
-        rule: "deny"
-        proto: "any"
-        direction: "out"
-        to_ip: "{{ item }}"
-      loop: "{{ local_networks_denied }}"
+        - name: Deny outgoing traffic to local networks
+          community.general.ufw:
+            rule: "deny"
+            proto: "any"
+            direction: "out"
+            to_ip: "{{ item }}"
+          loop: "{{ local_networks_denied }}"
+      when: ufw_deny_outgoing_to_local_network
 
   # On error set at least SSH rule and enable firewall
   always:
