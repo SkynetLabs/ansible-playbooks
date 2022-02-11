@@ -1,0 +1,1 @@
+- Allow parallel execution of playbooks in different directories.
