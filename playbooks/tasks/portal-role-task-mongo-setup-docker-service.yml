@@ -138,8 +138,8 @@
         name: mongo-setup
         command: "-keyFile=/data/mgkey --replSet={{ webportal_common_config.skynet_db_replicaset }}"
         env:
-          MONGO_INITDB_ROOT_USERNAME: "{{ mongodb_config.skynet_db_user }}"
-          MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_config.skynet_db_pass }}"
+          MONGO_INITDB_ROOT_USERNAME: "{{ webportal_common_config.skynet_db_user }}"
+          MONGO_INITDB_ROOT_PASSWORD: "{{ webportal_common_config.skynet_db_pass }}"
         published_ports: "{{ default_mongo_port }}:{{ default_mongo_port }}"
         auto_remove: True
         volumes:
