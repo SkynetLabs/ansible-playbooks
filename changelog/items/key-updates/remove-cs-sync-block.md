@@ -1,0 +1,2 @@
+- Remove block for synced consensus in `portals-setup-following`
+- Add block for synced consensus in `portal-docker-services-start`
