@@ -133,6 +133,7 @@ webportal_server_config_defaults:
   server_uid: "{{ lookup('pipe','openssl rand -hex 8') }}"
   accounts_test_user_email: "{{ lookup('pipe','openssl rand -hex 8') }}@example.com"
   accounts_test_user_password: "{{ lookup('pipe','openssl rand -hex 8') }}"
+  accounts_test_user_api_key: ""
 
 # TODO: move to role default vars
 # This variable sets default values for common/cluster settings if they are not
