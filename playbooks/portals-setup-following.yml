@@ -50,6 +50,10 @@
 
     # Stop docker services gracefully - end
 
+    - name: Reset SSH connection to fix occasional Ansible become/sudo issues
+      ansible.builtin.meta:
+        reset_connection
+
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
       args:
