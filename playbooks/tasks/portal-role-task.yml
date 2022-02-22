@@ -249,6 +249,8 @@
       --expected-upload {{ webportal_allowance.expected_upload }}
       --expected-download {{ webportal_allowance.expected_download }}
       --expected-redundancy {{ webportal_allowance.expected_redundancy }}
+      --max-contract-price {{ webportal_allowance.max_contract_price }}
+      --max-sector-access-price {{ webportal_allowance.max_sector_access_price }}
       --max-storage-price {{ webportal_allowance.max_storage_price }}
       --payment-contract-initial-funding {{ webportal_allowance.payment_contract_initial_funding }}
       --period {{ webportal_allowance.period }}
