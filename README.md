@@ -172,7 +172,9 @@ Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 - Starts docker compose services.
 - Waits for Sia full setup finished.
 - Waits for Sia `/daemon/ready` (if the endpoint is available).
+- Waits for Sia Blockchain to be synced.
 - Runs portal integration tests.
+- Runs portal health check.
 - Enables health check.
 
 For logs see above Playbook: Restart Skynet Webportal.
@@ -608,17 +610,10 @@ Playbook:
   - Always recreate `.env` file from `.env.j2` template and portal config
   - Start sia container if not running, restart if config changed
   - Init new wallet (if not done previously)
-  - Wait for sia blockchain synced (takes time, can timeout)
   - Init wallet (with existing seed if exists, takes time, can timeout)
   - Unlock wallet
   - Set default allowance
   - Setup health checks
-
-Timeouts:  
-This playbook is expected to fail with a timeout (might be a couple of times).
-Timeouts are handled gracefully and next steps are described in ansible logs
-onscreen. Follow the instructions from the onscreen logs and restart the
-playbook when ready.
 
 Execute (e.g. on `eu-fin-5`):
 `scripts/portals-setup-following.sh -e @my-vars/config.yml --limit eu-fin-5`
@@ -627,6 +622,10 @@ Execute (e.g. on `eu-fin-5`):
 
 To finish portal setup and deployment execute portal deploy playbook (see
 separate section above).
+
+**NOTE** You should give your node enough time to sync the Sia blockchain and
+*form file contracts before running the deploy script. Otherwise the health
+*checks will fail as your node is not ready to upload and download
 
 ### Run Docker Command
 
