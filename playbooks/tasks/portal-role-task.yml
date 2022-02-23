@@ -257,7 +257,7 @@
   register: set_allowance_result
   # Verify result to prevent mistakes and misconfiguration, because
   # setallowance might not fail but just switch to interactive mode.
-  failed_when: set_allowance_result.stdout.find("Allowance updated. 8 setting(s) changed.") == -1
+  failed_when: set_allowance_result.stdout.find("Allowance updated. 10 setting(s) changed.") == -1
   when: allowance_is_not_set
 
 # Setup health checks
