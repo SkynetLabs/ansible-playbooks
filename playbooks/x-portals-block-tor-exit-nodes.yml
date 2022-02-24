@@ -1,4 +1,10 @@
-- name: Ensure Latest Docker is Installed
+# Block traffic from Tor exit nodes
+# Resources:
+# - https://gist.github.com/jkullick/62695266273608a968d0d7d03a2c4185
+# - https://check.torproject.org/torbulkexitlist?ip=
+# - https://www.dan.me.uk/tornodes
+
+- name: Block Traffic from Tor Exit Nodes
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: True
@@ -45,9 +51,10 @@
       become: True
     
     # Incoming requests to skynet stack are handled by DOCKER-USER group, if
-    # they are blocked only in INPUT group they will not be blocked. We block
-    # also INPUT group, which is not needed right now, but just to be sure if
-    # some configuration changes later.
+    # they are blocked only in INPUT group they will not be blocked and skynet
+    # is still accessible to them. We block also INPUT group, which is not
+    # needed right now, but just to be sure if some configuration changes
+    # later.
     - name: Load torproject ipset to iptables
       ansible.builtin.command: "iptables -I {{ item }} -m set --match-set torproject-exitnodelist src -j DROP"
       become: True
