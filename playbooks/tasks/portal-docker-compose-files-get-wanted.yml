@@ -1,5 +1,4 @@
 ---
-
 # Get present docker-compose files
 
 - name: Create list with mandatory docker-compose files
@@ -69,7 +68,7 @@
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m']] }}
 
-- name: Add abuse docker-compose files
+- name: Add abuse-scanner docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
