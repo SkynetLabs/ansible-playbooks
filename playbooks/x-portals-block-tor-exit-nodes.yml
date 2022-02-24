@@ -1,0 +1,101 @@
+# Block traffic from Tor exit nodes
+# Resources:
+# - https://gist.github.com/jkullick/62695266273608a968d0d7d03a2c4185
+# - https://check.torproject.org/torbulkexitlist?ip=
+# - https://www.dan.me.uk/tornodes
+
+- name: Block Traffic from Tor Exit Nodes
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: True
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+
+  tasks:
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+        cache_valid_time: 900
+      become: True
+    
+    - name: Install ipset
+      apt:
+        name: ipset
+        state: present
+      become: True
+
+    # Tor Project exit nodes list
+
+    - name: Create torproject ipset
+      ansible.builtin.command: ipset -exist create torproject-exitnodelist iphash
+      become: True
+
+    - name: Download torproject exit node list
+      ansible.builtin.command: curl -sSL 'https://check.torproject.org/torbulkexitlist?ip=' -o /tmp/torproject-exitnodelist
+      become: True
+
+    - name: Populate torproject ipset
+      ansible.builtin.shell: cat /tmp/torproject-exitnodelist | xargs -n 1 ipset -exist add torproject-exitnodelist
+      become: True
+    
+    # Incoming requests to skynet stack are handled by DOCKER-USER group, if
+    # they are blocked only in INPUT group they will not be blocked and skynet
+    # is still accessible to them. We block also INPUT group, which is not
+    # needed right now, but just to be sure if some configuration changes
+    # later.
+    - name: Load torproject ipset to iptables
+      ansible.builtin.command: "iptables -I {{ item }} -m set --match-set torproject-exitnodelist src -j DROP"
+      become: True
+      loop:
+        - DOCKER-USER
+        - INPUT
+
+    # Complete Tor exit nodes list
+
+    - name: Create dan IPv4 ipset
+      ansible.builtin.command: ipset -exist create dan-exitnodelist-ipv4 hash:ip
+      become: True
+
+    - name: Create dan IPv6 ipset
+      ansible.builtin.command: ipset -exist create dan-exitnodelist-ipv6 hash:ip family inet6
+      become: True
+
+    # Downloading the list is throttled, we will download once, load twice:
+    # For IPv4 and IPv6
+    - name: Download dan exit node list
+      ansible.builtin.command: curl -sSL 'https://www.dan.me.uk/torlist/?exit' -o /tmp/dan-exitnodelist
+      become: True
+
+    - name: Populate dan IPv4 ipset
+      ansible.builtin.shell: cat /tmp/dan-exitnodelist | grep -E "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$" | xargs -n 1 ipset -exist add dan-exitnodelist-ipv4
+      become: True
+
+    - name: Populate dan IPv6 ipset
+      ansible.builtin.shell: cat /tmp/dan-exitnodelist | grep -E ":" | xargs -n 1 ipset -exist add dan-exitnodelist-ipv6
+      become: True
+    
+    # See note for DOCKER-USER/INPUT above.
+    - name: Load dan IPv4 ipset to iptables
+      command: "iptables -I {{ item }} -m set --match-set dan-exitnodelist-ipv4 src -j DROP"
+      become: True
+      loop:
+        - DOCKER-USER
+        - INPUT
+    
+    # Currently docker is not installed to support IPv6, ip6tables do not have
+    # DOCKER-USER group, but we block INPUT just to be sure.
+    - name: Load dan IPv6 ipset to ip6tables
+      command: ip6tables -I INPUT -m set --match-set dan-exitnodelist-ipv6 src -j DROP
+      become: True
