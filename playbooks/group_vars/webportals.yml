@@ -52,8 +52,23 @@ local_networks_denied:
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
 
+# lastpass has different separators based on the account. Because that makes
+# total sense and everyone's lives easier. The file separator is defined as the
+# path separator between a directory and file, i.e. dir/file. The directory
+# separator is the path separator between directories, i.e. dir/subdir.
+#
+# The file separator appears to always be a forward slash /
+#
+# The directory separator appears to change based on Shared folders for business
+# accounts and folders for personal accounts. Ansible uses the lpass cli tool,
+# and the lpass cli tool shows a path separator of a forward slash / for Shared
+# folders under business accounts and shows a path separator of a double back
+# slash \\ for personal folders.
+lastpass_directory_separator: '{{ "/" if "Shared" in lastpass_ansible_dir else "\\" }}'
+lastpass_file_separator: "/"
+
 lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
-lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_credentials_server_subfolder }}{{ lastpass_file_separator }}{{ webportal_user + '@' + ansible_host }}"
 
 lastpass_portal_config_common_subfolder: "portal-common-configs"
 lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
@@ -61,12 +76,12 @@ lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 # See my-vars/config-sample-do-not-edit.yml file for documentation.
 lastpass_portal_common_and_cluster_configs_list:
   # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
-  - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+  - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
 
 lastpass_portal_config_server_subfolder: "portal-server-configs"
-lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+lastpass_portal_config_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_server_subfolder }}{{ lastpass_file_separator }}{{ inventory_hostname }}.yml"
 
-lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
+lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}-jwks.json"
 
 # Portal paths settings
 webportal_user_home_dir: "/home/{{ webportal_user }}"
