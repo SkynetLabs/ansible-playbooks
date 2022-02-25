@@ -15,7 +15,7 @@
     lastpass_required: True
 
     serverlist_marker: "ANSIBLE MANAGED - serverlist script vars"
-    serverlist_version: "v0.0.3"
+    serverlist_version: "v0.0.4"
     serverlist_command: "{{ devops_scripts_dir }}/servers {{ webportal_dir }}/.env"
 
   tasks:
