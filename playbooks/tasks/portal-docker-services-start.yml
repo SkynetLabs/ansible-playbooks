@@ -56,6 +56,7 @@
     project_src: "{{ webportal_dir }}"
     files: "{{ webportal_docker_compose_files_wanted }}"
     build: "{{ docker_compose_build }}"
+    remove_orphans: True
     nocache: False
     pull: True
     state: present
