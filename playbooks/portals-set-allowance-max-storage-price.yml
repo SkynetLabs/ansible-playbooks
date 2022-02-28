@@ -20,10 +20,10 @@
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
-    # Check/install Ansible prerequisities
+    # Check/install Ansible prerequisites
     - name: Include preparing portal prerequisities
       include_tasks: tasks/portals-prepare.yml
 
     # Set allowance
     - name: Set allowance
-      command: "docker exec sia siac renter setallowance --max-storage-price {{ max_storage_price }}"
+      command: "docker exec sia siac renter setallowance --max-storage-price {{ max_storage_price }} --max-contract-price {{ max_contract_price }} --max-sector-access-price {{ max_sector_access_price }}"
