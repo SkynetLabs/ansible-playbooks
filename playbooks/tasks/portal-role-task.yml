@@ -44,8 +44,8 @@
       ansible.builtin.file:
         path: "{{ elasticsearch_data_data_dir }}"
         state: directory
-        owner: 1000
-        group: 1000
+        owner: "1000"
+        group: "1000"
   when: portal_jaeger_on
 
 # Setup MongoDB
