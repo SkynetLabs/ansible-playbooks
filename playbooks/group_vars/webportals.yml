@@ -83,6 +83,7 @@ mongo_backups_dir: "{{ mongo_data_dir }}/backups"
 mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
 accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
 accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
+elasticsearch_data_data_dir: "{{ webportal_dir }}/docker/data/elasticsearch/data"
 
 # Default service ports
 default_mongo_port: 27017

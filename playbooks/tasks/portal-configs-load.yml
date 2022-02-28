@@ -101,3 +101,10 @@
       {{ webportal_server_config.portal_modules is defined and
       webportal_server_config.portal_modules is not none and
       'u' in webportal_server_config.portal_modules }}
+
+- name: Set Jaeger flag
+  set_fact:
+    portal_jaeger_on: >-
+      {{ webportal_server_config.portal_modules is defined and
+      webportal_server_config.portal_modules is not none and
+      'j' in webportal_server_config.portal_modules }}

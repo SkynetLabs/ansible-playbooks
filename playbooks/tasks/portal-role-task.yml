@@ -38,6 +38,16 @@
       become: True
   when: portal_accounts_on
 
+# Fix permissions for elastic search if Jaeger is on
+- block:
+    - name: Ensure docker/data/elasticsearch/data directory is present
+      ansible.builtin.file:
+        path: "{{ elasticsearch_data_data_dir }}"
+        state: directory
+        owner: 1000
+        group: 1000
+  when: portal_jaeger_on
+
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
 # skyd depends on mongo.
