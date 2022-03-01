@@ -26,66 +26,84 @@
           skynet_db_user: "{{ skynet_db_user_result.stdout }}"
           skynet_db_pass: "{{ skynet_db_pass_result.stdout }}"
 
-    - name: Include checking mongo replicaset majority
+    - name: Check if mongo replicaset is initialized
       include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
       vars:
         mongodb_shell:
-          eval: |
-            votingMembers = rs.config().members
-              .filter(m => m.votes > 0)
-              .map(m => m.host)
-            onlineVotingMembers = rs.status().members
-              .filter(m => (m.stateStr == 'PRIMARY' || m.stateStr == 'SECONDARY') && m.health == 1)
-              .map(m => m.name)
-              .filter(m => votingMembers.includes(m))
-            batchMembers = [{% for h in ansible_play_batch -%}
-              '{{ hostvars[h].ansible_host + ':' + (hostvars[h].subcrap_mongo_port | default(default_mongo_port) | string) }}'{{ loop.last | ternary('', ', ') }}
-              {%- endfor -%}]
-            onlineVotingMembersAfter = onlineVotingMembers.filter(m => !batchMembers.includes(m))
-            thisMemberIsVoting = votingMembers.includes('{{ ansible_host + ':' + (subcrap_mongo_port | default(default_mongo_port) | string) }}')
-            result = {
-              "votingMembers": votingMembers,
-              "onlineVotingMembers": onlineVotingMembers,
-              "batchMembers": batchMembers,
-              "onlineVotingMembersAfter": onlineVotingMembersAfter,
-              "thisMemberIsVoting": thisMemberIsVoting,
-              "replicasetMajorityOk": onlineVotingMembersAfter.length > votingMembers.length/2
-            }
+          eval: "rs.config()"
           until: True
           retries: 0
+          ignore_errors: True
 
-    - name: Set mongo replicaset result
+    - name: Set mongo replicaset initialized
       set_fact:
-        mongo_replicaset_result: "{{ mongo_shell_result.transformed_output | from_json }}"
+        mongo_replicaset_initialized: "{{ not ('NotYetInitialized' in (mongo_shell_result.msg | default(''))) }}"
 
-    - name: Stop the playbook if we don't have majority (> 50%) MongoDB replicaset voting members online
-      fail:
-        msg: |
-          MongoDB status:
+    # If the MongoDB replicaset was not yet initialized, we can skip MongoDB
+    # replicaset majority check, it doesn't matter that we stop the rest of
+    # services.
+    - block:
+        - name: Include checking mongo replicaset majority
+          include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
+          vars:
+            mongodb_shell:
+              eval: |
+                votingMembers = rs.config().members
+                  .filter(m => m.votes > 0)
+                  .map(m => m.host)
+                onlineVotingMembers = rs.status().members
+                  .filter(m => (m.stateStr == 'PRIMARY' || m.stateStr == 'SECONDARY') && m.health == 1)
+                  .map(m => m.name)
+                  .filter(m => votingMembers.includes(m))
+                batchMembers = [{% for h in ansible_play_batch -%}
+                  '{{ hostvars[h].ansible_host + ':' + (hostvars[h].subcrap_mongo_port | default(default_mongo_port) | string) }}'{{ loop.last | ternary('', ', ') }}
+                  {%- endfor -%}]
+                onlineVotingMembersAfter = onlineVotingMembers.filter(m => !batchMembers.includes(m))
+                thisMemberIsVoting = votingMembers.includes('{{ ansible_host + ':' + (subcrap_mongo_port | default(default_mongo_port) | string) }}')
+                result = {
+                  "votingMembers": votingMembers,
+                  "onlineVotingMembers": onlineVotingMembers,
+                  "batchMembers": batchMembers,
+                  "onlineVotingMembersAfter": onlineVotingMembersAfter,
+                  "thisMemberIsVoting": thisMemberIsVoting,
+                  "replicasetMajorityOk": onlineVotingMembersAfter.length > votingMembers.length/2
+                }
+              until: True
+              retries: 0
 
-          - Voting members in config: {{ mongo_replicaset_result.votingMembers | length }}
-            {{ mongo_replicaset_result.votingMembers }}
+        - name: Set mongo replicaset result
+          set_fact:
+            mongo_replicaset_result: "{{ mongo_shell_result.transformed_output | from_json }}"
 
-          - Voting members currently online and healthy: {{ mongo_replicaset_result.onlineVotingMembers | length }}
-            {{ mongo_replicaset_result.onlineVotingMembers }}
+        - name: Stop the playbook if we don't have majority (> 50%) MongoDB replicaset voting members online
+          fail:
+            msg: |
+              MongoDB status:
 
-          - Members in the current Ansible batch: {{ mongo_replicaset_result.batchMembers | length }}
-            {{ mongo_replicaset_result.batchMembers }}
+              - Voting members in config: {{ mongo_replicaset_result.votingMembers | length }}
+                {{ mongo_replicaset_result.votingMembers }}
 
-          - Voting members online if we continue: {{ mongo_replicaset_result.onlineVotingMembersAfter | length }}
-            {{ mongo_replicaset_result.onlineVotingMembersAfter }}
+              - Voting members currently online and healthy: {{ mongo_replicaset_result.onlineVotingMembers | length }}
+                {{ mongo_replicaset_result.onlineVotingMembers }}
 
-          The playbook stops otherwise you don't have more than half MongoDB replicaset voting members online
-          and MongoDB service would be disrupted.
+              - Members in the current Ansible batch: {{ mongo_replicaset_result.batchMembers | length }}
+                {{ mongo_replicaset_result.batchMembers }}
 
-          How to fix this MongoDB issue:
-          - Bring more voting members online
-          - Don't stop so many voting members in one Ansible batch
-          - Reconfigure voting members (move voting from an offline member to some online member)
-      when: >-
-        mongo_replicaset_result.thisMemberIsVoting and
-        mongo_replicaset_result.votingMembers | length > 2 and
-        not mongo_replicaset_result.replicasetMajorityOk
+              - Voting members online if we continue: {{ mongo_replicaset_result.onlineVotingMembersAfter | length }}
+                {{ mongo_replicaset_result.onlineVotingMembersAfter }}
+
+              The playbook stops otherwise you don't have more than half MongoDB replicaset voting members online
+              and MongoDB service would be disrupted.
+
+              How to fix this MongoDB issue:
+              - Bring more voting members online
+              - Don't stop so many voting members in one Ansible batch
+              - Reconfigure voting members (move voting from an offline member to some online member)
+          when: >-
+            mongo_replicaset_result.thisMemberIsVoting and
+            mongo_replicaset_result.votingMembers | length > 2 and
+            not mongo_replicaset_result.replicasetMajorityOk
+      when: mongo_replicaset_initialized
   when:
     - mongo_docker_container_result.exists
     - mongo_docker_container_result.container is defined
