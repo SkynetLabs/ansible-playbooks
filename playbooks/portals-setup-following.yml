@@ -13,11 +13,8 @@
     - name: Check '--limit' is used
       include_tasks: tasks/host-limit-check.yml
 
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
+    - name: Check server OS compatibility
+      include_tasks: tasks/check-server-os-compatibility.yml
 
     # Stop docker services gracefully - begin
     

@@ -38,7 +38,7 @@
   hosts: webportals
   remote_user: "root"
   gather_facts: False
-  serial: 1              # Limit concurrency
+  serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
     lastpass_required: True
@@ -46,17 +46,14 @@
     - name: Skip if initial root like user is defined
       meta: end_host
       when: initial_root_like_user is defined
-    
+
     # Check host OS version
     - name: Gather ansible facts on demand
       ansible.builtin.setup:
-    
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
-    
+
+    - name: Check server OS compatibility
+      include_tasks: tasks/check-server-os-compatibility.yml
+
     # Basic security
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
@@ -67,7 +64,7 @@
   hosts: webportals
   remote_user: "{{ initial_root_like_user | default('') }}"
   gather_facts: False
-  serial: 1              # Limit concurrency
+  serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
     # LastPass required to set webportal_temp_user password to webportal_user password
@@ -76,7 +73,7 @@
     - name: Skip if initial root like user is not defined
       meta: end_host
       when: initial_root_like_user is not defined
-    
+
     - name: Check SSH access (initial root like user might be already disabled)
       block:
         - name: Check SSH access
@@ -89,23 +86,23 @@
         # ansible host to stop completely, it didn't continued to the next
         # play. So the 'meta: end_host' was added to the block with 'when'.
         - meta: noop
-      
+
     - name: Skip to next play if initial root like user was disabled
       block:
         - name: Log no SSH access
           debug:
             msg: |
-             User {{ initial_root_like_user }}
-             could not establish SSH connection
-             within {{ access_check_timeout_secs }} seconds timeout
+              User {{ initial_root_like_user }}
+              could not establish SSH connection
+              within {{ access_check_timeout_secs }} seconds timeout
 
-             Maybe
-               - {{ initial_root_like_user }} user was already disabled (this is expected)
-               - server is down
-               - fail2ban limits SSH connections
+              Maybe
+                - {{ initial_root_like_user }} user was already disabled (this is expected)
+                - server is down
+                - fail2ban limits SSH connections
 
-             Skipping this play, continue with the next play...
-        
+              Skipping this play, continue with the next play...
+
         - meta: end_host
       when: ssh_access_result.failed
 
@@ -113,13 +110,10 @@
 
     - name: Gather ansible facts on demand
       ansible.builtin.setup:
-    
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
-    
+
+    - name: Check server OS compatibility
+      include_tasks: tasks/check-server-os-compatibility.yml
+
     # Backup and update initial_users
 
     - name: Backup initial users
@@ -145,7 +139,7 @@
   hosts: webportals
   remote_user: "{{ webportal_temp_user | default('') }}"
   gather_facts: False
-  serial: 1              # Limit concurrency
+  serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
     # LastPass required to read password for 'become: True' and for setting
@@ -155,7 +149,7 @@
     - name: Skip if initial root like user is not defined
       meta: end_host
       when: initial_root_like_user is not defined
-    
+
     - name: Remove initial root like user
       ansible.builtin.user:
         name: "{{ initial_root_like_user }}"
@@ -163,11 +157,11 @@
         remove: yes
         force: True
       become: True
-    
+
     - name: Restore initial users (if they were updated)
       set_fact:
         initial_users: "{{ initial_users_before_user_dance | default(initial_users) }}"
-    
+
     - name: Gather ansible facts on demand
       ansible.builtin.setup:
 

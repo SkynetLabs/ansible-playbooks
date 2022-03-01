@@ -17,31 +17,26 @@
     max_hosts: 1
 
   tasks:
-
     # Check '--limit' is used
     - name: Fail if you are targeting more than 1 hosts
       include_tasks: tasks/host-limit-check.yml
       run_once: True
 
-    # Check host OS version
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
-    
+    - name: Check server OS compatibility
+      include_tasks: tasks/check-server-os-compatibility.yml
+
     # Update apt
     - name: Run "apt-get update"
       apt:
         update_cache: yes
         cache_valid_time: 900
-    
+
     # Ensure docker group
     - name: Ensure group "docker" exists
       ansible.builtin.group:
         name: "docker"
         state: present
-    
+
     # Install Docker
     - name: Include role to install Docker
       include_role:
