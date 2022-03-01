@@ -37,7 +37,7 @@
 
     - name: Set mongo replicaset initialized
       set_fact:
-        mongo_replicaset_initialized: "{{ not ('NotYetInitialized' in mongo_shell_result.transformed_output) }}"
+        mongo_replicaset_initialized: "{{ not ('NotYetInitialized' in (mongo_shell_result.msg | default(''))) }}"
 
     # If the MongoDB replicaset was not yet initialized, we can skip MongoDB
     # replicaset majority check, it doesn't matter that we stop the rest of
