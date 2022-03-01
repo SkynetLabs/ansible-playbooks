@@ -40,13 +40,18 @@
       include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
 
     - name: Check docker was setup
-      command: docker ps
+      ansible.builtin.command: docker ps
       register: docker_ps_result
+      ignore_errors: True
+
+    - name: Check docker SDK for Python3 was installed
+      ansible.builtin.command: python3 -m pip show docker
+      register: docker_pip_result
       ignore_errors: True
 
     - name: Include stopping portal and other docker containers (if exist)
       include_tasks: tasks/portal-stop-and-docker-containers-stop.yml
-      when: docker_ps_result.failed | default(False) != True
+      when: ((docker_ps_result.failed | default(False)) or (docker_pip_result.failed | default(False))) != True
 
     # Stop docker services gracefully - end
 
