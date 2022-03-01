@@ -13,7 +13,7 @@
   any_errors_fatal: True
 
   tasks:
-    - name: Check server OS compatibility
+    - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
     # Update apt

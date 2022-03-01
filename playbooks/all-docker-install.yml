@@ -22,7 +22,7 @@
       include_tasks: tasks/host-limit-check.yml
       run_once: True
 
-    - name: Check server OS compatibility
+    - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
     # Update apt

@@ -51,7 +51,7 @@
     - name: Gather ansible facts on demand
       ansible.builtin.setup:
 
-    - name: Check server OS compatibility
+    - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
     # Basic security
@@ -111,7 +111,7 @@
     - name: Gather ansible facts on demand
       ansible.builtin.setup:
 
-    - name: Check server OS compatibility
+    - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
     # Backup and update initial_users

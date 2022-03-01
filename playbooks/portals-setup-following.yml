@@ -13,11 +13,11 @@
     - name: Check '--limit' is used
       include_tasks: tasks/host-limit-check.yml
 
-    - name: Check server OS compatibility
+    - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
     # Stop docker services gracefully - begin
-    
+
     # If we rerun this playbook on any server which successfully started up
     # docker services, we need to stop them gracefully (wait for uploads/
     # downloads to finish) first before we continue with server setup, because
@@ -53,8 +53,7 @@
     # Stop docker services gracefully - end
 
     - name: Reset SSH connection to fix occasional Ansible become/sudo issues
-      ansible.builtin.meta:
-        reset_connection
+      ansible.builtin.meta: reset_connection
 
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
