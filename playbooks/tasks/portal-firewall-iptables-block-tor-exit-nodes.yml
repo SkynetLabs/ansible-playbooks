@@ -1,0 +1,35 @@
+---
+
+# Block Tor exit node traffic
+
+# Requirements:
+# - This task requires to be run as root (become: True)
+
+- name: Update apt packages
+  apt:
+    update_cache: yes
+    cache_valid_time: 900
+
+- name: Ensure requirements are installed
+  apt:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - iptables
+    - ipset
+    - curl
+
+- name: Create IPv4 ipsets
+  ansible.builtin.command: "ipset -exist create {{ item }} iphash"
+  loop:
+    - "{{ block_tor_exit_nodes_lists.torproject.ipset_ipv4 }}"
+    - "{{ block_tor_exit_nodes_lists.dan.ipset_ipv4 }}"
+
+- name: Create IPv6 ipset
+  ansible.builtin.command: "ipset -exist create {{ block_tor_exit_nodes_lists.dan.ipset_ipv6 }} hash:ip family inet6"
+
+- name: Upload script to update tor exit node lists (used by root cron job)
+  ansible.builtin.template:
+    src: templates/tor-blocklists-update.sh.j2
+    dest: "{{ webportal_dir }}/scripts/tor-blocklists-update.sh"
+    mode: u=rwx,g=r,o=r

@@ -49,6 +49,23 @@ local_networks_denied:
   - "198.18.0.0/15"
   - "169.254.0.0/16"
 
+# Iptables: Tor exit nodes blocking
+block_tor_exit_nodes: True
+block_tor_exit_nodes_lists:
+  torproject:
+    url: "https://check.torproject.org/torbulkexitlist?ip="
+    filename: "torproject-exitnodelist"
+    ipset_ipv4: "torproject-exitnodelist-ipv4"
+  dan:
+    url: "https://www.dan.me.uk/torlist/?exit"
+    filename: "dan-exitnodelist"
+    ipset_ipv4: "dan-exitnodelist-ipv4"
+    ipset_ipv6: "dan-exitnodelist-ipv6"
+  # Downloads from dan.me.uk are limited to once per 30 mins (= 1800 secs), we
+  # do not redownload the given number of seconds to prevent errors loading
+  # error message instead of IP list to ipset
+  do_not_redownload_within_secs: 2000
+
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
 
