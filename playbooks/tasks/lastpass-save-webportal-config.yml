@@ -1,5 +1,4 @@
 ---
-
 # Server config
 
 - name: Check if LastPass server record exists
@@ -17,7 +16,6 @@
     module: shell
     cmd: printf '{{ webportal_server_config | to_nice_yaml(width=2048) }}' | lpass {{ lastpass_command }} --sync now --notes --non-interactive {{ lastpass_portal_config_server }}
   no_log: True
-
 # TODO: Saving missing cluster variables
 # Common/cluster config
 
