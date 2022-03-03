@@ -172,8 +172,6 @@
 
       when: webportal_setup_dotfiles_and_dev_tools
 
-    # REMOVE!!
-    - meta: end_host
     - name: Include role to setup Skynet Webportal
       include_role:
         name: skynetlabs.skynet_webportal
