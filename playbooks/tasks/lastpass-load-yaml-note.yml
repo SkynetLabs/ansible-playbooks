@@ -26,7 +26,12 @@
 - name: Check if LastPass item exists
   local_action:
     module: ansible.builtin.command
-    cmd: "lpass ls --sync now {{ item.lastpass_path }}"
+    # NOTE: We use single quotes around the lastpass paths to ensure the path
+    # separators are not escaped. This is specific handling due to the path
+    # being passed in as a variable to this task. The single quotes wouldn't be
+    # needed if the variable was accessed directly, i.e
+    # lastpass_portal_config_server
+    cmd: "lpass ls --sync now '{{ item.lastpass_path }}'"
   register: lastpass_ls_result
   changed_when: False
 
