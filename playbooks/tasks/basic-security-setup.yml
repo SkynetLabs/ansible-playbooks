@@ -1,4 +1,5 @@
 ---
+
 # Update apt
 - name: Run apt-get update
   apt:
@@ -46,6 +47,15 @@
     remove: yes
   when: ansible_user == webportal_user
 
+# Stop the playbook to prevent locking the user out of the server access
+- name: Fail if user hasn't defined public SSH keys to load to authorized_keys
+  fail:
+    msg: |
+      Variable webportal_user_authorized_keys is not defined or is empty.
+      You need to define user public SSH authorized keys otherwise you will
+      lock yourself out of the server access.
+  when: webportal_user_authorized_keys | default('') == ''
+
 # Add SSH authorized keys
 - name: Add SSH authorized keys
   ansible.posix.authorized_key:
@@ -53,7 +63,6 @@
     state: present
     key: "{{ item.authorized_keys }}"
   loop: "{{ initial_users }}"
-  when: webportal_user_authorized_keys != ""
 
 # Basic security
 - name: Include basic security setup
