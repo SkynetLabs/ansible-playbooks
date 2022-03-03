@@ -97,13 +97,31 @@ lastpass_portal_config_server_subfolder: "portal-server-configs"
 ###############################################################################
 # SSH Access
 #
-# During portals-setup-following, ansible can add a list of authorized pubkeys
-# to your server. This is helpful if you are planning on managing a server with
-# a team. Ansible is set up to pull this list from a url, like a GitHub repo. If
-# you leave the variable blank, no additional keys will be added.
+# During portals-setup-initial and portal-setup-following, if variable
+# setup_basic_security is set to True (default: True) Ansible will add a single
+# or a list of authorized SSH public keys to your server, will disable root SSH
+# login and user passwords logins, the only way to SSH to your server is using
+# your public SSH key(s). Ansible can pull your public SSH keys (usually
+# located at ~/.ssh/authorized_keys) from a url, like a GitHub repo or you can
+# add your key(s) as strings. You can add multiple keys which is helpful if you
+# are planning on managing a server with a team.
 #
 # Example
-# webportal_user_authorized_keys: "https://raw.githubusercontent.com/SkynetLabs/skynet-webportal/master/setup-scripts/support/authorized_keys"
+#
+# Authorized keys from URL
+# Need to change to URL to your file containing your public SSH authorized_keys
+# webportal_user_authorized_keys: "https://raw.githubusercontent.com/SkynetLabs/public-ssh-authorized-keys/authorized_keys"
+#
+# Authorized key as a string (just one key)
+# Need to change to your public SSH key
+# webportal_user_authorized_keys: "ssh-ed25519 XXXXX3NzaC1lZDI1NTE5XXXXXNbAhwjJNAud7YIJvLth2bmeUg3XXXXXl7ZfqBTvoXn8 me@example.com"
+#
+# Authorized keys as strings (multiple keys)
+# Need to change to allowed public SSH keys (note pipe character and indenting)
+# webportal_user_authorized_keys: |
+#   ssh-ed25519 XXXXX3NzaC1lZDI1NTE5XXXXXNbAhwjJNAud7YIJvLth2bmeUg3XXXXXl7ZfqBTvoXn8 me@example.com
+#   ssh-ed25519 YYYYY3NzaC1lZDI1NTE5YYYYYNbAhwjJNAud7YIJvLth2bmeUg3YYYYYl7ZfqBTvoXn8 my-cat@example.com
+#   ssh-ed25519 ZZZZZ3NzaC1lZDI1NTE5ZZZZZNbAhwjJNAud7YIJvLth2bmeUg3ZZZZZl7ZfqBTvoXn8 my-dog@example.com
 webportal_user_authorized_keys: ""
 
 ###############################################################################
