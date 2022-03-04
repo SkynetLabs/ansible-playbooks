@@ -68,6 +68,13 @@
           become: True
       when: setup_ufw
 
+    - name: Include blocking Tor exit nodes traffic
+      include_tasks: tasks/portal-firewall-iptables-block-tor-exit-nodes.yml
+      args:
+        apply:
+          become: True
+      when: block_tor_exit_nodes
+
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
 

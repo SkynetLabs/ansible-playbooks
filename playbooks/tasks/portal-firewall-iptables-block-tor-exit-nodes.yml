@@ -5,6 +5,12 @@
 # Requirements:
 # - This task requires to be run as root (become: True)
 
+# Output:
+# - ipset for iptables is installed
+# - ipsets are populated initially and updated via periodic cron job with Tor
+#   exit node lists downloaded from internet (Tor Project list and Dan list)
+# - iptables rules are inserted to block IPs from the ipsets
+
 - name: Update apt packages
   apt:
     update_cache: yes
@@ -33,3 +39,44 @@
     src: templates/tor-blocklists-update.sh.j2
     dest: "{{ webportal_dir }}/scripts/tor-blocklists-update.sh"
     mode: u=rwx,g=r,o=r
+
+- name: Check the script execution before adding it as root cron job
+  ansible.builtin.command: "{{ webportal_dir }}/scripts/tor-blocklists-update.sh"
+
+- name: Ensure cron job updating ipsets with Tor exit node lists exists
+  ansible.builtin.cron:
+    name: "Update Tor exit node lists in ipsets"
+    minute: "45"
+    job: "{{ webportal_dir }}/scripts/tor-blocklists-update.sh"
+
+# Primarily we need to block traffic in DOCKER-USER chain, INPUT chain doesn't
+# block incoming traffic from internet to skynet stack in docker containers but
+# it is blocked just to be on sure side.
+
+# Module ansible.builtin.iptables with current Ansible version we use (2.10)
+# doesn't support ipset match_set, so we add rules to iptables by shell module. 
+
+- name: Ensure iptables rules are present
+  # Check if rule exists, if not, insert it
+  ansible.builtin.shell: "{{ item.command }} -C {{ rule }} || {{ item.command }} -I {{ rule }}"
+  vars:
+    rule: "{{ item.chain }} -m set --match-set {{ item.ipset }} src -j DROP"
+  loop:
+    # 2x Tor project IPv4
+    - command: iptables
+      chain: DOCKER-USER
+      ipset: "{{ block_tor_exit_nodes_lists.torproject.ipset_ipv4 }}"
+    - command: iptables
+      chain: INPUT
+      ipset: "{{ block_tor_exit_nodes_lists.torproject.ipset_ipv4 }}"
+    # 2x Dan list IPv4
+    - command: iptables
+      chain: DOCKER-USER
+      ipset: "{{ block_tor_exit_nodes_lists.dan.ipset_ipv4 }}"
+    - command: iptables
+      chain: INPUT
+      ipset: "{{ block_tor_exit_nodes_lists.dan.ipset_ipv4 }}"
+    # Dan list IPv6
+    - command: ip6tables
+      chain: INPUT
+      ipset: "{{ block_tor_exit_nodes_lists.dan.ipset_ipv6 }}"
