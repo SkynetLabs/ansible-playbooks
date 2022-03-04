@@ -1,5 +1,4 @@
 ---
-
 # Load portal configs from LastPass
 
 # Load server config
@@ -22,7 +21,7 @@
   loop: "{{ lastpass_portal_common_and_cluster_configs_list }}"
   loop_control:
     index_var: config_index
-  
+
 - name: Include loading common/cluster configs from LastPass
   include_tasks: tasks/lastpass-load-yaml-note.yml
   loop: "{{ lastpass_common_cluster_configs }}"
