@@ -46,6 +46,7 @@
         state: directory
         owner: "1000"
         group: "1000"
+      become: True
   when: portal_jaeger_on
 
 # Setup MongoDB
