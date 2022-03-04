@@ -10,10 +10,9 @@
 
   # Load common vars
   vars_files:
-  - vars/deploy-machines.yml
+    - vars/deploy-machines.yml
 
   roles:
-
     # Install Docker
     - role: geerlingguy.docker
       become: True
@@ -21,16 +20,11 @@
     # Secure the server
     - role: geerlingguy.security
       become: True
-  
-  tasks:
 
-    # Check host OS version
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
-    
+  tasks:
+    - name: Include checking server OS compatibility
+      include_tasks: tasks/check-server-os-compatibility.yml
+
     # Configure server
     - name: Run "apt-get update"
       apt:
@@ -47,10 +41,10 @@
         - sudo
         - python3-pip
         - lastpass-cli
-    
+
     - name: Create lpass working dir
       ansible.builtin.file:
-        path: "{{ item }}" 
+        path: "{{ item }}"
         state: directory
       loop:
         - /home/user/.config/lpass
@@ -67,7 +61,7 @@
       community.general.timezone:
         name: "UTC"
       become: True
-    
+
     # Ensure configured user
     - name: Ensure configured user
       ansible.builtin.user:
@@ -76,20 +70,19 @@
           - sudo
           - docker
       become: True
-    
+
     # Configure ufw firewall
     - name: Setup ufw firewall
       include_tasks: tasks/firewall-ufw-setup.yml
       args:
         apply:
           become: True
-    
+
     # Checkout ansible-playbooks repo
     - name: Checkout ansible-playbooks repo
       ansible.builtin.git:
         repo: "https://github.com/SkynetLabs/ansible-playbooks.git"
         dest: "/home/user/ansible-playbooks"
-  
-  handlers:
 
+  handlers:
     - import_tasks: handlers/main.yml
