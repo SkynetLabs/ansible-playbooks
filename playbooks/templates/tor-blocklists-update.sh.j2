@@ -27,7 +27,7 @@ if [[ ! -f $timestamp_file || $(cat $timestamp_file) -lt $past ]]; then
     echo "Creating/Updating torproject timestamp"
     echo "$(date +%s)" > $timestamp_file
 else
-    echo "It's too soon to redownload torproject exitnodelist"
+    echo "It's too soon to redownload torproject exitnodelist, using cached version from $(cat $timestamp_file)."
 fi
 
 # Dan list
