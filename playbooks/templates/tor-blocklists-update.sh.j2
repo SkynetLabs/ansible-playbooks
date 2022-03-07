@@ -61,5 +61,5 @@ if [[ ! -f $timestamp_file || $(cat $timestamp_file) -lt $past ]]; then
     echo "Creating/Updating dan timestamp"
     echo "$(date +%s)" > $timestamp_file
 else
-    echo "It's too soon to redownload dan exitnodelist"
+    echo "It's too soon to redownload dan exitnodelist, using cached version from $(cat $timestamp_file)."
 fi
