@@ -81,8 +81,7 @@ a playbook.
 
 ### Check Access
 
-To check that you have access to all portals, execute:  
-`scripts/portals-ping.sh`
+To check that you have access to all portals with the [portal-ping](#portal-ping) script.
 
 ### LastPass Login
 
@@ -106,6 +105,23 @@ you can execute playbooks as usually.
 the login script to refresh your session to be able to see the updates.
 
 ## Playbooks
+
+### Portal Ping
+
+#### Playbook Actions
+This playbook pings a portal to check if it is accessible. 
+
+**NOTE** this playbook is a wrapper for the `ping` command line tool and uses
+the `ansible_host`. This means it is going to try and ping `user@host`. So if
+you have not run the [`portal-setup-initial`](#playbook-portals-setup-initial)
+script yet to initialize the user, you should include the `-u root` option. Or,
+if your server was initialized with a non root user, use that username, i.e. `-u
+debian`.
+
+#### Execution
+`scripts/portals-ping.sh --limit eu-ger-1`  
+`scripts/portals-ping.sh -u root --limit eu-ger-1`  
+`scripts/portals-ping.sh -u debian --limit eu-ger-1`  
 
 ### Get Webportal Status
 
