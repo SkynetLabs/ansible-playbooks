@@ -1,5 +1,4 @@
 ---
-
 # Block Tor exit node traffic
 
 # Requirements:
@@ -36,30 +35,30 @@
 
 - name: Make sure scripts directory exists
   ansible.builtin.file:
-    path: "{{ webportal_dir }}/scripts"
+    path: "{{ devops_scripts_dir }}"
     state: directory
 
 - name: Upload script to update tor exit node lists (used by root cron job)
   ansible.builtin.template:
     src: templates/tor-blocklists-update.sh.j2
-    dest: "{{ webportal_dir }}/scripts/tor-blocklists-update.sh"
+    dest: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
     mode: u=rwx,g=r,o=r
 
 - name: Check the script execution before adding it as root cron job
-  ansible.builtin.command: "{{ webportal_dir }}/scripts/tor-blocklists-update.sh"
+  ansible.builtin.command: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
 
 - name: Ensure cron job updating ipsets with Tor exit node lists exists
   ansible.builtin.cron:
     name: "Update Tor exit node lists in ipsets"
     minute: "45"
-    job: "{{ webportal_dir }}/scripts/tor-blocklists-update.sh"
+    job: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
 
 # Primarily we need to block traffic in DOCKER-USER chain, INPUT chain doesn't
 # block incoming traffic from internet to skynet stack in docker containers but
 # it is blocked just to be on sure side.
 
 # Module ansible.builtin.iptables with current Ansible version we use (2.10)
-# doesn't support ipset match_set, so we add rules to iptables by shell module. 
+# doesn't support ipset match_set, so we add rules to iptables by shell module.
 
 - name: Ensure iptables rules are present
   # Check if rule exists, if not, insert it
