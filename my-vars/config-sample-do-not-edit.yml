@@ -50,7 +50,19 @@
 # advice operators can disable outgoing traffic to local networks. This might
 # disrupt existing services (other than skynet portal stack) on the server.
 # ufw_deny_outgoing_to_local_network: True
-
+#
+# Block Tor traffic (default: True)
+# Anonymous Tor traffic can bring a significant load to the portal and can
+# increase overhead handling abuse of Skynet portal service. By default portal
+# setup blocks Tor traffic. If you once blocked Tor traffic and want to allow/
+# unblock it later, you need to set the following variable to False and undo
+# the setup manually (see config variable block_tor_exit_nodes_lists in
+# webportals.yml and an Ansible task
+# playbooks/tasks/portal-firewall-iptables-block-tor-exit-nodes.yml)
+# - remove root cron job
+# - remove iptables rules
+# - remove ipsets
+# block_tor_exit_nodes: True
 
 ###############################################################################
 # LastPass
