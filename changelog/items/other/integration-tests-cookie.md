@@ -1,1 +1,0 @@
-- Use authentication cookie for integration tests.

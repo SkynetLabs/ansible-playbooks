@@ -1,1 +1,0 @@
-- Document default setup flags for community portal operators.

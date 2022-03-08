@@ -1,1 +1,0 @@
-- Clean `renter.log` using sed during portal deploys and restarts.

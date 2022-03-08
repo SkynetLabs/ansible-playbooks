@@ -1,1 +1,0 @@
-- Fix MongoDB majority check when replicaset is not yet initialized.
