@@ -1,1 +1,0 @@
-- Update serverlist version to `v0.0.4`.

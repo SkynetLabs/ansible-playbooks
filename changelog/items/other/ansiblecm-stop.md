@@ -1,1 +1,0 @@
-- Add script to stop Ansible Control Machine.

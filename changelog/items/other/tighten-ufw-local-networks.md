@@ -1,1 +1,0 @@
-- Tighten allowed outgoing traffic to local networks by ufw firewall.

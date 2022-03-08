@@ -1,1 +1,0 @@
-- Add generating `.env` vars for Blocker nad Abuse Scanner.

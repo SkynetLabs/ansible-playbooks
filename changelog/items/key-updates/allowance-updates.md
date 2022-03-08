@@ -1,1 +1,0 @@
-- Added `max_contract_price` and `max_sector_access_price` to default allowance

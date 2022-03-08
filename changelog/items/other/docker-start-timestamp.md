@@ -1,1 +1,0 @@
-- Print timestamp to Ansible console log before starting docker services.

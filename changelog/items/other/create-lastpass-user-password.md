@@ -1,1 +1,0 @@
-- Create webportal user password record in LastPass automatically (if missing).

@@ -1,1 +1,0 @@
-- Update version of Ansible Control Machine, so we can use `rsync` in our plays.

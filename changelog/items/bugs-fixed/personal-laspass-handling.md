@@ -1,1 +1,0 @@
-- Add handling for personal lastpass accounts with the different path separator for folders.
