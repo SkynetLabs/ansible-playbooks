@@ -13,8 +13,7 @@ roles:
   # Role for setting up Skynet Webportal
   - name: skynetlabs.skynet_webportal
     src: https://github.com/SkynetLabs/ansible-role-skynet-webportal
-    # xxx update to tag
-    version: portal-3
+    version: v0.0.1-alfa
 
 # Install collections from Ansible Galaxy.
 collections:
