@@ -1,0 +1,1 @@
+- Add an option to run `portals-setup-following` in parallel.

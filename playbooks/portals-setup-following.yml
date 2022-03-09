@@ -2,7 +2,7 @@
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: True
-  serial: 1 # Limit concurrency
+  serial: "{{ parallel_setups | default(1) }}" # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars: # Playbook specific vars
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
