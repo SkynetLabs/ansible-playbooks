@@ -101,21 +101,35 @@ lastpass_portal_config_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_
 lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}-jwks.json"
 
 # Portal paths settings
+#
+# NOTE: These paths are not strictly alphabetized due to top level paths needing
+# to be defined first so that sub paths can reference them. When possible, the
+# paths are alphabetized if there is no reference order that needs to be
+# maintained.
+#
+# Webportal Paths
 webportal_user_home_dir: "/home/{{ webportal_user }}"
 webportal_dir: "{{ webportal_user_home_dir }}/skynet-webportal"
+webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
+elasticsearch_data_data_dir: "{{ webportal_dir }}/docker/data/elasticsearch/data"
+
+# Accounts Paths
+accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
+accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
+
+# Mongo Paths
+mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
+mongo_backups_dir: "{{ mongo_data_dir }}/backups"
+mongo_db_dir: "{{ mongo_data_dir }}/db"
+mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
+
+# Devops Paths
 devops_dir: "{{ webportal_user_home_dir }}/devops"
+block_tor_exit_nodes_script_file: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
+devops_scripts_dir: "{{ devops_dir }}/scripts"
 logs_dir: "{{ devops_dir }}/logs"
 setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
-devops_scripts_dir: "{{ devops_dir }}/scripts"
-webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
-mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
-mongo_db_dir: "{{ mongo_data_dir }}/db"
-mongo_backups_dir: "{{ mongo_data_dir }}/backups"
-mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
-accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
-accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
-elasticsearch_data_data_dir: "{{ webportal_dir }}/docker/data/elasticsearch/data"
 
 # Default service ports
 default_mongo_port: 27017
