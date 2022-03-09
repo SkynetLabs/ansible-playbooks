@@ -1,0 +1,1 @@
+- Fix bug in escaping characters for lastpass personal yml note loading
