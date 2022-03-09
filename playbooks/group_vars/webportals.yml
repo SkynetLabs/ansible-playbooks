@@ -63,7 +63,12 @@ block_tor_exit_nodes_lists:
     ipset_ipv6: "dan-exitnodelist-ipv6"
   # Downloads from dan.me.uk are limited to once per 30 mins (= 1800 secs), we
   # do not redownload the given number of seconds to prevent errors loading
-  # error message instead of IP list to ipset
+  # error message instead of IP list to ipset. During downloading Tor lists
+  # the script saves timestamps to two temporary files, one for each list. If
+  # we try to redownload manually or via cron job sooner than the below defined
+  # interval, the script skips redownloading the lists. i.e. it is safe to run
+  # the script e.g. every 5 minutes, but the redownloads and ipset updates are
+  # performed only after the last download is older then the below interval.
   do_not_redownload_within_secs: 2000
 
 # LastPass settings
