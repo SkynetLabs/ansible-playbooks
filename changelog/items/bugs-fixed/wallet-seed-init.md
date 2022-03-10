@@ -1,0 +1,2 @@
+- Fix bug for seed being defined when it wasn't.
+- Add CS sync block for initializing wallet with seed.
