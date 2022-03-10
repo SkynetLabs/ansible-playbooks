@@ -1,5 +1,4 @@
 ---
-
 # Check there is still MongoDB majority if we turn off hosts in the current batch
 
 - name: Check mongo container is running
@@ -37,7 +36,7 @@
 
     - name: Set mongo replicaset initialized
       set_fact:
-        mongo_replicaset_initialized: "{{ not ('NotYetInitialized' in (mongo_shell_result.msg | default(''))) }}"
+        mongo_replicaset_initialized: "{{ not ('NotYetInitialized' in (mongo_shell_result.msg | default(''))) and (mongo_shell_result.failed == False) }}"
 
     # If the MongoDB replicaset was not yet initialized, we can skip MongoDB
     # replicaset majority check, it doesn't matter that we stop the rest of
