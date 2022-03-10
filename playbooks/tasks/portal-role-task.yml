@@ -137,6 +137,29 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
+    # Check that the Sia Blockchain is synced
+    - name: Check Sia blockchain sync status
+      command: docker exec sia siac consensus
+      register: siac_consensus_result
+      until: "'Synced: Yes' in siac_consensus_result.stdout"
+      delay: 30
+      retries: 20
+      failed_when: False
+
+    - name: Check if the Sia blockchain is synced
+      fail:
+        msg: |
+          Initializing Sia wallet from Seed requires Sia blockchain to be synced:
+          Sia blockchain is not yet synced:
+
+          {{ siac_consensus_result.stdout }}
+
+          Wait for Sia blockchain synced and rerun the playbook.
+          To check sync status, execute (on the server):
+
+            docker exec sia siac consensus
+      when: "'Synced: Yes' not in siac_consensus_result.stdout"
+
     - name: Initialize a wallet with existing seed
       ansible.builtin.expect:
         command: docker exec -it sia siac wallet init-seed
