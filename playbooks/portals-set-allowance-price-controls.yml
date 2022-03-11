@@ -26,4 +26,11 @@
 
     # Set allowance
     - name: Set allowance
-      command: "docker exec sia siac renter setallowance --max-storage-price {{ max_storage_price }} --max-contract-price {{ max_contract_price }} --max-sector-access-price {{ max_sector_access_price }}"
+      ansible.builtin.command: |
+        docker exec sia siac renter setallowance --max-storage-price {{ max_storage_price }} --max-contract-price {{ max_contract_price }} --max-sector-access-price {{ max_sector_access_price }}
+      register: set_allowance_result
+
+    docker exec sia siac renter setallowance
+      --max-contract-price {{ max_contract_price }}
+      --max-sector-access-price {{ max_sector_access_price }}
+      --max-storage-price {{ max_storage_price }}
