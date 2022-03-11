@@ -123,7 +123,7 @@
 
 - name: Set Sia wallet seed defined
   set_fact:
-    sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined }}"
+    sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined and webportal_server_config.sia_wallet_seed != None }}"
 
 # Init a wallet with existing seed
 
@@ -136,7 +136,37 @@
   set_fact:
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
+# Init from Seed Block
+#
+# We want to initialize the wallet from a seed if:
+#   - The wallet is not initialized already
+#   - The wallet seed is defined
+#   - The use_existing_sia_seed_if_exists variable is set to True
+#   - The setup_status is not 'initializing'
 - block:
+    # Check that the Sia Blockchain is synced
+    - name: Check Sia blockchain sync status
+      command: docker exec sia siac consensus
+      register: siac_consensus_result
+      until: "'Synced: Yes' in siac_consensus_result.stdout"
+      delay: 30
+      retries: 20
+      failed_when: False
+
+    - name: Check if the Sia blockchain is synced
+      fail:
+        msg: |
+          Initializing Sia wallet from Seed requires Sia blockchain to be synced:
+          Sia blockchain is not yet synced:
+
+          {{ siac_consensus_result.stdout }}
+
+          Wait for Sia blockchain synced and rerun the playbook.
+          To check sync status, execute (on the server):
+
+            docker exec sia siac consensus
+      when: "'Synced: Yes' not in siac_consensus_result.stdout"
+
     - name: Initialize a wallet with existing seed
       ansible.builtin.expect:
         command: docker exec -it sia siac wallet init-seed
