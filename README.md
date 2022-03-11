@@ -383,7 +383,8 @@ To check `eu-ger-1` portal:
 To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
 `scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
 
-### Set Allowance Max Storage Price
+### Set Allowance Max Storage Price, Max Contract Price, and Max Sector Access
+Price
 
 Playbook:
 
@@ -396,8 +397,9 @@ Notes:
 
 - `--limit` must be used, it's not possible to set allowance on all
   `portals_dev` and `portals_prod` servers at once.
-- Format of `max_storage_price` value must be same as is expected by executing
-  `docker exec sia siac renter setallowance --max-storage-price`
+- Format of `max_storage_price`, `max_contract_price`, `max_sector_access_price`
+  value must be same as is expected by executing
+  `docker exec sia siac renter setallowance --max-storage-price --max-contract-price --max-sector-access-price`
 
 To run:  
 `scripts/portals-set-allowance-price-controls.sh --limit webportals_prod`  
