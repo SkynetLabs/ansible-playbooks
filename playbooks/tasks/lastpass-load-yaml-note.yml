@@ -24,21 +24,24 @@
 # - Otherwise yaml data from secure note are loaded into output variable.
 
 - name: Check if LastPass item exists
-  local_action:
-    module: ansible.builtin.command
-    # NOTE: We use single quotes around the lastpass paths to ensure the path
-    # separators are not escaped. This is specific handling due to the path
-    # being passed in as a variable to this task. The single quotes wouldn't be
-    # needed if the variable was accessed directly, i.e
-    # lastpass_portal_config_server
-    cmd: "lpass ls --sync now '{{ item.lastpass_path }}'"
+  delegate_to: localhost
+  ansible.builtin.command: "lpass ls --sync now {{ item.lastpass_path }}"
   register: lastpass_ls_result
   changed_when: False
 
 - block:
     - name: Get LastPass data
+      delegate_to: localhost
+      ansible.builtin.command: "lpass show --sync now {{ item.lastpass_path }}"
+      register: lastpass_show_result
+      changed_when: False
+
+    - name: Parse LastPass data
       set_fact:
-        lastpass_data: "{{ lookup('community.general.lastpass', item.lastpass_path, field='notes') | from_yaml }}"
+        # The stdout_lines contain 2 lines that we don't want, and then the
+        # third line starts with 'Notes: ' and contains the first config field,
+        # so we want to trim that.
+        lastpass_data: "{{ lastpass_show_result.stdout_lines[2:] | join('\n') | replace('Notes: ', '') | from_yaml }}"
 
     - name: Set variable value from LastPass data
       set_fact:
