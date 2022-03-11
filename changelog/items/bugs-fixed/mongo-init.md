@@ -1,0 +1,1 @@
+- Fix mongo cluster initialization for a single server portal.
