@@ -221,7 +221,7 @@ or:
 
 By default portals-deploy playbook performs deployments one server at a time
 (rolling updates/deploys). You can enable parallel deployments (deploy to the
-given number of hosts in parallel) by setting optional `parallel_deploys`
+given number of hosts in parallel) by setting optional `parallel_executions`
 variable in used `config.yml`.
 
 Example `config.yml`:
@@ -232,7 +232,7 @@ portal_repo_version: "deploy-2021-08-24"
 portal_skyd_version: "deploy-2021-08-24"
 portal_accounts_version: "deploy-2021-08-23"
 
-parallel_deploys: 3
+parallel_executions: 3
 ```
 
 #### How to Set Deploy Batch
@@ -541,7 +541,8 @@ To run:
 
 ### Setup Portal from Scratch
 
-Setup process requires 3 playbooks:
+Setup process requires 3 playbooks (or 2 playbooks if you enable portal deploy
+during portal setup, see playbook `portal-setup-following` below):
 
 - `portals-setup-initial.sh` (run once)
 - `portals-setup-following.sh`
@@ -614,6 +615,14 @@ Playbook:
   - Unlock wallet
   - Set default allowance
   - Setup health checks
+- If variable `deploy_after_setup` is set to True
+  - Portal deployment is performed. Then you do not need to run `portals-deploy`
+    playbook separately, it's tasks are performed within `portal-setup-following`
+    playbook.
+- If variable `deploy_after_setup` is not set at all (it is default behaviur) or
+  is set to False
+  - Portal deployment is not performed. You need to run `portals-deploy` playbook
+    separately to bring portal online.
 
 Execute (e.g. on `eu-fin-5`):
 `scripts/portals-setup-following.sh -e @my-vars/config.yml --limit eu-fin-5`
