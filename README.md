@@ -541,8 +541,7 @@ To run:
 
 ### Setup Portal from Scratch
 
-Setup process requires 3 playbooks (or 2 playbooks if you enable portal deploy
-during portal setup, see playbook `portal-setup-following` below):
+Setup process requires 3 playbooks:
 
 - `portals-setup-initial.sh` (run once)
 - `portals-setup-following.sh`
