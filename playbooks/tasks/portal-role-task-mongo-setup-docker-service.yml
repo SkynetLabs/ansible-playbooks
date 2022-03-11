@@ -1,5 +1,4 @@
 ---
-
 # Ensure MongoDB docker service is setup correctly
 # TODO: This ansible playbook task, should be moved to portal role
 
@@ -25,6 +24,8 @@
   when: mgkey_stat_result.stat.isreg | default(False)
   register: mgkey_update_result
 
+# This check confirms that the mongo container is running with the correct
+# permissions. It DOES NOT check if the cluster is initialized.
 - name: Include checking mongo service is running correctly
   include_tasks: tasks/portal-role-task-mongo-check-docker-service.yml
   when: mgkey_stat_result.stat.isreg | default(False) and not mgkey_update_result.changed
@@ -36,6 +37,13 @@
       We will reset the mongo service.
   when: not (mongo_service_ok | default(False))
 
+# Check if the cluster is initialized
+- name: Include getting MongoDB replicaset status
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
+  # If the playbook is run against several hosts, setup replicaset only once
+  # (on the first host of the batch)
+  run_once: True
+
 # Reset mongo service if it is not running correctly
 - block:
     # TODO: This prompt/next fail don't run ok in parallel
@@ -46,9 +54,9 @@
 
           If you do not have any data in your database
           it is safe to continue.
-          Your MongoDB database will be backupped to
+          Your MongoDB database will be backed up to
           {{ mongo_backups_dir }}, deleted and reset.
-          
+
           If you have production data in your database
           you should fix this issue manually and rerun this playbook.
 
@@ -62,7 +70,7 @@
           Your MongoDB database doesn't run as expected,
           you have to fix it manually and then rerun this playbook.
       when: reset_db_result.user_input[:1] not in 'yY'
-    
+
     - name: Stop and remove mongo container
       community.docker.docker_container:
         name: mongo
@@ -168,4 +176,19 @@
       fail:
         msg: "Mongo service doesn't run correctly after reset"
       when: not mongo_service_ok
-  when: not (mongo_service_ok | default(False))
+
+    - name: Include getting MongoDB replicaset status
+      include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
+      # If the playbook is run against several hosts, setup replicaset only once
+      # (on the first host of the batch)
+      run_once: True
+
+    - name: Include setting MongoDB replicaset
+      include_tasks: tasks/portal-role-task-mongo-setup-replicaset-init.yml
+      when: not mongo_replicaset_online
+      # If the playbook is run against several hosts, setup replicaset only once
+      # (on the first host of the batch)
+      run_once: True
+      register: mongo_replicaset_init
+
+  when: not (mongo_service_ok | default(False)) or not mongo_replicaset_online
