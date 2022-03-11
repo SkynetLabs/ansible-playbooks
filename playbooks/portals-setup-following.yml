@@ -60,7 +60,7 @@
     # errors, we want to try and stop any active docker containers.
     - name: Include stopping portal and other docker containers (if exist)
       include_tasks: tasks/portal-stop-and-docker-containers-stop.yml
-      when: docker_ps_result.stderr == '' and docker_pip_result.stderr == ''
+      when: docker_ps_result.rc == 0 and docker_pip_result.rc == 0
 
     # Stop docker services gracefully - end
 
