@@ -1,11 +1,10 @@
 ---
-
 # Check MongoDB docker service runs correctly
 # TODO: This ansible playbook task, should be moved to portal role
 
 # Check mongo container is running correctly
 # Outcome:
-# - mongo_service_ok: boolean flag whether mongo service runs as expected 
+# - mongo_service_ok: boolean flag whether mongo service runs as expected
 
 - name: Include getting wanted docker compose files
   include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
@@ -136,3 +135,14 @@
       {{ mongo_shell_result | to_nice_json }}
   # Log only when checking replicaset status was performed (didn't fail previously)
   when: not (checking_replicaset_result.skipped | default(False)) and not mongo_service_ok
+
+# If the replicaset check was skipped, the mongo_service should not be OK
+- name: Sanity Check on mongo_service_ok
+  fail:
+    msg: |
+      Unexpected condition:
+      mongo_service_ok is {{mongo_service_ok}} and
+      checking_replicaset_result.skipped is {{checking_replicaset_result.skipped}}
+
+      Only one should be True
+  when: (checking_replicaset_result.skipped | default(False)) and mongo_service_ok
