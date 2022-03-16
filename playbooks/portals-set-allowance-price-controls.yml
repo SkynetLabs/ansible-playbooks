@@ -12,7 +12,6 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    max_storage_price: "150SC"
 
   tasks:
 
@@ -26,8 +25,11 @@
 
     # Set allowance
     - name: Set allowance
-      ansible.builtin.command: |
-        docker exec sia siac renter setallowance --max-storage-price {{ max_storage_price }} --max-contract-price {{ max_contract_price }} --max-sector-access-price {{ max_sector_access_price }}
+      ansible.builtin.command: >
+        docker exec sia siac renter setallowance 
+          --max-storage-price {{ webportal_allowance.max_storage_price }}
+          --max-contract-price {{ webportal_allowance.max_contract_price }}
+          --max-sector-access-price {{ webportal_allowance.max_sector_access_price }}
       register: set_allowance_result
       # Verify result to prevent mistakes and misconfiguration, because
       # setallowance might not fail but just switch to interactive mode.
