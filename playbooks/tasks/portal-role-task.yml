@@ -324,3 +324,7 @@
       command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
 
   when: webportal_setup_health_checks
+
+# If we successfully set up the portal, save the cluster configs.
+- name: Include saving the cluster config
+  include_tasks: "{{ playbook_dir }}/{{ save_cluster_config_handler }}"
