@@ -29,3 +29,6 @@
       ansible.builtin.command: |
         docker exec sia siac renter setallowance --max-storage-price {{ max_storage_price }} --max-contract-price {{ max_contract_price }} --max-sector-access-price {{ max_sector_access_price }}
       register: set_allowance_result
+      # Verify result to prevent mistakes and misconfiguration, because
+      # setallowance might not fail but just switch to interactive mode.
+      failed_when: set_allowance_result.stdout.find("Allowance updated.") == -1
