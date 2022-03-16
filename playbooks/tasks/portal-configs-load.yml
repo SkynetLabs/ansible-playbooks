@@ -26,10 +26,14 @@
 
 # If the common/cluster config hasn't been yet saved to secrets backend, it is
 # loaded as undefined now and we set it to empty dictionary.
+#
+# This is also where we want to save a snapshot of the old version to compare
+# against later.
 - name: Set common/cluster config to empty (if it hasn't yet been saved to secrets backend)
   set_fact:
     webportal_common_config: "{{ webportal_common_config | default({}) }}"
     webportal_common_config_last: "{{ webportal_common_config_last | default({}) }}"
+    webportal_common_config_old: "{{ webportal_common_config_last | default({}) }}"
 
 - name: Set portal common/cluster config missing variables to default values to the last config
   set_fact:

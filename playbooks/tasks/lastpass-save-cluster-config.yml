@@ -1,0 +1,53 @@
+---
+- name: Check if LastPass cluster record exists
+  local_action:
+    module: ansible.builtin.command
+    cmd: "lpass ls --sync now {{ lastpass_portal_config_cluster_file }}"
+  register: lastpass_ls_result
+
+- name: Set LastPass command add or edit
+  set_fact:
+    lastpass_command: "{{ 'add' if lastpass_ls_result.stdout_lines | length == 0 else 'edit' }}"
+
+# Check if there is a difference between the old common config and the current
+# common config.
+- name: Check for a difference in the cluster config file
+  set_fact:
+    difference: "{{ webportal_common_config | difference(webportal_common_config_old) }}"
+
+- block:
+    # TODO: This prompt/next fail shouldn't be run in parallel, i.e. multiple
+    # portals being setup at the same time
+    #
+    # NOTE: the weird use of the join() statement is for formatting. The newline
+    # character \n isn't recognized in this type of multiline string
+    - name: Ask user if it is ok to save the cluster config file
+      pause:
+        prompt: |-
+          It looks like we need to {{ lastpass_command }} your cluster config file in LastPass.
+
+          Here are the fields that appear to need to be {{ lastpass_command }}ed:
+          {{ difference | join("
+          ") }}
+
+          If this doesn't appear to be correct, check your LastPass account and your
+          config files to make sure the playbook is targeting the right files.
+
+          Do you want to {{ lastpass_command }} your cluster config file in LastPass (y/n)?
+      register: update_lastpass_result
+      delegate_to: localhost
+
+    - name: Stop the playbook if the user doesn't want to update LastPass
+      fail:
+        msg: |
+          Your LastPass credentials where not updated, please check your LastPass account
+          and your config files and then rerun this playbook.
+      when: update_lastpass_result.user_input[:1] not in 'yY'
+
+    - name: Update LastPass cluster config record
+      local_action:
+        module: shell
+        cmd: printf "{{ webportal_common_config | to_nice_yaml(width=2048) }}" | lpass {{ lastpass_command }} --sync now --notes --non-interactive {{ lastpass_portal_config_cluster_file }}
+      no_log: True
+
+  when: (lastpass_command == "edit" and difference | length > 0) or lastpass_command == "add"

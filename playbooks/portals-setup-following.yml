@@ -29,6 +29,7 @@
       set_fact:
         load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+        save_cluster_config_handler: "tasks/lastpass-save-cluster-config.yml"
 
     - name: Include getting portal configs
       include_tasks: tasks/portal-configs-load.yml
