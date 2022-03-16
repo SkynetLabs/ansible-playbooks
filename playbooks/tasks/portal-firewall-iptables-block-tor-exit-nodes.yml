@@ -41,17 +41,17 @@
 - name: Upload script to update tor exit node lists (used by root cron job)
   ansible.builtin.template:
     src: templates/tor-blocklists-update.sh.j2
-    dest: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
+    dest: "{{ block_tor_exit_nodes_script_file }}"
     mode: u=rwx,g=r,o=r
 
 - name: Check the script execution before adding it as root cron job
-  ansible.builtin.command: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
+  ansible.builtin.command: "{{ block_tor_exit_nodes_script_file }}"
 
 - name: Ensure cron job updating ipsets with Tor exit node lists exists
   ansible.builtin.cron:
     name: "Update Tor exit node lists in ipsets"
     minute: "45"
-    job: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
+    job: "{{ block_tor_exit_nodes_script_file }}"
 
 # Primarily we need to block traffic in DOCKER-USER chain, INPUT chain doesn't
 # block incoming traffic from internet to skynet stack in docker containers but
