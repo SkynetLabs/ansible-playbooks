@@ -48,6 +48,13 @@
       [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b']] }}
   when: "'b' in portal_modules"
 
+- name: Add gundb-relay docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: >-
+      {{ webportal_docker_compose_files_wanted +
+      [webportal_docker_compose_files_dict['g']] }}
+  when: "'g' in portal_modules"
+
 - name: Add jaeger docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-

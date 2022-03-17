@@ -234,6 +234,7 @@ webportal_docker_compose_files_optional:
 webportal_docker_compose_files_dict:
   a: "docker-compose.accounts.yml"
   b: "docker-compose.blocker.yml"
+  g: "docker-compose.gundb-relay.yml"
   j: "docker-compose.jaeger.yml"
   m: "docker-compose.mongodb.yml"
   s: "docker-compose.malware-scanner.yml"
