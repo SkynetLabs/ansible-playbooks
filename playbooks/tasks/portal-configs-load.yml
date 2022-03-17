@@ -33,7 +33,7 @@
   set_fact:
     webportal_common_config: "{{ webportal_common_config | default({}) }}"
     webportal_common_config_last: "{{ webportal_common_config_last | default({}) }}"
-    webportal_common_config_old: "{{ webportal_common_config_last | default({}) }}"
+    webportal_common_config_last_old: "{{ webportal_common_config_last | default({}) }}"
 
 - name: Set portal common/cluster config missing variables to default values to the last config
   set_fact:

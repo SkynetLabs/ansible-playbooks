@@ -95,12 +95,10 @@ lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}{{ lastpass_direc
 lastpass_portal_config_common_subfolder: "portal-common-configs"
 lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 
-lastpass_portal_config_cluster_file: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
-
 # See my-vars/config-sample-do-not-edit.yml file for documentation.
 lastpass_portal_common_and_cluster_configs_list:
   # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
-  - "{{ lastpass_portal_config_cluster_file }}"
+  - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
 
 lastpass_portal_config_server_subfolder: "portal-server-configs"
 lastpass_portal_config_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_server_subfolder }}{{ lastpass_file_separator }}{{ inventory_hostname }}.yml"
