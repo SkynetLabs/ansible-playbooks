@@ -59,6 +59,10 @@
 - name: Include setting MongoDB docker service
   include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
 
+# If we successfully set up mongo, save the cluster configs.
+- name: Include saving the cluster config
+  include_tasks: "{{ playbook_dir }}/{{ save_cluster_config_handler }}"
+
 # Init, unlock wallet
 
 # Don't rebuild sia container (keep it running)

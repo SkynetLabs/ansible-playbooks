@@ -16,9 +16,3 @@
     module: shell
     cmd: printf '{{ webportal_server_config | to_nice_yaml(width=2048) }}' | lpass {{ lastpass_command }} --sync now --notes --non-interactive {{ lastpass_portal_config_server }}
   no_log: True
-# TODO: Saving missing cluster variables
-# Common/cluster config
-
-# Common/cluster configs list can contain 1 or more LastPass records, later
-# ones override earlier ones, we save missing/default values to the latest
-# LastPass record in the list (the most specific).
