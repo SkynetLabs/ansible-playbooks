@@ -398,25 +398,27 @@ To check `eu-ger-1` portal:
 To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
 `scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
 
-### Set Allowance Max Storage Price
+### Set Allowance Max Storage Price, Max Contract Price, and Max Sector Access
+Price
 
 Playbook:
 
 - Sets allowance defined in
-  `playbooks/portals-set-allowance-max-storage-price.yml` > `vars` >
-  `max_storage_price`
+  `playbooks/portals-set-allowance-price-controls.yml` > `vars` >
+  `max_storage_price`, `max_contract_price`, `max_sector_access_price`
   on the portal server(s).
 
 Notes:
 
 - `--limit` must be used, it's not possible to set allowance on all
   `portals_dev` and `portals_prod` servers at once.
-- Format of `max_storage_price` value must be same as is expected by executing
-  `docker exec sia siac renter setallowance --max-storage-price`
+- Format of `max_storage_price`, `max_contract_price`, `max_sector_access_price`
+  value must be same as is expected by executing
+  `docker exec sia siac renter setallowance --max-storage-price --max-contract-price --max-sector-access-price`
 
 To run:  
-`scripts/portals-set-allowance-max-storage-price.sh --limit webportals_prod`  
-`scripts/portals-set-allowance-max-storage-price.sh --limit eu-ger-3`
+`scripts/portals-set-allowance-price-controls.sh --limit webportals_prod`  
+`scripts/portals-set-allowance-price-controls.sh --limit eu-ger-3`
 
 ### Block Portal Skylinks
 

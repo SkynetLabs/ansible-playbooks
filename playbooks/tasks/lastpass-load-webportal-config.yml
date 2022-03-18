@@ -12,7 +12,7 @@
 # Load common/cluster configs defined in a list
 
 # lastpass_portal_common_and_cluster_configs_list defines a list of common/
-# cluster configs to load. Former config valuess can be overriden by later
+# cluster configs to load. Former config values can be overridden by later
 # config values.
 
 - name: Generate list of LastPass paths and variable names

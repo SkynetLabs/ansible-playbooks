@@ -2,7 +2,7 @@
 
 # Set command and arguments
 cmd=ansible-playbook
-args="--inventory /tmp/ansible-private/inventory/hosts.ini playbooks/portals-set-allowance-max-storage-price.yml $@"
+args="--inventory /tmp/ansible-private/inventory/hosts.ini playbooks/portals-set-allowance-price-controls.yml $@"
 
 # Execute the command
 source $(dirname "$0")/lib/ansible-executor.sh
