@@ -47,6 +47,11 @@
       meta: end_host
       when: initial_root_like_user is defined
 
+    - name: Install python3 for Ansible
+      ansible.builtin.raw: test -e /usr/bin/python3 || (apt -qqy update && apt install -qqy python3)
+      args:
+        executable: /bin/bash
+
     # Check host OS version
     - name: Gather ansible facts on demand
       ansible.builtin.setup:
@@ -105,6 +110,11 @@
 
         - meta: end_host
       when: ssh_access_result.failed
+
+    - name: Install python3 for Ansible
+      ansible.builtin.raw: test -e /usr/bin/python3 || (apt -qqy update && apt install -qqy python3)
+      args:
+        executable: /bin/bash
 
     # Check host OS version
 
