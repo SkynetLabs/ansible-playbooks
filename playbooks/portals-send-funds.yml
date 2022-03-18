@@ -4,7 +4,7 @@
   gather_facts: False
 
   # Limit concurrency
-  serial: "{{ parallel_deploys | default(1) }}"
+  serial: "{{ parallel_executions | default(1) }}"
 
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True

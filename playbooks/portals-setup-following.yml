@@ -2,12 +2,21 @@
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: True
-  serial: "{{ parallel_setups | default(1) }}" # Limit concurrency
-  any_errors_fatal: True # Stop on first error, do not execute on the next host
-  vars: # Playbook specific vars
+  # Limit concurrency
+  serial: "{{ parallel_executions | default(1) }}"
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+  # Playbook specific vars
+  vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
-    portal_action: "portal-setup"
+    portal_action: "{{ 'portal-setup-and-deploy' if (deploy_after_setup | default(False)) else 'portal-setup' }}"
+
+    # Deploy specific
+    # Rebuild docker services
+    docker_compose_build: True
+    # Set portal, skyd, accounts versions
+    set_portal_versions: True
 
   tasks:
     - name: Check '--limit' is used
@@ -194,6 +203,11 @@
 
     - name: xxx include role task
       include_tasks: tasks/portal-role-task.yml
+
+    # Deploy portal
+    - name: Including deploying portal
+      include_tasks: tasks/portal-deploy.yml
+      when: deploy_after_setup | default(False)
 
   handlers:
     - import_tasks: handlers/main.yml

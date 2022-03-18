@@ -1,0 +1,46 @@
+---
+# Deploy Portal to Server
+
+- name: Print timestamp
+  debug:
+    msg: "{{ inventory_hostname + ' deployment start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
+
+- name: Include preparing portal prerequisities
+  include_tasks: tasks/portals-prepare.yml
+
+- name: Include disabling health check and stopping portal docker services
+  include_tasks: tasks/portal-stop.yml
+
+- name: Include starting portal docker services
+  include_tasks: tasks/portal-docker-services-start.yml
+
+- name: Executing Docker Command
+  include_tasks: tasks/portal-docker-command.yml
+
+- name: Include running portal integration tests
+  include_tasks: tasks/portal-integration-tests-run.yml
+
+- name: Include running portal health checks
+  include_tasks: tasks/portal-health-checks-run.yml
+
+- name: Include Updating the Allowance
+  include_tasks: tasks/portal-update-allowance.yml
+  # Only execute allowance check if portal is manually defined
+  when: update_allowance is defined and inventory_hostname in update_allowance
+
+- name: Update log status to 'tested'
+  include_tasks: tasks/portal-logs-update-status.yml
+  vars:
+    tag_from: "started"
+    tag_to: "tested"
+
+- name: Include enabling portal health check
+  # Do not enable health checks on hosts from out_of_LB group
+  include_tasks: tasks/portal-health-check-enable.yml
+  when: ('out_of_LB' not in group_names)
+
+- name: Include getting portal status
+  include_tasks: tasks/portal-status-get-status.yml
+
+- name: Include reporting portal status to Discord
+  include_tasks: tasks/portal-status-report-to-discord.yml
