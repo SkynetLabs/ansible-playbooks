@@ -1,7 +1,7 @@
 ---
 - name: Get path
   set_fact:
-    cluster_config_last_path: "{{ (lastpass_portal_common_and_cluster_configs_list | last).lastpass_path }}"
+    cluster_config_last_path: "{{ lastpass_portal_common_and_cluster_configs_list | last }}"
 
 - name: Check if LastPass cluster record exists
   local_action:
