@@ -1,0 +1,1 @@
+- Add portal_modules to hosts.ini and reference in default values.
