@@ -1,0 +1,1 @@
+- Increase timeout for Sia wallet ready during deployments or restarts.

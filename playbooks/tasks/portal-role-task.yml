@@ -119,7 +119,8 @@
   register: sia_wallet_result
   until: "'Wallet status:' in sia_wallet_result.stdout"
   delay: 1
-  retries: 120
+  # Currently sia full setup during deploy or restart can take around 8 minutes
+  retries: 900
 
 - name: Set wallet initialized
   set_fact:
