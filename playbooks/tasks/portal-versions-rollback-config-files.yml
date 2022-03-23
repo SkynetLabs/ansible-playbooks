@@ -1,5 +1,4 @@
 ---
-
 # Rollback portal config files
 
 # Get list of docker-compose files we want to rollback
@@ -29,6 +28,10 @@
     mode: preserve
   loop: "{{ webportal_docker_compose_files_to_rolback + webportal_other_config_files }}"
 
+# TODO: need to verify if difference() is potentially buggy here.
+#
+# See comment in solution
+# https://stackoverflow.com/questions/40115323/calculate-set-difference-using-jinja2-in-ansible
 - name: Get list of docker-compose files that are present but were not rolled back
   set_fact:
     webportal_docker_compose_files_to_delete: "{{ (webportal_docker_compose_files_mandatory + webportal_docker_compose_files_optional) | difference(webportal_docker_compose_files_to_rolback) }}"

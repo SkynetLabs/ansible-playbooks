@@ -16,8 +16,10 @@
 # Check if there is a difference between the old common config and the current
 # common config.
 - name: Check for a difference in the cluster config file
-  set_fact:
-    difference: "{{ webportal_common_config_last | difference(webportal_common_config_last_old) }}"
+  vars:
+    original_dict: "{{ webportal_common_config_last_old }}"
+    new_dict: "{{ webportal_common_config_last }}"
+  include_tasks: tasks/dictionary-diff.yml
 
 - block:
     # TODO: This prompt/next fail shouldn't be run in parallel, i.e. multiple
@@ -31,8 +33,7 @@
           It looks like we need to {{ lastpass_command }} your cluster config file in LastPass.
 
           Here are the fields that appear to need to be {{ lastpass_command }}ed:
-          {{ difference | join("
-          ") }}
+          {{ diff_string }}
 
           If this doesn't appear to be correct, check your LastPass account and your
           config files to make sure the playbook is targeting the right files.
@@ -54,4 +55,4 @@
         cmd: printf "{{ webportal_common_config_last | to_nice_yaml(width=2048) }}" | lpass {{ lastpass_command }} --sync now --notes --non-interactive {{ cluster_config_last_path }}
       no_log: True
 
-  when: (lastpass_command == "edit" and difference | length > 0) or lastpass_command == "add"
+  when: (lastpass_command == "edit" and different_dict ) or lastpass_command == "add"
