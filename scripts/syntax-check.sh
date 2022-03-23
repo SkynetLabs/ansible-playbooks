@@ -6,7 +6,8 @@
 cmd=ansible-playbook
 args="--syntax-check $@"
 
-github_action="true"
+# This script is used in a github action
+github_action=true
 
 # Execute the command
 source $(dirname "$0")/lib/ansible-executor.sh
