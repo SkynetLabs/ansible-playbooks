@@ -1,9 +1,9 @@
-name: yamllint test
+name: Lint
 
 on: push
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,4 +17,14 @@ jobs:
         run: pip install yamllint
 
       - name: Lint YAML files
-        run: yamllint --no-warnings .
+        run: make lint
+
+  syntax_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses:
+          - actions/checkout@v2
+          - docker/build-push-action@v1
+
+      - name: Check playbooks with --syntax-check
+        run: make syntax-check
