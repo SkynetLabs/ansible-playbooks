@@ -19,7 +19,7 @@
 
     - name: Ping to filter out unreachable hosts
       ansible.builtin.ping:
-    
+
     - name: Include blocking and unblocking incoming traffic to portal
       include_tasks: tasks/portal-firewall-iptables-block-unblock.yml
       args:

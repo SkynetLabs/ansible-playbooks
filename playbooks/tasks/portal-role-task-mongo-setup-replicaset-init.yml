@@ -1,27 +1,26 @@
 ---
-
 # Setup MongoDB replicaset
 # TODO: This ansible playbook task, should be moved to portal role
 
 # Prompt if to continue if some mongo containers are not online
 - block:
-  - name: Ask user if it is ok to setup MongoDB replicaset
-    ansible.builtin.pause:
-      prompt: |-
-        MongoDB replicaset (i.e. cluster setup) was not found on any cluster
-        mongo container that is running, however there are some portal hosts
-        or mongo container from this cluster offline.
+    - name: Ask user if it is ok to setup MongoDB replicaset
+      ansible.builtin.pause:
+        prompt: |-
+          MongoDB replicaset (i.e. cluster setup) was not found on any cluster
+          mongo container that is running, however there are some portal hosts
+          or mongo container from this cluster offline.
 
-        (If you have already setup MongoDB replicaset, bring it online.)
+          (If you have already setup MongoDB replicaset, bring it online.)
 
-        Are you sure you want to setup a new MongoDB replicaset?
-        (y/n)
-    register: setup_mongo_replicaset_result
-    delegate_to: localhost
+          Are you sure you want to setup a new MongoDB replicaset?
+          (y/n)
+      register: setup_mongo_replicaset_result
+      delegate_to: localhost
 
-  - name: Stop the playbook if the user doesn't want to setup new MongoDB replicaset
-    meta: end_play
-    when: setup_mongo_replicaset_result.user_input[:1].lower() != 'y'
+    - name: Stop the playbook if the user doesn't want to setup new MongoDB replicaset
+      meta: end_play
+      when: setup_mongo_replicaset_result.user_input[:1].lower() != 'y'
   when: mongo_not_ok_count | int > 0
 
 - name: Include MongoDB replicaset initialization
@@ -42,6 +41,6 @@
   fail:
     msg: |
       MongoDB replicaset initialization was not successful:
-      
+
       Mongo shell result: {{ mongo_shell_result }}
-  when: "mongo_shell_result.transformed_output | default('none output') != '{ \"ok\" : 1 }'"
+  when: 'mongo_shell_result.transformed_output | default(''none output'') != ''{ "ok" : 1 }'''

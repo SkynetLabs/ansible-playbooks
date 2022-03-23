@@ -1,5 +1,4 @@
 ---
-
 # Handlers
 
 - name: reload ufw firewall

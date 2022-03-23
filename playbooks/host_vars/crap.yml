@@ -18,4 +18,5 @@ security_fail2ban_enabled: True
 # Custom ufw rules
 host_ufw_rules:
   # Vagrant SSH port
-  - { rule: 'limit', port: '2222', proto: 'tcp', direction: 'in' }
+  # yamllint disable-line rule:braces
+  - { rule: "limit", port: "2222", proto: "tcp", direction: "in" }

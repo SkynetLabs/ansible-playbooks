@@ -1,5 +1,4 @@
 ---
-
 # Rollback portal config files
 
 # Get list of docker-compose files we want to rollback

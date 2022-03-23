@@ -16,12 +16,11 @@
     vm_max_map_count: 262144
 
   tasks:
-
     # Set vm.max_map_count directly
     - name: Set vm.max_map_count directly
       command: "sysctl -w vm.max_map_count={{ vm_max_map_count }}"
       become: True
-    
+
     # Set vm.max_map_count in /etc/sysctl.conf
     - name: Set vm.max_map_count in /etc/sysctl.conf
       ansible.builtin.blockinfile:

@@ -1,5 +1,4 @@
 ---
-
 # Setup MongoDB replicaset
 # TODO: This ansible playbook task, should be moved to portal role
 
