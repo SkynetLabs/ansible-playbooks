@@ -61,6 +61,7 @@ else
     exit 0
   fi
 
+
   # Start Ansible Control Machine and keep it running. This is especially
   # needed for LastPass session.
   # Volume and env var with SSH_AUTH_SOCK is used so we can perform SSH agent
@@ -109,4 +110,6 @@ echo "Executing:"
 echo "    $cmd $args"
 echo "in a docker container $ansiblecm_container..."
 
-docker exec -it $ansiblecm_container $cmd $args
+it_flags="-it"
+if ! [ -z ${github_action+x} ]; then it_flags=""; fi
+docker exec $it_flags $ansiblecm_container $cmd $args
