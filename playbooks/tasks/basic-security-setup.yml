@@ -1,5 +1,4 @@
 ---
-
 # Update apt
 - name: Run apt-get update
   apt:
@@ -25,6 +24,7 @@
   # Below must be exact case: None (Python), none (Jinja test)
   when: item.gid | default(None) is not none
   loop: "{{ initial_users }}"
+  no_log: True
 
 # Create users without defined uid
 - name: Create users without defined uid
@@ -38,6 +38,7 @@
   # Below must be exact case: None (Python), none (Jinja test)
   when: item.gid | default(None) is none
   loop: "{{ initial_users }}"
+  no_log: True
 
 # Remove temp user
 - name: Remove temp user (when webportal user is active)

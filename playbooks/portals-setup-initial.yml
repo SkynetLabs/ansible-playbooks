@@ -90,7 +90,8 @@
         # 'meta: end_host' couldn't be in this 'rescue:' because it caused
         # ansible host to stop completely, it didn't continued to the next
         # play. So the 'meta: end_host' was added to the block with 'when'.
-        - meta: noop
+        - name: Ignore error and handle failure in following task
+          meta: noop
 
     - name: Skip to next play if initial root like user was disabled
       block:
@@ -108,7 +109,8 @@
 
               Skipping this play, continue with the next play...
 
-        - meta: end_host
+        - name: End the play
+          meta: end_host
       when: ssh_access_result.failed
 
     - name: Install python3 for Ansible
