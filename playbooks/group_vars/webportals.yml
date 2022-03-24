@@ -177,7 +177,6 @@ webportal_allowance:
 
 # TODO: move to role default vars
 webportal_server_config_defaults:
-  domain_name: "{{ ansible_host }}"
   sia_wallet_password: ""
   sia_api_port: 9980
   sia_api_password: "{{ lookup('pipe','openssl rand -base64 32') }}"

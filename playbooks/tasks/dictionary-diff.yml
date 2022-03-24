@@ -1,0 +1,59 @@
+# The dictionary-diff task compares an original_dict to a new_dict and returns
+# if there is a different and a debug string containing the difference.
+#
+# This task should be called with the following syntax
+#
+# - name: Check Dictionary Diff
+#   vars:
+#     original_dict: "{{ some_dict }}"
+#     new_dict: "{{ another_dict }}"
+#   include_tasks: tasks/dictionary-diff.yml
+#
+# You can then check the different_dict boolean variable to see if there was a
+# difference. And see the difference in the diff_string variable
+
+- name: Initialize Diff Variables
+  set_fact:
+    diff_list: []
+    diff_string: "Dictionary Difference:"
+    different_dict: False
+
+# Check the difference by looping over the new_dict. If the key:value isn't in
+# the original_dict, or the values are not equal, add the key to the diff_list
+- name: Check for new and changed values in the new Dictionary
+  set_fact:
+    diff_list: "{{ diff_list }} + ['{{ item }}']"
+    different_dict: True
+  loop: "{{ new_dict.keys()|list }}"
+  when: item not in original_dict or new_dict[item] != original_dict[item]
+
+# Check for values that are present in original but not in new
+- name: Check the values that were dropped
+  set_fact:
+    diff_list: "{{ diff_list }} + ['{{ item }}']"
+    different_dict: True
+  loop: "{{ original_dict.keys()|list }}"
+  when: item not in new_dict
+
+# Build the diff_string if there was a difference found
+- block:
+    - name: Add 'Original Values' header to diff string
+      set_fact:
+        diff_string: "{{ diff_string }}\n\nOriginal Values"
+
+    - name: Add original values to diff string
+      set_fact:
+        diff_string: "{{ diff_string }}\n {{ item }}: {{ original_dict[item] }}"
+      loop: "{{ diff_list|list }}"
+      when: item in original_dict
+
+    - name: Add 'New Values' header to diff string
+      set_fact:
+        diff_string: "{{ diff_string }}\n\nNew Values"
+
+    - name: Add new values to diff string
+      set_fact:
+        diff_string: "{{ diff_string }}\n {{ item }}: {{ new_dict[item] }}"
+      loop: "{{ diff_list|list }}"
+      when: item in new_dict
+  when: different_dict

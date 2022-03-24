@@ -1,0 +1,1 @@
+- Expose `BLOCKER_PORTALS_SYNC` environment variable
