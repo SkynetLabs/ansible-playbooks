@@ -1,0 +1,1 @@
+- Update all variables to match server_domain and portal_domain conventions
