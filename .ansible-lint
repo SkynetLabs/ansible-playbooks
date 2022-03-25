@@ -3,11 +3,11 @@
 #
 # Built from https://ansible-lint.readthedocs.io/en/latest/configuring/
 
-# exclude_paths included in this file are parsed relative to this file's location
-# and not relative to the CWD of execution. CLI arguments passed to the --exclude
-# option will be parsed relative to the CWD of execution.
+# exclude_paths included in this file are parsed relative to this file's
+# location and not relative to the CWD of execution. CLI arguments passed to the
+# --exclude option will be parsed relative to the CWD of execution.
 exclude_paths:
-  - .cache/ # implicit unless exclude_paths is defined in config
+  - .cache/
   - .github/
   - ansible_collections/
   - changelog/
@@ -33,21 +33,34 @@ exclude_paths:
 # loop_var_prefix: "{role}_"
 
 # Enforce variable names to follow pattern below, in addition to Ansible own
-# requirements, like avoiding python identifiers. To disable add `var-naming`
-# to skip_list.
+# requirements, like avoiding python identifiers. To disable add `var-naming` to
+# skip_list.
 # var_naming_pattern: "^[a-z_][a-z0-9_]*$"
 
 use_default_rules: true
 
 # This makes linter to fully ignore rules/tags listed below
 skip_list:
-  - no-changed-when # TODO: enable https://ansible-lint.readthedocs.io/en/latest/default_rules/#no-changed-when
-  - deprecated-local-action # TODO: enable https://ansible-lint.readthedocs.io/en/latest/default_rules/#deprecated-local-action
-  - risky-shell-pipe # TODO: enable, need to add pipe fail option https://ansible-lint.readthedocs.io/en/latest/default_rules/#risky-shell-pipe
-  - risky-file-permissions # TODO: enable, need to work through errors and set all unset file permissions
-  - command-instead-of-module # TODO: enable, looks like there are some places to use this module https://docs.ansible.com/ansible/latest/collections/ansible/builtin/git_module.html
-  - command-instead-of-shell # TODO: enable, https://ansible-lint.readthedocs.io/en/latest/default_rules/#command-instead-of-shell
-  - empty-string-compare # This is a dumb rule, skip until moved to an opt-in rule https://github.com/ansible/ansible-lint/issues/457
+  # TODO: enable
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#no-changed-when
+  - no-changed-when
+  # TODO: enable
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#deprecated-local-action
+  - deprecated-local-action
+  # TODO: enable, need to add pipe fail option
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#risky-shell-pipe
+  - risky-shell-pipe
+  # TODO: enable, need to work through errors and set all unset file permissions
+  - risky-file-permissions
+  # TODO: enable, looks like there are some places to use this module
+  # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/git_module.html
+  - command-instead-of-module
+  # TODO: enable,
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#command-instead-of-shell
+  - command-instead-of-shell
+  # This is a dumb rule, skip until moved to an opt-in rule
+  # https://github.com/ansible/ansible-lint/issues/457
+  - empty-string-compare
 
 # Any rule that has the 'opt-in' tag will not be loaded unless its 'id' is
 # mentioned in the enable_list:
@@ -58,8 +71,15 @@ enable_list:
 
 # This makes the linter display but not fail for rules/tags listed below:
 warn_list:
-  - load-failure # This is buggy with include_tasks: https://github.com/ansible/ansible-lint/issues/1446
-  - package-latest # We should be aware of where we do have strict version control, but it shouldn't be an error.
+  # This is buggy with include_tasks:
+  # https://github.com/ansible/ansible-lint/issues/1446
+  - load-failure
+  # We should be aware of where we do have strict version control, but it
+  # shouldn't be an error.
+  - package-latest
+  # This is for not letting yamllint warnings fail the ansible-lint github
+  # action
+  - yaml
 
 # Offline mode disables installation of requirements.yml
 offline: false
