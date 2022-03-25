@@ -94,7 +94,7 @@ extra_vars:
 
 # Uncomment to enforce action validation with tasks, usually is not
 # needed as Ansible syntax check also covers it.
-# skip_action_validation: false
+skip_action_validation: false
 
 # List of additional kind:pattern to be added at the top of the default
 # match list, first match determines the file kind.
