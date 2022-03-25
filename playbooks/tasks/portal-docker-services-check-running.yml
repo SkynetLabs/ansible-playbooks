@@ -1,0 +1,119 @@
+---
+# Check docker services are running (not restarting)
+# Inputs:
+# - docker_containers_check_list: List of docker container names to check
+# - timeout_secs: Total timeout in seconds to wait for containers running
+#     successfully, not restarting (expected to be 120+ seconds)
+
+- name: Assert that inputs are defined correctly
+  ansible.builtin.assert:
+    that:
+      - docker_containers_check_list is defined
+      - docker_containers_check_list | length > 0
+      - docker_containers_check_timeout_secs is defined
+      - docker_containers_check_timeout_secs > 0
+    fail_msg: |
+      Variable docker_containers_check_list must be defined
+      and it must be a list containing at least 1 docker service.
+
+- name: Set main start timestamp once
+  set_fact:
+    # We want to get local time using lookup/pipe
+    check_start_epoch: "{{ lookup('ansible.builtin.pipe', 'date +%s') }}"
+  when: >-
+    check_start_epoch is not defined
+    or check_start_epoch == 0
+
+# We want to get current check timestamp from a remote host, because docker
+# container info StartedAt timestamp is also from remote host, so we can't use
+# lookup/pipe.
+
+- name: Get current check epoch timestamp from remote host
+  ansible.builtin.command: date +%s
+  register: date_result
+
+- name: Set current check epoch timestamp from remote host
+  set_fact:
+    current_check_start_epoch: "{{ date_result.stdout }}"
+
+- name: Check docker containers status
+  community.docker.docker_container_info:
+    name: "{{ item }}"
+  register: docker_info_result
+  loop: "{{ docker_containers_check_list }}"
+
+- name: Reset docker services are running successfully flag
+  set_fact:
+    docker_services_running_ok: True
+
+- name: Set docker services are running successfully flag
+  vars:
+    min_required_non_restarting_time_in_secs: 65
+  set_fact:
+    # Check that container exists, is running and is not restarting for more
+    # more than 1 minute. We need to wait more than 1 minute, because container
+    # can seem running ok (not restating) and restart after 1 minute.
+    # Time check condition:
+    #   (current_check_start_epoch in UTF in secs) - (container started at)
+    #   > min time required
+    docker_services_running_ok: >-
+      {{
+        docker_services_running_ok
+        and item.exists
+        and item.container.State.Running
+        and not item.container.State.Restarting
+        and
+          current_check_start_epoch | int
+          -
+          (item.container.State.StartedAt[:19] | to_datetime('%Y-%m-%dT%H:%M:%S'))
+            .strftime('%s') | int
+          > min_required_non_restarting_time_in_secs
+      }}
+  loop: "{{ docker_info_result.results }}"
+  no_log: True
+
+# If NOK and timeout => log and fail
+- name: >-
+    Fail if some containers are not running or are restarting
+    and timeout was reached.
+  fail:
+    msg: |
+      Some docker containers are still not running or are restarting
+      and the given timeout {{ docker_containers_check_timeout_secs }} seconds
+      has been reached.
+
+      Containers:
+      {% for container_name in docker_containers_check_list %}
+        {% set container_result = docker_info_result.results[loop.index - 1] %}
+        {{ container_name }}:
+            Exists: {{ container_result.exists }}
+      {% if container_result.exists %}
+            Running: {{ container_result.container.State.Running }}
+            Restarting: {{ container_result.container.State.Restarting }}
+            Started at: {{ container_result.container.State.StartedAt }}
+
+      {% endif %}
+      {% endfor %}
+  # We want to get local time using lookup/pipe
+  when: >-
+    not docker_services_running_ok
+    and
+      lookup('ansible.builtin.pipe', 'date +%s') | int
+      - check_start_epoch | int
+      > docker_containers_check_timeout_secs
+
+# Reset input and initial variables when finished checking to be sure later
+# checks in the playbook set their own values
+- name: Reset input and initial variables
+  set_fact:
+    docker_containers_check_list: []
+    docker_containers_check_timeout_secs: 0
+    check_start_epoch: 0
+  when: docker_services_running_ok
+
+# If nok and not timeout => call itself
+- name: >-
+    Check again if some containers are not running ok
+    and timeout was not yet reached
+  include_tasks: tasks/portal-docker-services-check-running.yml
+  when: not docker_services_running_ok
