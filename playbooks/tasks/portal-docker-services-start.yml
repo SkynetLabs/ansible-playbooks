@@ -11,11 +11,11 @@
 
 # Include getting Ansible repo branch and commit
 - name: Include getting Ansible repo branch and commit
-  include_tasks: tasks/portal-version-get.yml
+  include_tasks: tasks/ansible-repo-version-get.yml
 
 # Include logging Ansible version
 - name: Include logging Ansible version
-  include_tasks: tasks/portal-logs-ansible-log-version.yml
+  include_tasks: tasks/ansible-repo-log-version.yml
 
 # Include setting portal versions (portal, skyd, accounts)
 - name: Include setting portal versions (portal, skyd, accounts)

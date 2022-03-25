@@ -105,10 +105,10 @@
       include_tasks: tasks/portal-get-log-filename-prefix.yml
 
     - name: Include getting Ansible repo branch and commit
-      include_tasks: tasks/portal-version-get.yml
+      include_tasks: tasks/ansible-repo-version-get.yml
 
     - name: Include logging Ansible version
-      include_tasks: tasks/portal-logs-ansible-log-version.yml
+      include_tasks: tasks/ansible-repo-log-version.yml
 
     # Setup environment (dotfiles) and dev tools
     - block:
