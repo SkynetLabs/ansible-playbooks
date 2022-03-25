@@ -14,7 +14,6 @@
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
 
   tasks:
-
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
@@ -26,7 +25,7 @@
     # Set allowance
     - name: Set allowance
       ansible.builtin.command: >
-        docker exec sia siac renter setallowance 
+        docker exec sia siac renter setallowance
           --max-storage-price {{ webportal_allowance.max_storage_price }}
           --max-contract-price {{ webportal_allowance.max_contract_price }}
           --max-sector-access-price {{ webportal_allowance.max_sector_access_price }}

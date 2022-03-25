@@ -1,5 +1,4 @@
 ---
-
 # Get remote portal files modified after last Ansible docker services start
 
 # find all files (excluding files in .git, docker/data and

@@ -1,12 +1,10 @@
 ---
-
 - name: Include getting skynet-js repository latest valid semver version
   include_tasks: tasks/portal-skynet-js-repo-get-latest-version.yml
 
 # Run integration tests locally against webportal
 - name: Run integration tests
   block:
-
     # Checkout skynet-js repo locally
     # NOTE: Each portal server has its own repo directory so the tests of
     # different portals do not clash when they are executed in parallel.
@@ -47,9 +45,8 @@
           SKYNET_JS_INTEGRATION_TEST_CUSTOM_COOKIE: "{{ auth_cookie }}"
         working_dir: "/skynet-js/{{ inventory_hostname }}"
         command: /bin/sh -c 'yarn && yarn run jest integration'
-  
+
   always:
-    
     # Remove test container
     - name: Remove test container
       local_action:

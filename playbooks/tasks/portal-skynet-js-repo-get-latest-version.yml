@@ -1,5 +1,4 @@
 ---
-
 # Get skynet-js repository latest valid semver version
 
 - name: Download skynet-js tags via Github API
@@ -19,7 +18,7 @@
     cmd: |
       import semver
       versions = []
-      
+
       # Add all versions from ansible var
       {% for r in skynet_js_versions %}versions.append('{{ r }}')
       {% endfor %}

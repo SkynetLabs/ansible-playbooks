@@ -36,7 +36,9 @@ docker_users: "{{ [webportal_user] }}"
 # UFW firewall settings
 setup_ufw: True
 group_ufw_rules:
+  # yamllint disable-line rule:braces
   - { rule: "allow", port: "80", proto: "tcp", direction: "in" }
+  # yamllint disable-line rule:braces
   - { rule: "allow", port: "443", proto: "tcp", direction: "in" }
 ufw_deny_outgoing_to_local_network: True
 local_networks_allowed:

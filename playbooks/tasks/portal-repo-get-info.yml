@@ -1,5 +1,4 @@
 ---
-
 # Get remote portal branch and commit
 
 - name: Get remote portal repo tag (if set at the current commit)
@@ -21,7 +20,6 @@
   set_fact:
     portal_repo_version: "{{ portal_repo_tag }}"
   when: portal_repo_tag != ''
-
 
 - name: Get remote portal repo branch
   ansible.builtin.command:
@@ -47,7 +45,7 @@
 
 - name: Set remote portal repo commit
   set_fact:
-     portal_repo_commit: "{{ port_git_commit.stdout }}"
+    portal_repo_commit: "{{ port_git_commit.stdout }}"
 
 - name: Set remote portal repo version (commit)
   set_fact:

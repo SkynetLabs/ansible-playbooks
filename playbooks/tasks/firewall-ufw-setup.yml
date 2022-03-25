@@ -11,28 +11,34 @@
     direction: "{{ item.direction }}"
     policy: "{{ item.policy }}"
   loop:
-    - { direction: 'incoming', policy: 'deny' }
-    - { direction: 'outgoing', policy: 'allow' }
+    # yamllint disable-line rule:braces
+    - { direction: "incoming", policy: "deny" }
+    # yamllint disable-line rule:braces
+    - { direction: "outgoing", policy: "allow" }
   notify:
     - reload ufw firewall
 
 - name: Set ufw rules
   vars:
-    default_ufw_rule: { rule: 'limit', port: '{{ ssh_port | default(default_ssh_port | string) }}', proto: 'tcp', direction: "in" }
+    default_ufw_rule:
+      {
+        rule: "limit",
+        port: "{{ ssh_port | default(default_ssh_port | string) }}",
+        proto: "tcp",
+        direction: "in",
+      }
   community.general.ufw:
     rule: "{{ item.rule }}"
     port: "{{ item.port }}"
     proto: "{{ item.proto }}"
     direction: "{{ item.direction }}"
-  loop:
-    "{{ [default_ufw_rule] + (host_ufw_rules | default([])) + (group_ufw_rules | default([])) }}"
+  loop: "{{ [default_ufw_rule] + (host_ufw_rules | default([])) + (group_ufw_rules | default([])) }}"
   notify:
     - reload ufw firewall
 
 # Allow outgoing http, https traffic to local networks (needed for health checks)
 # Deny rest of outgoing traffic to local networks
 - block:
-    
     - name: Allow outgoing http traffic to local networks
       community.general.ufw:
         rule: "allow"
@@ -43,7 +49,7 @@
       loop: "{{ local_networks }}"
       notify:
         - reload ufw firewall
-    
+
     - name: Allow outgoing https traffic to local networks
       community.general.ufw:
         rule: "allow"
@@ -54,7 +60,7 @@
       loop: "{{ local_networks }}"
       notify:
         - reload ufw firewall
-    
+
     # Needed for serverlist script in cron
     - name: Allow outgoing 9980/tcp traffic to 10.0.0.0/8
       community.general.ufw:
@@ -65,7 +71,7 @@
         to_port: "9980"
       notify:
         - reload ufw firewall
-    
+
     - name: Deny non-http, non-https outgoing traffic to local networks
       community.general.ufw:
         rule: "deny"

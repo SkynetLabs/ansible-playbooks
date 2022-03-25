@@ -1,5 +1,4 @@
 ---
-
 # Update portal status in devops/logs dir
 
 - name: Update portal status in devops/logs dir

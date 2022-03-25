@@ -22,7 +22,6 @@
       default: "Defaults to: No"
 
   tasks:
-
     # Added a non-loop remote task, so that unreachable hosts fail faster
     - name: Starting to block skylinks
       ansible.builtin.ping:
@@ -52,7 +51,7 @@
               {{ skylink }}
               {% endfor %}
 
-        # Block with file (not loop over skylinks) so that we search 
+        # Block with file (not loop over skylinks) so that we search
         - name: Block skylinks via webportal blocklist script
           ansible.builtin.command: "{{ webportal_dir }}/scripts/blocklist-skylink.sh {{ blocklist_filepath }}"
       when: skylinks_block_list | length > 0

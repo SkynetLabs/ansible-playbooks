@@ -4,7 +4,6 @@
   gather_facts: False
 
   tasks:
-
     - name: Download portal files to my-logs
       ansible.builtin.fetch:
         src: "{{ webportal_dir }}/{{ item }}"

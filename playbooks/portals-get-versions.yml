@@ -4,7 +4,6 @@
   remote_user: "{{ webportal_user }}"
 
   tasks:
-
     # Include getting portal, Sia, accounts versions
     - name: Include getting portal, Sia, accounts versions
       include_tasks: tasks/portal-versions-get.yml
@@ -12,7 +11,7 @@
     # Include checking for modified files after last Ansible docker services start
     - name: Include checking for modified files after last Ansible docker services start
       include_tasks: tasks/portal-repo-get-modified-files.yml
-    
+
     # Report versions and modified files to stdout
     - name: Report versions and modified files to stdout
       debug:
@@ -21,11 +20,11 @@
           - git tags: {{ portal_repo_all_tags }}
           - git branch: {{ portal_repo_branch }}
           - git commit {{ portal_repo_commit }}
-          
+
           - portal_repo_version: {{ portal_repo_version }}
           - portal_skyd_version: {{ portal_skyd_version_used }}
           - portal_accounts_version: {{ portal_accounts_version_used }}
-          
+
           {{ "No files modified after last Ansible docker services re-/start" if portal_modified_files.stdout == "" else "Following files were edited after last Ansible docker services re-/start:\n" + portal_modified_files.stdout }}
           -----------------------------------------------------
       failed_when: portal_modified_files.stdout != ""

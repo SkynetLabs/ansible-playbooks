@@ -1,5 +1,4 @@
 ---
-
 # Log used Ansible playbook version (branch and commit)
 
 - name: Set ansible version log filename
@@ -12,7 +11,7 @@
     state: directory
     owner: "user"
     group: "user"
-    mode: '0700'
+    mode: "0700"
 
 - name: Log Ansible playbook version on server
   ansible.builtin.template:

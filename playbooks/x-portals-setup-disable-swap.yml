@@ -15,7 +15,6 @@
     lastpass_required: True
 
   tasks:
-    
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
