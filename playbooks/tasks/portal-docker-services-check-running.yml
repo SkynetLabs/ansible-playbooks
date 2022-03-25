@@ -16,6 +16,10 @@
       Variable docker_containers_check_list must be defined
       and it must be a list containing at least 1 docker service.
 
+      Variable docker_containers_check_timeout_secs must be defined and greater
+      than 0. It is a playbook's total timeout that we give for all docker
+      containers to start correctly (and not restarting).
+
 - name: Set main start timestamp once
   set_fact:
     # We want to get local time using lookup/pipe
