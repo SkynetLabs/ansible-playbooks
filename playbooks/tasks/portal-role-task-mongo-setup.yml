@@ -1,5 +1,4 @@
 ---
-
 # Ensure MongoDB docker service is setup correctly
 # TODO: This ansible playbook task, should be moved to portal role
 
@@ -196,7 +195,6 @@
   include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
   # Skip for host initializing MongoDB replicaset
   when: mongo_replicaset_init.skipped | default(False)
-
 # TODO: Finish and add back
 # # Add first 7 MongoDB nodes as voting members
 # - block:
@@ -207,4 +205,3 @@
 #   throttle: 1
 #   # Skip for host initializing MongoDB replicaset
 #   when: mongo_replicaset_init.skipped | default(False)
-  

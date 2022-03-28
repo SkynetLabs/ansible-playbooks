@@ -15,11 +15,10 @@
     lastpass_required: True
 
   tasks:
-    
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
-    
+
     # Tmux config (from dotfiles repo) should already be set by
     # portals-setup-following playbook.
 
@@ -28,7 +27,7 @@
         update_cache: yes
         cache_valid_time: 900
       become: True
-    
+
     - name: Install dev tools
       apt:
         name: "{{ item }}"
@@ -47,7 +46,7 @@
         - curl
         - awscli
       become: True
-    
+
     # Setup terminfo for alacritty terminal via ssh
 
     - name: Download alacritty.info
@@ -55,13 +54,13 @@
         url: https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info
         dest: "{{ webportal_user_home_dir }}/alacritty.info"
         force: True
-    
+
     - name: Compile allacrity
       ansible.builtin.command:
         cmd: tic -xe alacritty,alacritty-direct alacritty.info
         chdir: "{{ webportal_user_home_dir }}"
       become: True
-    
+
     - name: Remove alacritty.info
       ansible.builtin.file:
         path: "{{ webportal_user_home_dir }}/alacritty.info"

@@ -1,11 +1,10 @@
 ---
-
 # Stop portal docker services
 
 - name: Include getting present docker-compose files
   include_tasks: tasks/portal-docker-compose-files-get-present.yml
 
-- name : Stop portal docker services
+- name: Stop portal docker services
   community.docker.docker_compose:
     project_src: "{{ webportal_dir }}"
     files: "{{ webportal_docker_compose_files_present }}"

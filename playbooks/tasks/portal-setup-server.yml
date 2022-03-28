@@ -1,5 +1,4 @@
 ---
-
 # Prepeare server for portal setup
 
 - name: Install required packages
@@ -22,8 +21,7 @@
     docker_package_state: latest
 
 - name: Reset SSH connection to reload new user groups (docker)
-  ansible.builtin.meta:
-    reset_connection
+  ansible.builtin.meta: reset_connection
 
 - name: Install required Python modules
   pip:
@@ -48,14 +46,13 @@
   changed_when: False
 
 - block:
-    
     - name: Update /etc/hosts with new hostname
       ansible.builtin.replace:
         path: /etc/hosts
         regexp: "(\\s+){{ ansible_hostname }}(\\s+.*)?$"
         replace: "\\1{{ inventory_hostname }}\\2"
       become: True
-    
+
     - name: Set new hostname
       ansible.builtin.hostname:
         name: "{{ inventory_hostname }}"

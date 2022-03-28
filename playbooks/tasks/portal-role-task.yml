@@ -111,9 +111,6 @@
   # Don't rebuild when initializing sia with existing seed is in progress
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
-- name: Include prunning old docker data
-  include_tasks: tasks/portal-docker-prune-old-data.yml
-
 - name: Check wallet
   command: docker exec sia siac wallet
   register: sia_wallet_result

@@ -1,6 +1,5 @@
 ---
-
-- name: Demo serial execution 
+- name: Demo serial execution
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: False
@@ -9,7 +8,6 @@
     max_hosts: "{{ groups['webportals'] | length - 1}}"
 
   tasks:
-
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
@@ -17,7 +15,7 @@
       stat:
         path: "{{ webportal_dir }}"
       register: wds
-    
+
     - name: Fail if skynet-webportal dir is not present
       fail:
         msg: "skynet-webportal dir is not present"

@@ -4,7 +4,6 @@
   gather_facts: False
 
   tasks:
-
     # Add SSH authorized key
     - name: Add SSH authorized key
       ansible.posix.authorized_key:

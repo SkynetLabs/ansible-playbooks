@@ -19,35 +19,34 @@
     serverlist_command: "{{ devops_scripts_dir }}/servers {{ webportal_dir }}/.env"
 
   tasks:
-    
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
-    
+
     # Load vars from LastPass
     - name: Include loading LastPass portal common config
       include_tasks: tasks/lastpass-load-webportal-config.yml
-    
+
     # Insert/update env vars
 
     - name: Get Sia API password
       command: docker exec sia cat /sia-data/apipassword
       register: sia_api_password_result
       changed_when: False
-    
+
     - name: Check serverlist script marker in .env file
       command: "grep '{{ serverlist_marker }}' {{ webportal_dir }}/.env"
       register: serverlist_marker_result
       changed_when: False
       failed_when: False
-    
+
     - name: Add empty line before servers script block in .env file
       ansible.builtin.command:
         cmd: |
           sed -i -z 's/$/\n/g' {{ webportal_dir }}/.env
         warn: False
       when: serverlist_marker_result.stdout == ''
-    
+
     - name: Add serverlist script variables to .env file
       ansible.builtin.blockinfile:
         path: "{{ webportal_dir }}/.env"
@@ -56,7 +55,7 @@
           SERVERLIST_ENTROPY={{ webportal_common_config.serverlist_entropy }}
           SERVERLIST_TWEAK={{ webportal_common_config.serverlist_tweak }}
           SERVERLIST_SKYD=10.10.10.10:9980
-    
+
     # Download servers binary and setup cron
 
     - name: Ensure devops/scripts directory exists
@@ -70,11 +69,11 @@
         force: True
         dest: "{{ devops_scripts_dir }}/servers"
         mode: u+x
-    
+
     - name: Test servers script runs successfully (before adding to crontab)
       command: "{{ serverlist_command }}"
       changed_when: False
-    
+
     - name: Ensure serverlist script is in crontab
       ansible.builtin.cron:
         name: "serverlist script"
