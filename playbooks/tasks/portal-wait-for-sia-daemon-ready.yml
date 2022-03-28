@@ -1,5 +1,4 @@
 ---
-
 # Wait for Sia /daemon/ready
 
 - name: Pull curl docker image
@@ -10,7 +9,7 @@
 # Some servers have blocked outgoing traffic to local networks so curl sia from
 # host will refuse connection, we have to curl inside docker compose network.
 - name: Get sia service IP inside docker compose network
-  command: docker inspect -f "{% raw %}{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}{% endraw %}" sia
+  command: docker inspect -f "{% raw %}{{ range.NetworkSettings.Networks }}{{ .IPAddress }}{{ end }}{% endraw %}" sia
   register: sia_ip_result
 
 - name: Wait for sia /daemon/ready ready==true if the endpoint is available

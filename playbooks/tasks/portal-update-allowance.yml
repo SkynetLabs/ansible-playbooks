@@ -13,7 +13,7 @@
 
 # Get the ip address for the sia container
 - name: Get sia service IP inside docker compose network
-  command: docker inspect -f "{% raw %}{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}{% endraw %}" sia
+  command: docker inspect -f "{% raw %}{{ range.NetworkSettings.Networks }}{{ .IPAddress }}{{ end }}{% endraw %}" sia
   register: sia_ip_result
 
 # Get the renter's information
@@ -65,4 +65,4 @@
 - name: Update Allowance if needed
   # All units are in hastings so H suffix must be used
   ansible.builtin.command: "docker exec sia siac renter setallowance --amount {{ update_amount }}H"
-  when: eighty_percent_used_update|bool == true or below_threshold_update|bool == true
+  when: eighty_percent_used_update|bool or below_threshold_update|bool
