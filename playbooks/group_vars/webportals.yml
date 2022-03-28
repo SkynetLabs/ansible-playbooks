@@ -276,9 +276,14 @@ keep_accounts_services:
 keep_jaeger_services:
   - "sia"
 
+# Waiting for docker services
 # Do not wait for these docker services
 docker_services_exclude_waiting:
   - "kratos-migrate"
+# Minumum time we wait for checking docker services to be running and not
+# restarting. Should be > 60 seconds, because docker container might appear
+# running correctly and then restart after 60 seconds.
+docker_services_min_non_restarting_time_in_secs: 65
 
 # Localhost vars
 # my-logs path relative to ./playbooks directory

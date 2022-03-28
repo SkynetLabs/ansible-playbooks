@@ -11,7 +11,7 @@
       - docker_containers_check_list is defined
       - docker_containers_check_list | length > 0
       - docker_containers_check_timeout_secs is defined
-      - docker_containers_check_timeout_secs > 0
+      - docker_containers_check_timeout_secs > docker_services_min_non_restarting_time_in_secs
     fail_msg: |
       Variable docker_containers_check_list must be defined
       and it must be a list containing at least 1 docker service.
@@ -51,8 +51,6 @@
     docker_services_running_ok: True
 
 - name: Set docker services are running successfully flag
-  vars:
-    min_required_non_restarting_time_in_secs: 65
   set_fact:
     # Check that container exists, is running and is not restarting for more
     # more than 1 minute. We need to wait more than 1 minute, because container
@@ -71,9 +69,11 @@
           -
           (item.container.State.StartedAt[:19] | to_datetime('%Y-%m-%dT%H:%M:%S'))
             .strftime('%s') | int
-          > min_required_non_restarting_time_in_secs
+          > docker_services_min_non_restarting_time_in_secs
       }}
   loop: "{{ docker_info_result.results }}"
+  # Reason not to log: Overwhelming docker inspect logs, not sensitive
+  # information in the logs
   no_log: True
 
 # If NOK and timeout => log and fail
