@@ -1,0 +1,1 @@
+- Fix setting default values (backwards compatibility) for `.env` template.
