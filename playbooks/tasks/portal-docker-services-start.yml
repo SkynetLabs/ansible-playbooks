@@ -116,8 +116,11 @@
   include_tasks: tasks/portal-wait-for-sia-daemon-ready.yml
 
 # Confirm all Docker Services Started Up
-- name: Wait Until Docker Services Have Started Up
-  include_tasks: tasks/portal-wait-for-docker-services.yml
+- name: Include checking docker containers are running, not restarting
+  include_tasks: tasks/portal-docker-services-check-running.yml
+  vars:
+    docker_containers_check_list: "{{ docker_compose_services }}"
+    docker_containers_check_timeout_secs: "{{ fifteen_minutes_in_secs }}"
 
 # Update log status to 'started'
 - name: Update log status to 'started'
