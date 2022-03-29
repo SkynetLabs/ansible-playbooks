@@ -1,3 +1,5 @@
+[![Lint](https://github.com/SkynetLabs/ansible-playbooks/actions/workflows/lint.yml/badge.svg)](https://github.com/SkynetLabs/ansible-playbooks/actions/workflows/lint.yml)
+
 # Skynet Labs Ansible Playbooks
 > The table of contents for this README can be accessed from the menu icon by `README.md`
 

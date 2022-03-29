@@ -14,6 +14,7 @@ clean:
 
 dependencies:
 	pip install yamllint
+	pip3 install "ansible-lint"
 
 # yamlfix is a helper tool that will fix common yaml errors. If we can enable it
 # that would help ensure code standards but we need tests first to ensure the
@@ -25,8 +26,12 @@ dependencies:
 #fmt:
 #	yamlfix .
 
+# https://ansible-lint.readthedocs.io/
+ansible-lint:
+	ansible-lint -p
+
 # https://yamllint.readthedocs.io/
-lint:
+yamllint:
 	yamllint --no-warnings .
 
 # syntax-check statically checks the syntax for all the playbooks in playbooks
@@ -38,3 +43,6 @@ syntax-check:
 			./scripts/syntax-check.sh ./playbooks/$$f || exit 1; \
 		fi \
 	done
+
+# run all linters
+lint: yamllint syntax-check ansible-lint

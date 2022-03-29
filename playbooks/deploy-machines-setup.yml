@@ -81,7 +81,10 @@
     # Checkout ansible-playbooks repo
     - name: Checkout ansible-playbooks repo
       ansible.builtin.git:
-        repo: "https://github.com/SkynetLabs/ansible-playbooks.git"
+        # Ignore the git-latest ansible-lint error here until we are auto
+        # deploying versions of the ansible-playbooks repo. At that point this
+        # could be updated to pull the latest version.
+        repo: "https://github.com/SkynetLabs/ansible-playbooks.git" # noqa git-latest
         dest: "/home/user/ansible-playbooks"
 
   handlers:
