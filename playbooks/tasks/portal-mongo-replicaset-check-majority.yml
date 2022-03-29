@@ -1,5 +1,4 @@
 ---
-
 # Check there is still MongoDB majority if we turn off hosts in the current batch
 
 - name: Check mongo container is running

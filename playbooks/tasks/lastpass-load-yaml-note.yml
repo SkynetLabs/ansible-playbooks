@@ -45,5 +45,5 @@
 
     - name: Set variable value from LastPass data
       set_fact:
-        "{{ item.var_name }}": "{{ {} if lastpass_data == '' else lastpass_data}}"
+        "{{ item.var_name }}": "{{ {} if lastpass_data == '' else lastpass_data }}" # noqa var-naming
   when: lastpass_ls_result.stdout != ''
