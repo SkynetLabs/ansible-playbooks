@@ -319,7 +319,7 @@ stopping all the docker services.
 - Waits for all uploads/downloads to finish (max 5 minutes), on dev servers it
   doesn't wait.
 - Stops docker compose services.
-- Starts only mongo and sia docker service.
+- Starts only mongo and sia docker services.
 
 #### Preparation
 
@@ -339,7 +339,8 @@ To takedown portal on `eu-ger-1` and `us-pa-1` execute:
 
 Once the portal host is included in `webportals_takedown` inventory group,
 portal deployment and portal restart playbooks initiate for this host,
-deployments and restarts start only mongo and sia docker services and stop.
+deployments and restarts start only mongo and sia docker services and playbook
+execution stops.
 
 ### Rollback Skynet Webportal
 
