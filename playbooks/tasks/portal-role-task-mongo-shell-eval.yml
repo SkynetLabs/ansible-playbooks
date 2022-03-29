@@ -1,5 +1,4 @@
 ---
-
 # Run MongoDB shell command
 # TODO: This ansible playbook task, should be copied to portal role and also
 # kept for playbooks.

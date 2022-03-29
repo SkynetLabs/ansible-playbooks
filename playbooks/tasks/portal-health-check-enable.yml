@@ -15,8 +15,8 @@
 - name: Get fresh hardware facts (incl. disk usage)
   ansible.builtin.setup:
     gather_subset:
-      - '!all'
-      - '!any'
+      - "!all"
+      - "!any"
       - hardware
 
 - name: Set low disk space flag

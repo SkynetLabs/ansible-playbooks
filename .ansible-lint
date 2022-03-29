@@ -1,0 +1,107 @@
+---
+# .ansible-lint
+#
+# Built from https://ansible-lint.readthedocs.io/en/latest/configuring/
+
+# exclude_paths included in this file are parsed relative to this file's
+# location and not relative to the CWD of execution. CLI arguments passed to the
+# --exclude option will be parsed relative to the CWD of execution.
+exclude_paths:
+  - .cache/
+  - .github/
+  - ansible_collections/
+  - changelog/
+  - inventory/
+  - my-logs/
+  - my-vars/
+  - playbooks/templates/playbook.yml
+  - roles/
+  - xxx*
+
+# Mock modules or roles in order to pass ansible-playbook --syntax-check
+# mock_modules:
+#   - zuul_return
+#   # note the foo.bar is invalid as being neither a module or a collection
+#   - fake_namespace.fake_collection.fake_module
+#   - fake_namespace.fake_collection.fake_module.fake_submodule
+# mock_roles:
+#   - mocked_role
+#   - author.role_name # old standalone galaxy role
+#   - fake_namespace.fake_collection.fake_role # role within a collection
+
+# Enable checking of loop variable prefixes in roles
+# loop_var_prefix: "{role}_"
+
+# Enforce variable names to follow pattern below, in addition to Ansible own
+# requirements, like avoiding python identifiers. To disable add `var-naming` to
+# skip_list.
+# var_naming_pattern: "^[a-z_][a-z0-9_]*$"
+
+use_default_rules: true
+
+# This makes linter to fully ignore rules/tags listed below
+skip_list:
+  # TODO: enable
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#no-changed-when
+  - no-changed-when
+  # TODO: enable
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#deprecated-local-action
+  - deprecated-local-action
+  # TODO: enable, need to add pipe fail option
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#risky-shell-pipe
+  - risky-shell-pipe
+  # TODO: enable, need to work through errors and set all unset file permissions
+  - risky-file-permissions
+  # TODO: enable, looks like there are some places to use this module
+  # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/git_module.html
+  - command-instead-of-module
+  # TODO: enable,
+  # https://ansible-lint.readthedocs.io/en/latest/default_rules/#command-instead-of-shell
+  - command-instead-of-shell
+  # This is a dumb rule, skip until moved to an opt-in rule
+  # https://github.com/ansible/ansible-lint/issues/457
+  - empty-string-compare
+
+# Any rule that has the 'opt-in' tag will not be loaded unless its 'id' is
+# mentioned in the enable_list:
+enable_list:
+  - empty-string-compare # opt-in
+  - no-log-password # opt-in
+  - no-same-owner # opt-in
+
+# This makes the linter display but not fail for rules/tags listed below:
+warn_list:
+  # This is buggy with include_tasks:
+  # https://github.com/ansible/ansible-lint/issues/1446
+  - load-failure
+  # We should be aware of where we do have strict version control, but it
+  # shouldn't be an error.
+  - package-latest
+  # This is for not letting yamllint warnings fail the ansible-lint github
+  # action
+  - yaml
+
+# Offline mode disables installation of requirements.yml
+offline: false
+
+# Define required Ansible's variables to satisfy syntax check
+extra_vars:
+  foo: bar
+  multiline_string_variable: |
+    line1
+    line2
+  complex_variable: ":{;\t$()"
+
+# Uncomment to enforce action validation with tasks, usually is not
+# needed as Ansible syntax check also covers it.
+skip_action_validation: false
+
+# List of additional kind:pattern to be added at the top of the default
+# match list, first match determines the file kind.
+kinds:
+  # - playbook: "**/examples/*.{yml,yaml}"
+  # - galaxy: "**/folder/galaxy.yml"
+  # - tasks: "**/tasks/*.yml"
+  # - vars: "**/vars/*.yml"
+  # - meta: "**/meta/main.yml"
+  - yaml: "**/*.yaml-too"

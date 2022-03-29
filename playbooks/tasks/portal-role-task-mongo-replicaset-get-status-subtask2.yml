@@ -1,5 +1,4 @@
 ---
-
 # Check if MongoDB replicaset is online and find primary node in the
 # replicaset (subtask to loop over)
 # TODO: This ansible playbook task, should be moved to portal role
@@ -54,7 +53,7 @@
     mongo_replicaset_online: >-
       {{ mongo_replicaset_online | default(False) or
       (not (mongo_getting_primary_result.skipped | default(False)) and
-      not (mongo_shell_delegated_result.failed | default(False)))}}
+      not (mongo_shell_delegated_result.failed | default(False))) }}
 
 - name: Increment mongo not ok count
   set_fact:
