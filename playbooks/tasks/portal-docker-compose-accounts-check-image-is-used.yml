@@ -1,0 +1,15 @@
+---
+# Check if docker compose accounts use docker image (vs. branch to build)
+
+- name: Read docker-compose.accounts.yml
+  slurp:
+    path: "{{ webportal_dir }}/docker-compose.accounts.yml"
+  register: docker_compose_accounts_slurped
+
+- name: Parse docker-compose.accounts.yml
+  set_fact:
+    docker_compose_accounts_data: "{{ docker_compose_accounts_slurped['content'] | b64decode | from_yaml }}"
+
+- name: Set docker compose accounts image is used
+  set_fact:
+    docker_compose_accounts_image_is_used: "{{ docker_compose_accounts_data.services.accounts.image is defined }}"

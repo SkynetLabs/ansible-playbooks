@@ -1,24 +1,29 @@
 ---
 # Get skyd and accounts versions
 
-# Read docker-compose.override.yml
 - name: Read docker-compose.override.yml
   slurp:
     path: "{{ webportal_dir }}/docker-compose.override.yml"
   register: docker_compose_override_slurped
 
-# Parse docker-compose.override.yml
 - name: Parse docker-compose.override.yml
   set_fact:
     docker_compose_override_data: "{{ docker_compose_override_slurped['content'] | b64decode | from_yaml }}"
 
-# Get skyd version from docker-compose.override.yml
 - name: Get skyd version from docker-compose.override.yml
   set_fact:
     portal_skyd_version_used: "{{ docker_compose_override_data.services.sia.build.args.branch }}"
 
-# Get accounts version from docker-compose.override.yml
+- name: Include checking if accounts use docker image
+  include_tasks: tasks/portal-docker-compose-accounts-check-image-is-used.yml
+
 - name: Get accounts version from docker-compose.override.yml
   set_fact:
-    portal_accounts_version_used: "{{ docker_compose_override_data.services.accounts.build.args.branch }}"
-  when: docker_compose_override_data.services.accounts.build.args.branch is defined
+    portal_accounts_version_used: >-
+      {{
+        'branch: ' + (
+          docker_compose_override_data.services.accounts.build.args.branch |
+          default('not defined'))
+        if not docker_compose_accounts_image_is_used
+        else 'image: from docker-compose.accounts.yml'
+      }}

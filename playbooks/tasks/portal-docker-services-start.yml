@@ -22,6 +22,9 @@
   include_tasks: tasks/portal-versions-set.yml
   when: set_portal_versions
 
+# xxxqqq
+- meta: end_host
+
 # Include getting portal, Sia, accounts versions
 - name: Include getting portal, Sia, accounts versions
   include_tasks: tasks/portal-versions-get.yml
