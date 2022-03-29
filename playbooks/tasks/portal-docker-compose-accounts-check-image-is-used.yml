@@ -13,3 +13,8 @@
 - name: Set docker compose accounts image is used
   set_fact:
     docker_compose_accounts_image_is_used: "{{ docker_compose_accounts_data.services.accounts.image is defined }}"
+
+- name: Set docker compose accounts image (if used)
+  set_fact:
+    docker_compose_accounts_image: "{{ docker_compose_accounts_data.services.accounts.image }}"
+  when: docker_compose_accounts_image_is_used

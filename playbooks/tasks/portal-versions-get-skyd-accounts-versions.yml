@@ -21,9 +21,9 @@
   set_fact:
     portal_accounts_version_used: >-
       {{
-        'branch: ' + (
+        'image: ' + docker_compose_accounts_image
+        if docker_compose_accounts_image_is_used
+        else 'branch: ' + (
           docker_compose_override_data.services.accounts.build.args.branch |
           default('not defined'))
-        if not docker_compose_accounts_image_is_used
-        else 'image: from docker-compose.accounts.yml'
       }}
