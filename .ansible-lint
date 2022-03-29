@@ -37,7 +37,7 @@ exclude_paths:
 # skip_list.
 # var_naming_pattern: "^[a-z_][a-z0-9_]*$"
 
-use_default_rules: true
+use_default_rules: True
 
 # This makes linter to fully ignore rules/tags listed below
 skip_list:
@@ -65,9 +65,10 @@ skip_list:
 # Any rule that has the 'opt-in' tag will not be loaded unless its 'id' is
 # mentioned in the enable_list:
 enable_list:
-  - empty-string-compare # opt-in
-  - no-log-password # opt-in
-  - no-same-owner # opt-in
+  # opt-in to the following rules
+  - empty-string-compare
+  - no-log-password
+  - no-same-owner
 
 # This makes the linter display but not fail for rules/tags listed below:
 warn_list:
@@ -82,7 +83,7 @@ warn_list:
   - yaml
 
 # Offline mode disables installation of requirements.yml
-offline: false
+offline: False
 
 # Define required Ansible's variables to satisfy syntax check
 extra_vars:
@@ -94,7 +95,7 @@ extra_vars:
 
 # Uncomment to enforce action validation with tasks, usually is not
 # needed as Ansible syntax check also covers it.
-skip_action_validation: false
+skip_action_validation: False
 
 # List of additional kind:pattern to be added at the top of the default
 # match list, first match determines the file kind.
