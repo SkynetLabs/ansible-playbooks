@@ -16,7 +16,9 @@
       until: True
       retries: 0
 
-- debug:
+- name: Voting member debug
+  debug:
     msg: "Is voting: {{ mongo_shell_result.transformed_output == 'is-voting' }}"
 
-- meta: end_play
+- name: End play
+  meta: end_play

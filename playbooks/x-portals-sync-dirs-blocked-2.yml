@@ -31,8 +31,8 @@
           rsync -avz
             {{ '--delete' if item.dest_remove_extra_files | default(False) }}
             --rsync-path="docker run --rm -i -v '{{ webportal_user_home_dir }}/.ssh:/root/.ssh' -v '{{ webportal_user_home_dir }}:/mnt' {{ rsync_docker_image }} rsync"
-            "{{ webportal_user}}@{{ hostvars[item.src_host].ansible_host }}:/mnt/{{ item.src_dir }}/"
-            "/mnt/{{ item.dest_dir}}"
+            "{{ webportal_user }}@{{ hostvars[item.src_host].ansible_host }}:/mnt/{{ item.src_dir }}/"
+            "/mnt/{{ item.dest_dir }}"
         container_default_behavior: no_defaults
         detach: False
         cleanup: True

@@ -1,5 +1,4 @@
 ---
-
 # Set portal versions (portal, skyd, accounts)
 
 # Checkout skynet-webportal
@@ -36,12 +35,16 @@
 # Set skyd version in data
 - name: Update skyd version
   set_fact:
-    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'sia': {'build': {'args': {'branch': portal_skyd_version}}}}}, recursive=True) }}"
+    # ignoring ansible-lint var-spacing here because it is a false failure
+    # caused by the }}}}} in the combine statement
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'sia': {'build': {'args': {'branch': portal_skyd_version}}}}}, recursive=True) }}" # noqa var-spacing
 
 # Set accounts version in data
 - name: Update accounts version when accounts are on
   set_fact:
-    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'accounts': {'build': {'args': {'branch': portal_accounts_version}}}}}, recursive=True) }}"
+    # ignoring ansible-lint var-spacing here because it is a false failure
+    # caused by the }}}}} in the combine statement
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'accounts': {'build': {'args': {'branch': portal_accounts_version}}}}}, recursive=True) }}" # noqa var-spacing
   when: accounts_on
 
 # Get accounts only services

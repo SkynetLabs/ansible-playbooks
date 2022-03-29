@@ -45,6 +45,7 @@
           - "sudo"
           - "docker"
       loop: "{{ passworded_users }}"
+      no_log: True
 
     # Add SSH authorized keys
     - name: Add SSH authorized keys

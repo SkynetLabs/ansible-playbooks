@@ -3,7 +3,7 @@ name: Lint
 on: push
 
 jobs:
-  lint:
+  yamllint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,8 +16,8 @@ jobs:
       - name: Install yamllint
         run: pip install yamllint
 
-      - name: Lint YAML files
-        run: make lint
+      - name: Run yamllint
+        run: make yamllint
 
   syntax_check:
     runs-on: ubuntu-latest
@@ -26,3 +26,11 @@ jobs:
 
       - name: Check playbooks with --syntax-check
         run: make syntax-check
+
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Lint Ansible Playbook
+        uses: ansible/ansible-lint-action@main
