@@ -42,7 +42,7 @@
       include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
 
     # Start just sia docker service
-    - name: Start just sia docker service
+    - name: Start just mongo and sia docker services
       community.docker.docker_compose:
         project_src: "{{ webportal_dir }}"
         files: "{{ webportal_docker_compose_files_wanted }}"
@@ -50,7 +50,9 @@
         remove_orphans: True
         nocache: True
         pull: True
-        services: sia
+        services:
+          - mongo
+          - sia
         state: present
       become: True
       become_user: "user"
