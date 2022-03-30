@@ -34,45 +34,80 @@
 # Add optional docker-compose files defined by PORTAL_MODULES
 # See https://github.com/SkynetLabs/skynet-webportal/blob/master/dc
 
-- name: Add accounts docker-compose files
+- name: Add accounts docker-compose file
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['a']] }}
   when: "'a' in portal_modules"
 
-- name: Add blocker docker-compose files
+- name: Add blocker docker-compose file
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b']] }}
   when: "'b' in portal_modules"
 
-- name: Add jaeger docker-compose files
+- name: Add jaeger docker-compose file
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['j']] }}
   when: "'j' in portal_modules"
 
-- name: Add malware-scanner docker-compose files
+- name: Add malware-scanner docker-compose file
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['b'], webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['s']] }}
   when: "'s' in portal_modules"
 
-- name: Add mongo docker-compose files
+- name: Add mongo docker-compose file
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m']] }}
 
-- name: Add abuse-scanner docker-compose files
-  set_fact:
-    webportal_docker_compose_files_wanted: >-
-      {{ webportal_docker_compose_files_wanted +
-      [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b'], webportal_docker_compose_files_dict['u']] }}
+- name: Add Abuse docker-compose file
+  block:
+    # Abuse docker-compose file was renamed in skynet-webportal repository, for
+    # backwards compatibility the playbook will automatically select the file
+    # that is present.
+
+    - name: Check which Abuse docker-compose file is present
+      ansible.builtin.stat:
+        path: "{{ webportal_dir }}/{{ item }}"
+        get_attributes: False
+        get_checksum: False
+        get_mime: False
+      register: abuse_files_stat_result
+      loop: "{{ webportal_docker_compose_files_dict['u'] }}"
+
+    - name: Reset Abuse docker-compose files count
+      set_fact:
+        abuse_files: 0
+
+    - name: Count Abuse docker-compose files
+      set_fact:
+        abuse_files: "{{ abuse_files + 1 }}"
+
+    - name: Check there is exactly 1 Abuse docker-compose file
+      ansible.builtin.assert:
+        that:
+          - abuse_files == 1
+        fail_msg: |
+          There must be exactly 1 present Abuse docker-compose file.
+          Got {{ abuse_files }} present Abuse files.
+
+    - name: Add present Abuse docker-compose file
+      set_fact:
+        webportal_docker_compose_files_wanted: >-
+          {{ webportal_docker_compose_files_wanted +
+          [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b'], {{ item }}] }}
+      when: abuse_files_stat_result.results[loop_index].stat.exists
+      loop: "{{ webportal_docker_compose_files_dict['u'] }}"
+      loop_control:
+        index_var: loop_index
   when: "'u' in portal_modules"
 
 - name: Add docker-compose.override.yml file to the list
