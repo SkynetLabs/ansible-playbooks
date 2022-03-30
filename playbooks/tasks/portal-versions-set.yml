@@ -1,8 +1,7 @@
 ---
 # Set portal versions (portal, skyd, accounts)
 
-# Checkout skynet-webportal
-- name: Set portal version (checkout skynet-webportal repo version)
+- name: Checkout skynet-webportal repository
   ansible.builtin.git:
     repo: "{{ webportal_repo_url }}"
     dest: "{{ webportal_dir }}"
@@ -10,7 +9,6 @@
     update: True
     force: True
 
-# Create docker-compose.override.yml if missing
 - name: Check if docker-compose.override.yml exists
   stat:
     path: "{{ webportal_dir }}/docker-compose.override.yml"
@@ -22,7 +20,6 @@
     dest: "{{ webportal_dir }}/docker-compose.override.yml"
   when: not docker_compose_override_stat.stat.exists
 
-# Load data from docker-compose.override.yml
 - name: Read docker-compose.override.yml
   slurp:
     path: "{{ webportal_dir }}/docker-compose.override.yml"
@@ -32,30 +29,24 @@
   set_fact:
     docker_compose_override_data: "{{ docker_compose_override_slurped['content'] | b64decode | from_yaml }}"
 
-# Set skyd version in data
-- name: Update skyd version
+- name: Update skyd version in data variable
   set_fact:
     # ignoring ansible-lint var-spacing here because it is a false failure
     # caused by the }}}}} in the combine statement
     docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'sia': {'build': {'args': {'branch': portal_skyd_version}}}}}, recursive=True) }}" # noqa var-spacing
 
-# Set accounts version in data
-- name: Update accounts version when accounts are on
+# Handle accounts. Account version can be set via accounts docker image in
+# docker-compose.accounts.yml otherwise via branch in config.yml variable.
+
+- name: Include checking if accounts use docker image
+  include_tasks: tasks/portal-docker-compose-accounts-check-image-is-used.yml
+
+- name: >-
+    Update accounts version in data variable (if accounts are on and are
+    defined by branch)
   set_fact:
-    # ignoring ansible-lint var-spacing here because it is a false failure
-    # caused by the }}}}} in the combine statement
     docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'accounts': {'build': {'args': {'branch': portal_accounts_version}}}}}, recursive=True) }}" # noqa var-spacing
-  when: accounts_on
-
-# Get accounts only services
-- name: Read docker-compose.accounts.yml
-  slurp:
-    path: "{{ webportal_dir }}/docker-compose.accounts.yml"
-  register: docker_compose_accounts_slurped
-
-- name: Parse docker-compose.accounts.yml
-  set_fact:
-    docker_compose_accounts_data: "{{ docker_compose_accounts_slurped['content'] | b64decode | from_yaml }}"
+  when: accounts_on and not docker_compose_accounts_image_is_used
 
 - name: Get accounts only services
   vars:
@@ -66,6 +57,7 @@
   loop: "{{ docker_compose_accounts_data.services.keys() | list }}"
 
 # Get jaeger only services
+
 - name: Read docker-compose.jaeger.yml
   slurp:
     path: "{{ webportal_dir }}/docker-compose.jaeger.yml"
