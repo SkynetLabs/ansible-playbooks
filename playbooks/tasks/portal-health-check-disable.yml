@@ -84,8 +84,9 @@
         - docker_renter_downloads.stderr != ''
         - docker_renter_downloads.stderr.find("490 Module not loaded") == -1
 
-  # Do not wait if sia container is not running
+  # Do not wait if sia container is not running or is restarting
   when:
     - sia_docker_container_result.exists
     - sia_docker_container_result.container is defined
     - sia_docker_container_result.container.State.Running
+    - not sia_docker_container_result.container.State.Restarting
