@@ -316,9 +316,10 @@ stopping all the docker services.
 #### Playbook Actions
 
 - Disables health check.
-- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Waits for all uploads/downloads to finish (max 5 minutes), on dev servers it
+  doesn't wait.
 - Stops docker compose services.
-- Starts only sia docker service.
+- Starts only mongo and sia docker services.
 
 #### Preparation
 
@@ -337,14 +338,9 @@ To takedown portal on `eu-ger-1` and `us-pa-1` execute:
 #### Following Portal Deployments and Restarts
 
 Once the portal host is included in `webportals_takedown` inventory group,
-portal deployment and portal restart playbooks ignore this host, deployments
-and restarts are not performed on this host even if the portal is included in
-an inventory group you are deploying to.
-
-If you want to restart or deploy portal, remove the host from
-`webportals_takedown` group and execute either portal restart playbook to start
-the portal with the last deployed versions of the portal or portal deploy
-playbook to deploy configured versions of the portal.
+portal deployment and portal restart playbooks initiate for this host,
+deployments and restarts start only mongo and sia docker services and playbook
+execution stops.
 
 ### Rollback Skynet Webportal
 
@@ -356,7 +352,8 @@ doing!!!
 Playbook:
 
 - Disables health check.
-- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Waits for all uploads/downloads to finish (max 5 minutes), on dev servers it
+  doesn't wait.
 - Stops docker compose services.
 - Gets last working portal configuration with passed integration tests (i.e.
   with `status.tested`).
