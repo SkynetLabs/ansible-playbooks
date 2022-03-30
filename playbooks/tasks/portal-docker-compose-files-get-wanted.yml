@@ -34,14 +34,14 @@
 # Add optional docker-compose files defined by PORTAL_MODULES
 # See https://github.com/SkynetLabs/skynet-webportal/blob/master/dc
 
-- name: Add accounts docker-compose file
+- name: Add accounts docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['a']] }}
   when: "'a' in portal_modules"
 
-- name: Add blocker docker-compose file
+- name: Add blocker docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
@@ -55,7 +55,7 @@
       [webportal_docker_compose_files_dict['j']] }}
   when: "'j' in portal_modules"
 
-- name: Add malware-scanner docker-compose file
+- name: Add malware-scanner docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
@@ -90,6 +90,10 @@
     - name: Count Abuse docker-compose files
       set_fact:
         abuse_files: "{{ abuse_files + 1 }}"
+      when: abuse_files_stat_result.results[loop_index].stat.exists
+      loop: "{{ webportal_docker_compose_files_dict['u'] }}"
+      loop_control:
+        index_var: loop_index
 
     - name: Check there is exactly 1 Abuse docker-compose file
       ansible.builtin.assert:
