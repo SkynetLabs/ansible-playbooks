@@ -94,7 +94,7 @@
     - name: Check there is exactly 1 Abuse docker-compose file
       ansible.builtin.assert:
         that:
-          - abuse_files == 1
+          - "{{ abuse_files }} == 1"
         fail_msg: |
           There must be exactly 1 present Abuse docker-compose file.
           Got {{ abuse_files }} present Abuse files.
@@ -103,7 +103,7 @@
       set_fact:
         webportal_docker_compose_files_wanted: >-
           {{ webportal_docker_compose_files_wanted +
-          [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b'], {{ item }}] }}
+          [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b'], item] }}
       when: abuse_files_stat_result.results[loop_index].stat.exists
       loop: "{{ webportal_docker_compose_files_dict['u'] }}"
       loop_control:
