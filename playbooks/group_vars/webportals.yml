@@ -226,7 +226,10 @@ webportal_docker_compose_files_optional:
   - "docker-compose.blocker.yml"
   - "docker-compose.jaeger.yml"
   - "docker-compose.malware-scanner.yml"
+  # Abuse file was renamed, only one of the following two will be present, for
+  # backwards compatibility playbook will select the present one automatically.
   - "docker-compose.abuse-scanner.yml"
+  - "docker-compose.abuse.yml"
   - "docker-compose.override.yml"
 
 # Dictionary of optional portal modules defining which docker-compose files
@@ -237,7 +240,8 @@ webportal_docker_compose_files_dict:
   j: "docker-compose.jaeger.yml"
   m: "docker-compose.mongodb.yml"
   s: "docker-compose.malware-scanner.yml"
-  u: "docker-compose.abuse-scanner.yml"
+  # See Abuse file comment above
+  u: ["docker-compose.abuse-scanner.yml", "docker-compose.abuse.yml"]
 
 webportal_other_config_files:
   - ".env"
@@ -276,9 +280,14 @@ keep_accounts_services:
 keep_jaeger_services:
   - "sia"
 
+# Waiting for docker services
 # Do not wait for these docker services
 docker_services_exclude_waiting:
   - "kratos-migrate"
+# Minumum time we wait for checking docker services to be running and not
+# restarting. Should be > 60 seconds, because docker container might appear
+# running correctly and then restart after 60 seconds.
+docker_services_min_non_restarting_time_in_secs: 65
 
 # Localhost vars
 # my-logs path relative to ./playbooks directory
