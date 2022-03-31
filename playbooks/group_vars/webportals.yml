@@ -132,8 +132,8 @@ mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
 
 # Devops Paths
 devops_dir: "{{ webportal_user_home_dir }}/devops"
-block_tor_exit_nodes_script_file: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
 devops_scripts_dir: "{{ devops_dir }}/scripts"
+block_tor_exit_nodes_script_file: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
 logs_dir: "{{ devops_dir }}/logs"
 setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
