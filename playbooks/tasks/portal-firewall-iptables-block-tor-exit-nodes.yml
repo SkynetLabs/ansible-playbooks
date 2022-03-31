@@ -33,17 +33,12 @@
 - name: Create IPv6 ipset
   ansible.builtin.command: "ipset -exist create {{ block_tor_exit_nodes_lists.dan.ipset_ipv6 }} hash:ip family inet6"
 
-- name: Make sure devops directory with user permissions exists
-  ansible.builtin.file:
-    path: "{{ devops_dir }}"
-    state: directory
-    owner: user
-    group: user
-
-- name: Make sure scripts directory exists
+- name: Make sure devops/scripts directory exists
   ansible.builtin.file:
     path: "{{ devops_scripts_dir }}"
     state: directory
+    owner: user
+    group: user
 
 - name: Upload script to update tor exit node lists (used by root cron job)
   ansible.builtin.template:
