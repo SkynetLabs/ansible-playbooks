@@ -13,32 +13,27 @@
   any_errors_fatal: True
 
   tasks:
+    - name: Include checking server OS compatibility
+      include_tasks: tasks/check-server-os-compatibility.yml
 
-    # Check host OS version
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
-    
     # Update apt
     - name: Run "apt-get update"
       apt:
         update_cache: yes
         cache_valid_time: 900
-    
+
     # Install sudo
     - name: Install sudo
       apt:
         name: sudo
         state: present
-    
+
     # Ensure docker group
     - name: Ensure group "docker" exists
       ansible.builtin.group:
         name: "docker"
         state: present
-    
+
     # Ensure configured users
     - name: Ensure configured users
       ansible.builtin.user:
@@ -50,7 +45,8 @@
           - "sudo"
           - "docker"
       loop: "{{ passworded_users }}"
-    
+      no_log: True
+
     # Add SSH authorized keys
     - name: Add SSH authorized keys
       ansible.posix.authorized_key:
@@ -58,16 +54,16 @@
         state: present
         key: "{{ item.key }}"
       loop: "{{ ssh_keys_to_add }}"
-    
+
     # Secure server
     - name: Include role to secure server
       include_role:
         name: geerlingguy.security
-    
+
     # Configure ufw firewall
     - name: Setup ufw firewall
       include_tasks: tasks/firewall-ufw-setup.yml
-    
+
     # Install Docker
     - name: Include role to install Docker
       include_role:
@@ -77,9 +73,8 @@
     - name: Set timezone
       community.general.timezone:
         name: "UTC"
-  
-  handlers:
 
+  handlers:
     - name: reload ufw firewall
       community.general.ufw:
         state: reloaded

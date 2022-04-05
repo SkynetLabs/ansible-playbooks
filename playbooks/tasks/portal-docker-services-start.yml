@@ -1,5 +1,4 @@
 ---
-
 # Start portal docker services
 
 # Include getting wanted docker-compose files
@@ -12,11 +11,11 @@
 
 # Include getting Ansible repo branch and commit
 - name: Include getting Ansible repo branch and commit
-  include_tasks: tasks/playbook-version-get.yml
+  include_tasks: tasks/ansible-repo-version-get.yml
 
 # Include logging Ansible version
 - name: Include logging Ansible version
-  include_tasks: tasks/playbook-logs-ansible-log-version.yml
+  include_tasks: tasks/ansible-repo-log-version.yml
 
 # Include setting portal versions (portal, skyd, accounts)
 - name: Include setting portal versions (portal, skyd, accounts)
@@ -40,12 +39,6 @@
     mode: preserve
   loop: "{{ webportal_docker_compose_files_wanted + webportal_other_config_files }}"
 
-# Prune docker
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
-
 # Log status as 'starting'
 - name: Log status as 'starting'
   file:
@@ -57,38 +50,51 @@
   debug:
     msg: "{{ inventory_hostname + ' docker services start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
 
+# Set takedown flag
+- name: Set takedown flag
+  set_fact:
+    takedown: "{{ 'webportals_takedown' in group_names }}"
+
+# Set takedown docker compose services
+- name: Set takedown docker compose services
+  set_fact:
+    docker_compose_services_limit: "{{ ['mongo', 'sia'] if takedown else [] }}"
+
 # Start the docker services (on deploy also build images)
 - name: Start the docker services (on deploy also build images)
   community.docker.docker_compose:
     project_src: "{{ webportal_dir }}"
     files: "{{ webportal_docker_compose_files_wanted }}"
     build: "{{ docker_compose_build }}"
-    nocache: True
+    remove_orphans: True
+    nocache: False
     pull: True
+    services: "{{ docker_compose_services_limit }}"
     state: present
     # TODO: Build in parallel, when Ansible support is added
   become: True
   become_user: "user"
   register: docker_compose_start_result
 
-# Set list of docker compose services
-- name: Set list of docker compose services
+# Set list of started docker compose services
+- name: Set list of started docker compose services
   set_fact:
-    docker_compose_services: "{{ docker_compose_start_result.services.keys() | list }}"
+    docker_compose_services: >-
+      {{
+        docker_compose_services_limit if takedown
+        else docker_compose_start_result.services.keys() | list
+      }}
 
 # Log docker compose services
 - name: Log docker compose services
   debug:
     msg: |
       Docker compose started following services:
-      
+
       "{{ docker_compose_services }}"
 
-# Prune docker
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
+- name: Include prunning old docker data
+  include_tasks: tasks/portal-docker-prune-old-data.yml
 
 # Wait until Sia finished full setup
 - name: Wait until Sia finished full setup
@@ -98,17 +104,47 @@
   delay: 1
   retries: "{{ sia_full_setup_timeout_secs }}"
 
+# Check that the Sia Blockchain is synced
+- name: Check Sia blockchain sync status
+  command: docker exec sia siac consensus
+  register: siac_consensus_result
+  until: "'Synced: Yes' in siac_consensus_result.stdout"
+  delay: 30
+  retries: 20
+  failed_when: False
+
+- name: Check if the Sia blockchain is synced
+  fail:
+    msg: |
+      Sia blockchain is not yet synced:
+
+      {{ siac_consensus_result.stdout }}
+
+      Wait for Sia blockchain synced and rerun the playbook.
+      To check sync status, execute (on the server):
+
+        docker exec sia siac consensus
+  when: "'Synced: Yes' not in siac_consensus_result.stdout"
+
 # Include waiting for sia daemon/ready
 - name: Include waiting for sia daemon/ready
   include_tasks: tasks/portal-wait-for-sia-daemon-ready.yml
 
 # Confirm all Docker Services Started Up
-- name: Wait Until Docker Services Have Started Up
-  include_tasks: tasks/portal-wait-for-docker-services.yml
+- name: Include checking docker containers are running, not restarting
+  include_tasks: tasks/portal-docker-services-check-running.yml
+  vars:
+    docker_containers_check_list: "{{ docker_compose_services }}"
+    docker_containers_check_timeout_secs: "{{ fifteen_minutes_in_secs }}"
 
 # Update log status to 'started'
 - name: Update log status to 'started'
   include_tasks: tasks/portal-logs-update-status.yml
   vars:
     tag_from: "starting"
-    tag_to: "started"
+    tag_to: "{{ 'started-takedown' if takedown else 'started' }}"
+
+# Stop the playbook if on takedown
+- name: Stop the playbook if on takedown
+  meta: end_host
+  when: takedown

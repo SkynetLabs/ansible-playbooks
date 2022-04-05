@@ -1,5 +1,4 @@
 ---
-
 # TODO: This ansible playbook task, should be moved to portal role
 
 - name: Checkout skynet-webportal repository
@@ -17,12 +16,6 @@
     value: "{{ item.value }}"
   loop: "{{ webportal_git_config }}"
 
-- name: Include getting portal configs
-  include_tasks: tasks/portal-configs-get.yml
-
-- name: Include saving portal config
-  include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
-
 # TODO: add subdomain check (only install portal to subdomain for now)
 
 - name: Create .env file
@@ -30,6 +23,31 @@
     src: .env.j2
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
+
+# Save JWKS file for accounts
+- block:
+    - name: Ensure accounts/conf directory exists
+      ansible.builtin.file:
+        path: "{{ accounts_conf_dir }}"
+        state: directory
+
+    - name: Save jwks.json file
+      ansible.builtin.copy:
+        dest: "{{ accounts_jwks_path }}"
+        content: "{{ accounts_jwks_data }}"
+      become: True
+  when: portal_accounts_on
+
+# Fix permissions for elastic search if Jaeger is on
+- block:
+    - name: Ensure docker/data/elasticsearch/data directory is present
+      ansible.builtin.file:
+        path: "{{ elasticsearch_data_data_dir }}"
+        state: directory
+        owner: "1000"
+        group: "1000"
+      become: True
+  when: portal_jaeger_on
 
 # TODO: NOTE WIP:
 # Extract all to new mongo-setup.yml
@@ -51,6 +69,10 @@
 
 - name: Include getting MongoDB replicaset status
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
+
+# If we successfully set up mongo, save the cluster configs.
+- name: Include saving the cluster config
+  include_tasks: "{{ playbook_dir }}/{{ save_cluster_config_handler }}"
 
 # Init, unlock wallet
 
@@ -82,15 +104,6 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
-
-    # TODO: Use community.docker.docker_prune (requires community.docker
-    # upgrade) with long timeout.
-    # Prune docker
-    - name: Prune docker
-      ansible.builtin.command: docker system prune --force
-      async: "{{ docker_prune_timeout_secs }}"
-      poll: 5
-    
     - name: Start Sia docker container
       community.docker.docker_compose:
         project_src: "{{ webportal_dir }}"
@@ -100,23 +113,14 @@
         nocache: True
         pull: True
         state: present
-    
+
     - name: Update portal setup status
       ansible.builtin.copy:
         dest: "{{ setup_status_file }}"
         content: ""
 
-  
   # Don't rebuild when initializing sia with existing seed is in progress
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
-
-# TODO: Use community.docker.docker_prune (requires community.docker upgrade)
-# with long timeout
-# Prune docker
-- name: Prune docker
-  ansible.builtin.command: docker system prune --force
-  async: "{{ docker_prune_timeout_secs }}"
-  poll: 5
 
 - name: Check wallet
   command: docker exec sia siac wallet
@@ -131,28 +135,7 @@
 
 - name: Set Sia wallet seed defined
   set_fact:
-    sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined }}"
-
-- name: Check Sia blockchain sync status
-  command: docker exec sia siac consensus
-  register: siac_consensus_result
-  until: "'Synced: Yes' in siac_consensus_result.stdout"
-  delay: 30
-  retries: 20
-  failed_when: False
-
-- name: Check if the Sia blockchain is synced
-  fail:
-    msg: |
-      Sia blockchain is not yet synced:
-      
-      {{ siac_consensus_result.stdout }}
-
-      Wait for Sia blockchain synced and rerun the playbook.
-      To check sync status, execute (on the server):
-      
-        docker exec sia siac consensus
-  when: "'Synced: Yes' not in siac_consensus_result.stdout"
+    sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined and webportal_server_config.sia_wallet_seed != None }}"
 
 # Init a wallet with existing seed
 
@@ -165,7 +148,36 @@
   set_fact:
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
+# Init from Seed Block
+#
+# We want to initialize the wallet from a seed if:
+#   - The wallet is not initialized already
+#   - The wallet seed is defined
+#   - The use_existing_sia_seed_if_exists variable is set to True
+#   - The setup_status is not 'initializing'
 - block:
+    # Check that the Sia Blockchain is synced
+    - name: Check Sia blockchain sync status
+      command: docker exec sia siac consensus
+      register: siac_consensus_result
+      until: "'Synced: Yes' in siac_consensus_result.stdout"
+      delay: 30
+      retries: 20
+      failed_when: False
+
+    - name: Check if the Sia blockchain is synced
+      fail:
+        msg: |
+          Initializing Sia wallet from Seed requires Sia blockchain to be synced:
+          Sia blockchain is not yet synced:
+
+          {{ siac_consensus_result.stdout }}
+
+          Wait for Sia blockchain synced and rerun the playbook.
+          To check sync status, execute (on the server):
+
+            docker exec sia siac consensus
+      when: "'Synced: Yes' not in siac_consensus_result.stdout"
 
     - name: Initialize a wallet with existing seed
       ansible.builtin.expect:
@@ -176,17 +188,16 @@
       ignore_errors: True
       # Fail on unknown errors, timeout is expected and is handled later.
       failed_when: sia_init_seed_result.rc != 0 and sia_init_seed_result.msg != 'command exceeded timeout'
-    
+
     - name: "Set portal setup status to initializing wallet with existing seed"
       ansible.builtin.copy:
         dest: "{{ setup_status_file }}"
         content: "initializing"
-  
+
   when: not sia_wallet_initialized and sia_wallet_seed_defined and use_existing_sia_seed_if_exists and setup_status != 'initializing'
 
 # Init a new wallet
 - block:
-    
     - name: Init a new wallet
       ansible.builtin.command: docker exec sia siac wallet init
       register: wallet_init_result
@@ -195,22 +206,22 @@
       set_fact:
         new_sia_wallet_seed: "{{ wallet_init_result.stdout | regex_search('Recovery seed:\\n(.*)\\n', '\\1') | first }}"
       no_log: True
-    
+
     - name: Update portal config with new seed
       set_fact:
         webportal_server_config: "{{ webportal_server_config | combine(updated) }}"
       vars:
         updated:
           sia_wallet_seed: "{{ new_sia_wallet_seed }}"
-    
+
     - name: Include saving portal config
       include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
-    
+
     - name: Update .env file
       ansible.builtin.template:
         src: .env.j2
         dest: "{{ webportal_dir }}/.env"
-  
+
   when: not sia_wallet_initialized and not (sia_wallet_seed_defined and use_existing_sia_seed_if_exists)
 
 - name: Check wallet
@@ -244,17 +255,17 @@
       You can check initialization status, executing (on the server):
 
         docker exec -it sia siac wallet unlock
-      
+
       You don't have to unlock the wallet manually,
       as a wallet password you can supply empty string and check you don't
       get the following message:
-      
+
         Could not unlock wallet: [... another wallet rescan is already underway]
-      
+
       Alternatively execute (on the server):
-      
+
         docker logs sia && echo
-      
+
       to check wallet scan progress.
   when: sia_wallet_unlock_result.rc | default(0) != 0 and 'another wallet rescan is already underway' in sia_wallet_unlock_result.stdout
 
@@ -270,6 +281,19 @@
 # TODO: Log address
 
 # TODO: Should we setup allowance just once?
+
+# Set Sia allowance
+
+- name: Check if allowance is already set
+  ansible.builtin.command: docker exec sia siac renter
+  register: get_allowance_result
+
+- name: Set allowance is not set flag
+  set_fact:
+    # When allowance is not set, command 'docker exec sia siac renter'
+    # contains line 'Allowance:      0 SC (No current allowance)'.
+    allowance_is_not_set: '{{ get_allowance_result.stdout is match(".*\nAllowance:\s+0 SC \(No current allowance\).*") | bool }}'
+
 - name: Set allowance
   ansible.builtin.command: >
     docker exec sia siac renter setallowance
@@ -278,18 +302,20 @@
       --expected-upload {{ webportal_allowance.expected_upload }}
       --expected-download {{ webportal_allowance.expected_download }}
       --expected-redundancy {{ webportal_allowance.expected_redundancy }}
+      --max-contract-price {{ webportal_allowance.max_contract_price }}
+      --max-sector-access-price {{ webportal_allowance.max_sector_access_price }}
       --max-storage-price {{ webportal_allowance.max_storage_price }}
       --payment-contract-initial-funding {{ webportal_allowance.payment_contract_initial_funding }}
       --period {{ webportal_allowance.period }}
   register: set_allowance_result
   # Verify result to prevent mistakes and misconfiguration, because
   # setallowance might not fail but just switch to interactive mode.
-  failed_when: set_allowance_result.stdout.find("Allowance updated. 8 setting(s) changed.") == -1
+  failed_when: set_allowance_result.stdout.find("Allowance updated. 10 setting(s) changed.") == -1
+  when: allowance_is_not_set
 
 # Setup health checks
 # TODO: Move to role task file
 - block:
-    
     - name: Install Python modules for health checks
       pip:
         name: "{{ item }}"
@@ -299,13 +325,13 @@
         - python-dotenv
         - requests
         - elasticsearch-curator
-    
+
     - name: Update hardcoded username in cron file
       ansible.builtin.replace:
         path: "{{ webportal_cron_file }}"
         regexp: "/home/user/"
         replace: "{{ webportal_user_home_dir }}/"
-    
+
     - name: Add health checks cron entries to user crontab
       command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
 

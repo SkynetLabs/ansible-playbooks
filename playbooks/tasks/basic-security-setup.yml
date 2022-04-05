@@ -24,6 +24,7 @@
   # Below must be exact case: None (Python), none (Jinja test)
   when: item.gid | default(None) is not none
   loop: "{{ initial_users }}"
+  no_log: True
 
 # Create users without defined uid
 - name: Create users without defined uid
@@ -37,6 +38,7 @@
   # Below must be exact case: None (Python), none (Jinja test)
   when: item.gid | default(None) is none
   loop: "{{ initial_users }}"
+  no_log: True
 
 # Remove temp user
 - name: Remove temp user (when webportal user is active)
@@ -46,6 +48,15 @@
     remove: yes
   when: ansible_user == webportal_user
 
+# Stop the playbook to prevent locking the user out of the server access
+- name: Fail if user hasn't defined public SSH keys to load to authorized_keys
+  fail:
+    msg: |
+      Variable webportal_user_authorized_keys is not defined or is empty.
+      You need to define user public SSH authorized keys otherwise you will
+      lock yourself out of the server access.
+  when: webportal_user_authorized_keys | default('') == ''
+
 # Add SSH authorized keys
 - name: Add SSH authorized keys
   ansible.posix.authorized_key:
@@ -53,7 +64,6 @@
     state: present
     key: "{{ item.authorized_keys }}"
   loop: "{{ initial_users }}"
-  when: webportal_user_authorized_keys != ""
 
 # Basic security
 - name: Include basic security setup

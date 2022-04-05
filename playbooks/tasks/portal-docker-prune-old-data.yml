@@ -1,0 +1,11 @@
+---
+
+# Prune old docker data
+
+# TODO: Use community.docker.docker_prune with long timeout (requires
+# community.docker upgrade)
+# Prune old docker data (do not prune data produced in current build process)
+- name: Prune old docker data
+  ansible.builtin.command: docker system prune --force --filter "until=4h"
+  async: "{{ docker_prune_timeout_secs }}"
+  poll: 5

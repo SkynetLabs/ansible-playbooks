@@ -1,1 +1,0 @@
-- Add generation of `SKYNET_DB_REPLICASET` variable in `.env` file.

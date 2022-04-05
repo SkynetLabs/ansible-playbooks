@@ -2,66 +2,131 @@
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: True
-  serial: 1              # Limit concurrency
-  any_errors_fatal: True # Stop on first error, do not execute on the next host
-  vars:                  # Playbook specific vars
+  # Limit concurrency
+  serial: "{{ parallel_executions | default(1) }}"
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+  # Playbook specific vars
+  vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
-    portal_action: "portal-setup"
+    portal_action: "{{ 'portal-setup-and-deploy' if (deploy_after_setup | default(False)) else 'portal-setup' }}"
+
+    # Deploy specific
+    # Rebuild docker services
+    docker_compose_build: True
+    # Set portal, skyd, accounts versions
+    set_portal_versions: True
 
   tasks:
-    
     - name: Check '--limit' is used
       include_tasks: tasks/host-limit-check.yml
-    
-    - name: Check supported OS and version
-      assert:
-        that:
-          - ansible_distribution|lower == 'debian' and ansible_distribution_version == '10'
-        fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"
+
+    - name: Include checking server OS compatibility
+      include_tasks: tasks/check-server-os-compatibility.yml
+
+    # Stop docker services gracefully - begin
+
+    # If we rerun this playbook on any server which successfully started up
+    # docker services, we need to stop them gracefully (wait for uploads/
+    # downloads to finish) first before we continue with server setup, because
+    # setup might disrupt them.
+
+    # TODO: Handlers should be configured later as plugins (LastPass/plaintext/
+    # Docker secrets/Hashicorp Vault/...)
+    - name: Set load/save handlers for secure storage
+      set_fact:
+        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
+        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
+        save_cluster_config_handler: "tasks/lastpass-save-cluster-config.yml"
+
+    - name: Include getting portal configs
+      include_tasks: tasks/portal-configs-load.yml
+
+    - name: Include saving portal configs
+      include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+
+    - name: Check docker was setup
+      ansible.builtin.command: docker ps
+      register: docker_ps_result
+      # Use failed_when: False instead of ignore_errors: True so that here isn't
+      # a red logs that are confusing to users.
+      #
+      # NOTE: failed_when: False forces docker_ps_result.failed to be False but
+      # any errors are still recording in docker_ps_result.stderr
+      failed_when: False
+
+    - name: Check docker SDK for Python3 was installed
+      ansible.builtin.command: python3 -m pip show docker
+      register: docker_pip_result
+      # Use failed_when: False instead of ignore_errors: True so that here isn't
+      # a red logs that are confusing to users.
+      #
+      # NOTE: failed_when: False forces docker_pip_result.failed to be False but
+      # any errors are still recording in docker_pip_result.stderr
+      failed_when: False
+
+    # If both of the previous tasks were successful and didn't return any
+    # errors, we want to try and stop any active docker containers.
+    - name: Include stopping portal and other docker containers (if exist)
+      include_tasks: tasks/portal-stop-and-docker-containers-stop.yml
+      when: docker_ps_result.rc == 0 and docker_pip_result.rc == 0
+
+    # Stop docker services gracefully - end
+
+    - name: Reset SSH connection to fix occasional Ansible become/sudo issues
+      ansible.builtin.meta: reset_connection
 
     - name: Include basic security setup
       include_tasks: tasks/basic-security-setup.yml
       args:
         apply:
           become: True
-    
+      when: setup_basic_security
+
     - name: Include setting ufw firewall
       include_tasks: tasks/portal-firewall-ufw-setup.yml
       args:
         apply:
           become: True
-    
+      when: setup_ufw
+
     - name: Include server setup
       include_tasks: tasks/portal-setup-server.yml
 
+    - name: Include blocking Tor exit nodes traffic
+      include_tasks: tasks/portal-firewall-iptables-block-tor-exit-nodes.yml
+      args:
+        apply:
+          become: True
+      when: block_tor_exit_nodes
+
     - name: Include getting log filename prefix
       include_tasks: tasks/portal-get-log-filename-prefix.yml
-    
+
     - name: Include getting Ansible repo branch and commit
-      include_tasks: tasks/playbook-version-get.yml
+      include_tasks: tasks/ansible-repo-version-get.yml
 
     - name: Include logging Ansible version
-      include_tasks: tasks/playbook-logs-ansible-log-version.yml
+      include_tasks: tasks/ansible-repo-log-version.yml
 
     # Setup environment (dotfiles) and dev tools
     - block:
-        
         # Setup environment (dotfiles)
 
         - name: Set dotfiles git dir
           set_fact:
             dotfiles_git_dir: "{{ webportal_user_home_dir }}/.dotfiles.git"
-        
+
         - name: Delete dotfile git directory
           ansible.builtin.file:
             path: "{{ dotfiles_git_dir }}"
             state: absent
-        
+
         - name: Set dotfiles git temporary directory
           set_fact:
             dotfiles_git_tmp_dir: "{{ webportal_user_home_dir }}/dotfilegit-tmp"
-        
+
         - name: Checkout SkynetLabs dotfiles
           ansible.builtin.git:
             repo: "{{ dotfiles_repo_url }}"
@@ -69,22 +134,22 @@
             version: init
             separate_git_dir: "{{ dotfiles_git_dir }}"
             force: True
-        
+
         - name: Delete dotfile git temporary directory
           ansible.builtin.file:
             path: "{{ dotfiles_git_tmp_dir }}"
             state: absent
-        
+
         - name: Set dotfiles command
           set_fact:
             dotfiles_command: /usr/bin/git --git-dir={{ dotfiles_git_dir }} --work-tree={{ webportal_user_home_dir }}
-        
+
         - name: Config dotfiles
           command: "{{ dotfiles_command }} config status.showUntrackedFiles no"
-        
+
         - name: Load dotfiles to user home
           command: "{{ dotfiles_command }} reset --hard HEAD"
-        
+
         # Setup dev tools
 
         - name: Run apt-get update
@@ -92,7 +157,7 @@
             update_cache: yes
             cache_valid_time: 900
           become: True
-        
+
         - name: Install dev tools
           apt:
             name: "{{ item }}"
@@ -111,7 +176,7 @@
             - curl
             - awscli
           become: True
-        
+
         # Setup terminfo for alacritty terminal via ssh
 
         - name: Download alacritty.info
@@ -119,13 +184,13 @@
             url: https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info
             dest: "{{ webportal_user_home_dir }}/alacritty.info"
             force: True
-        
+
         - name: Compile allacrity
           ansible.builtin.command:
             cmd: tic -xe alacritty,alacritty-direct alacritty.info
             chdir: "{{ webportal_user_home_dir }}"
           become: True
-        
+
         - name: Remove alacritty.info
           ansible.builtin.file:
             path: "{{ webportal_user_home_dir }}/alacritty.info"
@@ -136,23 +201,14 @@
     - name: Include role to setup Skynet Webportal
       include_role:
         name: skynetlabs.skynet_webportal
-      vars:
-        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
-        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
-    
-     # TODO: remove these after moved to role - begin
-
-    - set_fact:
-        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
-
-    - set_fact:
-        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
 
     - name: xxx include role task
       include_tasks: tasks/portal-role-task.yml
-    
-     # TODO: remove these after moved to role - end
+
+    # Deploy portal
+    - name: Including deploying portal
+      include_tasks: tasks/portal-deploy.yml
+      when: deploy_after_setup | default(False)
 
   handlers:
-    
     - import_tasks: handlers/main.yml

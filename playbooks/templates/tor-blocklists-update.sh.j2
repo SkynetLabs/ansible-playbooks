@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Exit on first error
+set -e
+
+# Tor Project list
+# Check timestamp (if present)
+# If timestamp doesn't exist or is old enough
+# - Download exit node list 
+# - Load IPs to ipset
+# - Create/Update timestamp
+
+now=$(date +%s)
+past=$((now - {{ block_tor_exit_nodes_lists.do_not_redownload_within_secs }}))
+timestamp_file=/tmp/{{ block_tor_exit_nodes_lists.torproject.filename }}-timestamp
+url={{ block_tor_exit_nodes_lists.torproject.url }}
+file=/tmp/{{ block_tor_exit_nodes_lists.torproject.filename }}
+ipset={{ block_tor_exit_nodes_lists.torproject.ipset_ipv4 }}
+
+if [[ ! -f $timestamp_file || $(cat $timestamp_file) -lt $past ]]; then
+    echo "Downloading torproject exitnodelist"
+    curl -sSL $url -o $file
+
+    echo "Loading torproject exitnodelist to ipset"
+    cat $file | xargs -n 1 ipset -exist add $ipset 
+
+    echo "Creating/Updating torproject timestamp"
+    echo "$(date +%s)" > $timestamp_file
+else
+    echo "It's too soon to redownload torproject exitnodelist, using cached version from $(cat $timestamp_file)."
+fi
+
+# Dan list
+# Check timestamp (if present)
+# If timestamp doesn't exist or is old enough
+# - Download exit node list 
+# - Load IPs to ipset IPv4
+# - Load IPs to ipset IPv6
+# - Create/Update timestamp
+
+now=$(date +%s)
+past=$((now - {{ block_tor_exit_nodes_lists.do_not_redownload_within_secs }}))
+timestamp_file=/tmp/{{ block_tor_exit_nodes_lists.dan.filename }}-timestamp
+url={{ block_tor_exit_nodes_lists.dan.url }}
+file=/tmp/{{ block_tor_exit_nodes_lists.dan.filename }}
+ipset_ipv4={{ block_tor_exit_nodes_lists.dan.ipset_ipv4 }}
+ipset_ipv6={{ block_tor_exit_nodes_lists.dan.ipset_ipv6 }}
+
+if [[ ! -f $timestamp_file || $(cat $timestamp_file) -lt $past ]]; then
+    echo "Downloading dan exitnodelist"
+    curl -sSL $url -o $file
+
+    echo "Loading dan exitnodelist to ipset IPv4"
+    # grep only IPv4
+    cat $file | grep -E "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$" | xargs -n 1 ipset -exist add $ipset_ipv4
+
+    echo "Loading dan exitnodelist to ipset IPv6"
+    # grep only IPv6
+    cat $file | grep -E ":" | xargs -n 1 ipset -exist add $ipset_ipv6
+
+    echo "Creating/Updating dan timestamp"
+    echo "$(date +%s)" > $timestamp_file
+else
+    echo "It's too soon to redownload dan exitnodelist, using cached version from $(cat $timestamp_file)."
+fi

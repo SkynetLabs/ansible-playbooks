@@ -1,54 +1,35 @@
 ---
-
 # Get portal status
 
-# Get versions files
 - name: Get versions files
   block:
-
-    # Include getting portal, Sia, accounts versions
-    - name: Include getting portal, Sia, accounts versions
+    - name: Include getting portal, skyd, accounts versions
       include_tasks: tasks/portal-versions-get.yml
-  
   rescue:
-
     - name: Getting versions failed but continue
       fail:
       failed_when: false
 
-# Get modified files
 - name: Get modified files
   block:
-
-    # Include checking for modified files after last Ansible docker services start
     - name: Include checking for modified files after last Ansible docker services start
       include_tasks: tasks/portal-repo-get-modified-files.yml
-  
   rescue:
-
     - name: Checking modified files failed but continue
       fail:
       failed_when: false
 
-# Get portal status
 - name: Get portal status
   block:
-
-    # Check loading skapp.hns webpage from the portal
-    - name: Check loading skapp.hns webpage from the portal
-      uri:
-        url: "https://skapp.hns.{{ ansible_host }}"
-        status_code: 200
-        timeout: 60
-      register: web_result
-  
+    - name: Run health checks
+      include_tasks: tasks/portal-health-checks-run.yml
   rescue:
+    - name: Recover if health checks failed and set health checks flag
+      set_fact:
+        health_checks_failed: True
+  # Exclude running health checks when they have already run
+  when: portal_action == 'portal-get-status'
 
-    - name: Recover if checking loading skapp.hns webpage from the portal failed
-      fail:
-      failed_when: false
-
-# Create json report data
 - name: Create json report data
   set_fact:
     portals_report_embeds: "{{ lookup('template', 'templates/portals-status.json.j2') }}"

@@ -40,15 +40,6 @@
       vars:
         docker_package_state: latest
 
-    - block:
-        - name: Stop play for portals in webportals_takedown group
-          debug:
-            msg: "Will not restart portal in webportals_takedown group"
-
-        - name: Stop play for portals in webportals_takedown group
-          meta: end_host
-      when: "'webportals_takedown' in group_names"
-
     - name: Include starting portal docker services
       include_tasks: tasks/portal-docker-services-start.yml
 

@@ -3,11 +3,10 @@
   remote_user: "{{ webportal_user }}"
   gather_facts: False
 
-  # Limit concurrency
-  serial: 1
-
-  # Stop on first error, do not execute on the next host
-  any_errors_fatal: True
+  # Execute playbook on hosts in parallel as fast as possible (do not wait for
+  # other hosts), when one host is finished, next starts (limited by serial).
+  strategy: host_pinned
+  serial: 3
 
   # Playbook specific vars
   vars:
@@ -17,7 +16,10 @@
   tasks:
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
-    
+
+    - name: Ping to filter out unreachable hosts
+      ansible.builtin.ping:
+
     - name: Include blocking and unblocking incoming traffic to portal
       include_tasks: tasks/portal-firewall-iptables-block-unblock.yml
       args:

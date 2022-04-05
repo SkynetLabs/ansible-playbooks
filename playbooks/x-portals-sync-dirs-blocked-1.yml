@@ -10,7 +10,7 @@
       include_tasks: tasks/host-limit-check.yml
 
     - name: Create new ssh key
-      ansible.builtin.shell: "ssh-keygen -o -a 100 -t ed25519 -f ~/.ssh/id_ed25519 -C 'user@{{ inventory_hostname}}-new-server' -g -N ''"
+      ansible.builtin.shell: "ssh-keygen -o -a 100 -t ed25519 -f ~/.ssh/id_ed25519 -C 'user@{{ inventory_hostname }}-new-server' -g -N ''"
 
     - name: Get new SSH key content
       ansible.builtin.shell: cat ~/.ssh/id_ed25519.pub

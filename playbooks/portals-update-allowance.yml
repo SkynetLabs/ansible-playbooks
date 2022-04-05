@@ -4,14 +4,14 @@
   gather_facts: False
 
   # Limit concurrency
-  serial: "{{ parallel_deploys | default(1) }}"
+  serial: "{{ parallel_executions | default(1) }}"
 
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True
 
   # Define playbook vars
   vars:
-    max_hosts: "{{ groups['webportals_prod'] | length - 1 }}"
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
 
   tasks:
     # Check '--limit' is used

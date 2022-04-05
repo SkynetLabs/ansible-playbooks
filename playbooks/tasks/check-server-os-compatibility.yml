@@ -1,0 +1,11 @@
+---
+# Check server OS for compatibility with current portal setup process
+# Currently works with debian 10 and debian 11 only
+
+- name: Check supported OS and version
+  assert:
+    that:
+      - >-
+        (ansible_distribution|lower == 'debian' and (ansible_distribution_version == '10' or ansible_distribution_version == '11')) or
+        (ansible_distribution|lower == 'ubuntu' and ansible_distribution_version == '20.04')
+    fail_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} is not yet supported by this role"

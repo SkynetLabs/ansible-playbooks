@@ -1,7 +1,0 @@
-# Check that all docker compose services are successfully running.
-
-- name: Include checking that each docker compose service is successfully running
-  include_tasks: tasks/portal-wait-for-docker-service.yml
-  loop: "{{ docker_compose_services }}"
-  loop_control:
-    loop_var: "docker_service_item"

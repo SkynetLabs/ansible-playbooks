@@ -1,32 +1,29 @@
 ---
 # Install roles from Ansible Galaxy.
 roles:
-
   # Role for securing the servers
   - name: geerlingguy.security
     version: 2.0.1
-  
+
   # Role for installing Docker and docker-compose on servers
   - name: geerlingguy.docker
     version: 4.1.1
-  
+
   # Role for setting up Skynet Webportal
   - name: skynetlabs.skynet_webportal
     src: https://github.com/SkynetLabs/ansible-role-skynet-webportal
-    # xxx update to tag
-    version: portal-2
+    version: v0.0.1-alfa
 
 # Install collections from Ansible Galaxy.
 collections:
-  
   # Required for controling Docker containers and docker-compose
   - name: community.docker
     version: 1.7.0
-  
+
   # Required for LastPass lookups (community.general.lastpass)
   - name: community.general
     version: 3.2.0
-  
+
   # Required e.g. for adding SSH keys (ansible.posix.authorized_key)
   - name: ansible.posix
     version: 1.2.0

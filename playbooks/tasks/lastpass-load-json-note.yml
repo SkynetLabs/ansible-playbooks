@@ -1,0 +1,49 @@
+---
+# Load yaml secure note from LastPass to Ansible variable
+
+# This tasks is supposed to be called (included) in a loop with list of
+# dictionaries defining lastpass_path and var_name.
+# Example:
+#
+# - name: Load LastPass data
+#   include_tasks: tasks/lastpass-load-yaml-note.yml
+#   loop:
+#     - lastpass_path: "Shared-Data/abc.yml"
+#       var_name: abc
+#     - lastpass_path: "Shared-Data/other-var.yml"
+#       var_name: some_other_var_name
+
+# Output:
+# This task sets output variable (var_name) value according to the data from
+# the given LastPass path (lastpass_path).
+#
+# - If the given path doesn't exists in LastPass,
+#   the output variable is not defined.
+# - If the secured note at the given path in LastPass is empty
+#   the ouptput variable is empty dictionary, i.e. {}.
+# - Otherwise yaml data from secure note are loaded into output variable.
+
+- name: Check if LastPass item exists
+  delegate_to: localhost
+  ansible.builtin.command: "lpass ls --sync now {{ item.lastpass_path }}"
+  register: lastpass_ls_result
+  changed_when: False
+
+- block:
+    - name: Get LastPass data
+      delegate_to: localhost
+      ansible.builtin.command: "lpass show --sync now {{ item.lastpass_path }}"
+      register: lastpass_show_result
+      changed_when: False
+
+    - name: Parse LastPass data
+      set_fact:
+        # The stdout_lines contain 2 lines that we don't want, and then the
+        # third line starts with 'Notes: ' and contains the first config field,
+        # so we want to trim that.
+        lastpass_data: "{{ lastpass_show_result.stdout_lines[2:] | join('\n') | replace('Notes: ', '') | from_json }}"
+
+    - name: Set variable value from LastPass data
+      set_fact:
+        "{{ item.var_name }}": "{{ {} if lastpass_data == '' else lastpass_data }}" # noqa var-naming
+  when: lastpass_ls_result.stdout != ''

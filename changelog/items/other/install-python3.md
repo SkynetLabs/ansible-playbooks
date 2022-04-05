@@ -1,0 +1,1 @@
+- Install Python3 for Ansible if it's not installed on the fresh server.

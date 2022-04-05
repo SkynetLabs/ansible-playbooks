@@ -1,5 +1,4 @@
 ---
-
 # Ensure MongoDB docker service is setup correctly
 # TODO: This ansible playbook task, should be moved to portal role
 
@@ -48,7 +47,7 @@
           it is safe to continue.
           Your MongoDB database will be backupped to
           {{ mongo_backups_dir }}, deleted and reset.
-          
+
           If you have production data in your database
           you should fix this issue manually and rerun this playbook.
 
@@ -62,7 +61,7 @@
           Your MongoDB database doesn't run as expected,
           you have to fix it manually and then rerun this playbook.
       when: reset_db_result.user_input[:1] not in 'yY'
-    
+
     - name: Stop and remove mongo container
       community.docker.docker_container:
         name: mongo
@@ -138,8 +137,8 @@
         name: mongo-setup
         command: "-keyFile=/data/mgkey --replSet={{ webportal_common_config.skynet_db_replicaset }}"
         env:
-          MONGO_INITDB_ROOT_USERNAME: "{{ mongodb_config.skynet_db_user }}"
-          MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_config.skynet_db_pass }}"
+          MONGO_INITDB_ROOT_USERNAME: "{{ webportal_common_config.skynet_db_user }}"
+          MONGO_INITDB_ROOT_PASSWORD: "{{ webportal_common_config.skynet_db_pass }}"
         published_ports: "{{ default_mongo_port }}:{{ default_mongo_port }}"
         auto_remove: True
         volumes:

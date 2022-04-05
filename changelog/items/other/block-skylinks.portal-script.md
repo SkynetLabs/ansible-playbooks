@@ -1,1 +1,0 @@
-- Update `portal-block-skylinks` playbook to reuse webportal script.

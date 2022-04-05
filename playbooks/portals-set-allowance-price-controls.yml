@@ -1,0 +1,35 @@
+- name: Set allowance on Skynet Webportals
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+
+  tasks:
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    # Check/install Ansible prerequisites
+    - name: Include preparing portal prerequisities
+      include_tasks: tasks/portals-prepare.yml
+
+    # Set allowance
+    - name: Set allowance
+      ansible.builtin.command: >
+        docker exec sia siac renter setallowance
+          --max-storage-price {{ webportal_allowance.max_storage_price }}
+          --max-contract-price {{ webportal_allowance.max_contract_price }}
+          --max-sector-access-price {{ webportal_allowance.max_sector_access_price }}
+      register: set_allowance_result
+      # Verify result to prevent mistakes and misconfiguration, because
+      # setallowance might not fail but just switch to interactive mode.
+      failed_when: set_allowance_result.stdout.find("Allowance updated.") == -1

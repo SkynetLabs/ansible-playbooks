@@ -1,0 +1,1 @@
+- Do not wait for uploads/downloads to finish when sia container is restarting.

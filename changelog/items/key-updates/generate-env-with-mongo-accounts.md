@@ -1,1 +1,0 @@
-- Generate `.env` file including MongoDB and Accounts settings.

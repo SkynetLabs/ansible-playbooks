@@ -1,5 +1,4 @@
 ---
-
 # Setup portal ufw firewall rules
 
 - name: Install ufw firewall
@@ -12,7 +11,7 @@
     - name: Reset ufw (reset ufw rules and disables ufw firewall)
       community.general.ufw:
         state: reset
-    
+
     - name: Limit SSH access
       community.general.ufw:
         rule: limit
@@ -41,22 +40,24 @@
         - 443
         - 26257
         - 27017
+    # Deny outgoing traffic to local network
+    - block:
+        - name: Allow outgoing traffic to docker local network
+          community.general.ufw:
+            rule: "allow"
+            proto: "any"
+            direction: "out"
+            to_ip: "{{ item }}"
+          loop: "{{ local_networks_allowed }}"
 
-    - name: Allow outgoing traffic to docker local network
-      community.general.ufw:
-        rule: "allow"
-        proto: "any"
-        direction: "out"
-        to_ip: "{{ item }}"
-      loop: "{{ local_networks_allowed }}"      
-
-    - name: Deny outgoing traffic to local networks
-      community.general.ufw:
-        rule: "deny"
-        proto: "any"
-        direction: "out"
-        to_ip: "{{ item }}"
-      loop: "{{ local_networks_denied }}"
+        - name: Deny outgoing traffic to local networks
+          community.general.ufw:
+            rule: "deny"
+            proto: "any"
+            direction: "out"
+            to_ip: "{{ item }}"
+          loop: "{{ local_networks_denied }}"
+      when: ufw_deny_outgoing_to_local_network
 
   # On error set at least SSH rule and enable firewall
   always:
@@ -76,7 +77,7 @@
         regexp: ^(-A ufw-user-input .* --dport 22 .* )--seconds \d+ --hitcount \d+( -j ufw-user-limit)$
         # Default limit is: --seconds 30 --hitcount 6
         replace: \1--seconds 30 --hitcount 60\2
-    
+
     - name: Enable Firewall
       community.general.ufw:
         state: enabled

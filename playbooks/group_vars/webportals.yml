@@ -2,9 +2,12 @@
 # =============================================================================
 # Portal setup settings (from fresh server)
 
+# Setup basic security
+setup_basic_security: True
+
 # User settings
 webportal_user: "user"
-webportal_user_authorized_keys: "https://raw.githubusercontent.com/SkynetLabs/skynet-webportal/master/setup-scripts/support/authorized_keys"
+webportal_user_authorized_keys: ""
 webportal_temp_user: "userdance"
 access_check_timeout_secs: 5
 
@@ -31,8 +34,11 @@ webportal_update_hostname: True
 docker_users: "{{ [webportal_user] }}"
 
 # UFW firewall settings
+setup_ufw: True
 group_ufw_rules:
+  # yamllint disable-line rule:braces
   - { rule: "allow", port: "80", proto: "tcp", direction: "in" }
+  # yamllint disable-line rule:braces
   - { rule: "allow", port: "443", proto: "tcp", direction: "in" }
 ufw_deny_outgoing_to_local_network: True
 local_networks_allowed:
@@ -45,30 +51,92 @@ local_networks_denied:
   - "198.18.0.0/15"
   - "169.254.0.0/16"
 
+# Iptables: Tor exit nodes blocking
+block_tor_exit_nodes: True
+block_tor_exit_nodes_lists:
+  torproject:
+    url: "https://check.torproject.org/torbulkexitlist?ip="
+    filename: "torproject-exitnodelist"
+    ipset_ipv4: "torproject-exitnodelist-ipv4"
+  dan:
+    url: "https://www.dan.me.uk/torlist/?exit"
+    filename: "dan-exitnodelist"
+    ipset_ipv4: "dan-exitnodelist-ipv4"
+    ipset_ipv6: "dan-exitnodelist-ipv6"
+  # Downloads from dan.me.uk are limited to once per 30 mins (= 1800 secs), we
+  # do not redownload the given number of seconds to prevent errors loading
+  # error message instead of IP list to ipset. During downloading Tor lists
+  # the script saves timestamps to two temporary files, one for each list. If
+  # we try to redownload manually or via cron job sooner than the below defined
+  # interval, the script skips redownloading the lists. i.e. it is safe to run
+  # the script e.g. every 5 minutes, but the redownloads and ipset updates are
+  # performed only after the last download is older then the below interval.
+  do_not_redownload_within_secs: 2000
+
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
+
+# lastpass has different separators based on the account. Because that makes
+# total sense and everyone's lives easier. The file separator is defined as the
+# path separator between a directory and file, i.e. dir/file. The directory
+# separator is the path separator between directories, i.e. dir/subdir.
+#
+# The file separator appears to always be a forward slash /
+#
+# The directory separator appears to change based on Shared folders for business
+# accounts and folders for personal accounts. Ansible uses the lpass cli tool,
+# and the lpass cli tool shows a path separator of a forward slash / for Shared
+# folders under business accounts and shows a path separator of a double back
+# slash \\ for personal folders.
+lastpass_directory_separator: '{{ "/" if "Shared" in lastpass_ansible_dir else "\\" }}'
+lastpass_file_separator: "/"
+
 lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
+lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_credentials_server_subfolder }}{{ lastpass_file_separator }}{{ webportal_user + '@' + ansible_host }}"
+
 lastpass_portal_config_common_subfolder: "portal-common-configs"
 lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+lastpass_portal_common_and_cluster_configs_list:
+  # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
+  - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
+
 lastpass_portal_config_server_subfolder: "portal-server-configs"
-lastpass_portal_config_common: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
-lastpass_portal_config_cluster: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
-lastpass_portal_config_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
-lastpass_portal_credentials_server: "{{ lastpass_ansible_dir }}/{{ lastpass_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+lastpass_portal_config_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_server_subfolder }}{{ lastpass_file_separator }}{{ inventory_hostname }}.yml"
+
+lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}-jwks.json"
 
 # Portal paths settings
+#
+# NOTE: These paths are not strictly alphabetized due to top level paths needing
+# to be defined first so that sub paths can reference them. When possible, the
+# paths are alphabetized if there is no reference order that needs to be
+# maintained.
+#
+# Webportal Paths
 webportal_user_home_dir: "/home/{{ webportal_user }}"
 webportal_dir: "{{ webportal_user_home_dir }}/skynet-webportal"
+webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
+elasticsearch_data_data_dir: "{{ webportal_dir }}/docker/data/elasticsearch/data"
+
+# Accounts Paths
+accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
+accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
+
+# Mongo Paths
+mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
+mongo_backups_dir: "{{ mongo_data_dir }}/backups"
+mongo_db_dir: "{{ mongo_data_dir }}/db"
+mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
+
+# Devops Paths
 devops_dir: "{{ webportal_user_home_dir }}/devops"
+devops_scripts_dir: "{{ devops_dir }}/scripts"
+block_tor_exit_nodes_script_file: "{{ devops_scripts_dir }}/tor-blocklists-update.sh"
 logs_dir: "{{ devops_dir }}/logs"
 setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
-devops_scripts_dir: "{{ devops_dir }}/scripts"
-webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
-mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
-mongo_db_dir: "{{ mongo_data_dir }}/db"
-mongo_backups_dir: "{{ mongo_data_dir }}/backups"
-mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
 
 # Default service ports
 default_mongo_port: 27017
@@ -98,23 +166,44 @@ webportal_setup_dotfiles_and_dev_tools: True
 
 # TODO: move to role default vars
 webportal_allowance:
-  amount: 100KS
+  amount: 10KS
   expected_storage: 10TB
   expected_upload: 4TB
   expected_download: 2TB
   expected_redundancy: 5
+  max_contract_price: 1SC
+  max_sector_access_price: 5SC
   max_storage_price: 300SC
   payment_contract_initial_funding: 10SC
   period: 8640b
 
 # TODO: move to role default vars
 webportal_server_config_defaults:
-  domain_name: "{{ ansible_host }}"
-  portal_name: "{{ ansible_host }}"
-  portal_modules: ""
   sia_wallet_password: ""
   sia_api_port: 9980
+  sia_api_password: "{{ lookup('pipe','openssl rand -base64 32') }}"
   hsd_api_key: "{{ lookup('pipe','openssl rand -base64 32') }}"
+  server_uid: "{{ lookup('pipe','openssl rand -hex 8') }}"
+  accounts_test_user_email: "{{ lookup('pipe','openssl rand -hex 8') }}@example.com"
+  accounts_test_user_password: "{{ lookup('pipe','openssl rand -hex 8') }}"
+  accounts_test_user_api_key: ""
+
+# TODO: move to role default vars
+# This variable sets default values for common/cluster settings if they are not
+# defined by portal operator in common/cluster records defined by
+# lastpass_portal_common_and_cluster_configs_list.
+webportal_common_config_defaults:
+  s3_backup_path: ""
+  abuse_log_level: "info"
+  accounts_log_level: "info"
+  blocker_log_level: "info"
+  cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+  cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+  skynet_db_host: "mongo"
+  skynet_db_pass: "{{ lookup('pipe','openssl rand -base64 32') }}"
+  skynet_db_port: "{{ default_mongo_port }}"
+  skynet_db_replicaset: "{{ portal_cluster_id }}"
+  skynet_db_user: "admin"
 
 # TODO: move to role default vars
 # TODO: default to: False
@@ -137,6 +226,9 @@ webportal_docker_compose_files_optional:
   - "docker-compose.blocker.yml"
   - "docker-compose.jaeger.yml"
   - "docker-compose.malware-scanner.yml"
+  # Abuse file was renamed, only one of the following two will be present, for
+  # backwards compatibility playbook will select the present one automatically.
+  - "docker-compose.abuse-scanner.yml"
   - "docker-compose.abuse.yml"
   - "docker-compose.override.yml"
 
@@ -148,7 +240,8 @@ webportal_docker_compose_files_dict:
   j: "docker-compose.jaeger.yml"
   m: "docker-compose.mongodb.yml"
   s: "docker-compose.malware-scanner.yml"
-  u: "docker-compose.abuse.yml"
+  # See Abuse file comment above
+  u: ["docker-compose.abuse-scanner.yml", "docker-compose.abuse.yml"]
 
 webportal_other_config_files:
   - ".env"
@@ -162,6 +255,12 @@ skynet_js_docker_test_image: "node:14-buster-slim"
 # Local git checkouts
 local_temp_skynetlabs_git_repos: "/tmp/SkynetLabs-ansible/git-repos"
 local_temp_skynetlabs_git_repos_skynet_js: "{{ local_temp_skynetlabs_git_repos }}/skynet-js"
+
+# Download/upload waits
+# How long to wait for active downloads/uploads to finish (in seconds) before
+# shutting down the docker services after disabling the health checks.
+portal_download_check_wait_secs: 300
+portal_upload_check_wait_secs: 300
 
 # Health checks
 portal_health_check_disable_delay_secs: 0
@@ -181,15 +280,27 @@ keep_accounts_services:
 keep_jaeger_services:
   - "sia"
 
+# Waiting for docker services
 # Do not wait for these docker services
 docker_services_exclude_waiting:
   - "kratos-migrate"
+# Minumum time we wait for checking docker services to be running and not
+# restarting. Should be > 60 seconds, because docker container might appear
+# running correctly and then restart after 60 seconds.
+docker_services_min_non_restarting_time_in_secs: 65
 
 # Localhost vars
 # my-logs path relative to ./playbooks directory
 local_logs_dir: "../my-logs"
 # Path relative to ./playbooks/vars directory
 private_vars_file: "../../../ansible-private/private-vars/private-vars.yml"
+
+# renter_log_lines defines the strings to match with sed to remove from the sia
+# renter.log file
+renter_log_lines:
+  - "pt not ready yet for worker"
+  - "HEALTH LOOP VERBOSE"
+  - "dirupdatebatch completed"
 
 # Host migrations, sync
 rsync_docker_image: "instrumentisto/rsync-ssh:alpine3.15-r0"

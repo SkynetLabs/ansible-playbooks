@@ -12,6 +12,13 @@
   # NOTE: portal_action is defined by the playbook, i.e. for deploys,
   # portal_action='portal-deploy'
   command: 'docker exec health-check cli disable "{{ out_of_lb_message | default(portal_action) }}"'
+  register: docker_health_check_disable_result
+  # Only fail the task if there is an error reported to stderr, unless it
+  # is that the container is restarting, since that means the health check isn't
+  # active already.
+  failed_when:
+    - docker_health_check_disable_result.stderr != ''
+    - docker_health_check_disable_result.stderr.find("restarting") == -1
   # Only execute the CLI command if the container is up and running. Otherwise,
   # if it is not up and running, it is practically disabled.
   when:
@@ -40,11 +47,12 @@
         docker_renter_uploads.stdout.find("No files are uploading.") != -1 or
         docker_renter_uploads.stderr.find("490 Module not loaded") != -1 or
         docker_renter_uploads.stderr.find("restarting") != -1
-      # Retry every 5 seconds for portal_upload_check_num_retries, in prod this
-      # is 60 times which is where the 5 minutes is determined in the above
-      # comment.
-      delay: 5
-      retries: "{{ portal_upload_check_num_retries }}"
+      # Retry every 5 seconds for portal_upload_check_wait_secs seconds.
+      vars:
+        delay_secs: 5
+        retries: "{{ (portal_upload_check_wait_secs / delay_secs) | int }}"
+      delay: "{{ delay_secs }}"
+      retries: "{{ retries }}"
       # Only fail the task if there is an error reported to stderr, unless it
       # is the Module not loaded error. Otherwise we will continue on after the
       # retries are complete.
@@ -63,11 +71,12 @@
         docker_renter_downloads.stdout.find("No files are downloading.") != -1 or
         docker_renter_downloads.stderr.find("490 Module not loaded") != -1 or
         docker_renter_downloads.stderr.find("restarting") != -1
-      # Retry every 5 seconds for portal_download_check_num_retries, in prod
-      # this is 60 times which is where the 5 minutes is determined in the above
-      # comment.
-      delay: 5
-      retries: "{{ portal_download_check_num_retries }}"
+      # Retry every 5 seconds for portal_download_check_wait_secs seconds.
+      vars:
+        delay_secs: 5
+        retries: "{{ (portal_download_check_wait_secs / delay_secs) | int }}"
+      delay: "{{ delay_secs }}"
+      retries: "{{ retries }}"
       # Only fail the task if there is an error reported to stderr, unless it
       # is the Module not loaded error. Otherwise we will continue on after the
       # retries are complete.
@@ -75,8 +84,9 @@
         - docker_renter_downloads.stderr != ''
         - docker_renter_downloads.stderr.find("490 Module not loaded") == -1
 
-  # Do not wait if sia container is not running
+  # Do not wait if sia container is not running or is restarting
   when:
     - sia_docker_container_result.exists
     - sia_docker_container_result.container is defined
     - sia_docker_container_result.container.State.Running
+    - not sia_docker_container_result.container.State.Restarting

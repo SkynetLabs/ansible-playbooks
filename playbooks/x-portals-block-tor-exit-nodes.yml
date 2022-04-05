@@ -1,0 +1,32 @@
+# Block traffic from Tor exit nodes
+# Resources:
+# - https://gist.github.com/jkullick/62695266273608a968d0d7d03a2c4185
+# - https://check.torproject.org/torbulkexitlist?ip=
+# - https://www.dan.me.uk/tornodes
+
+- name: Block Traffic from Tor Exit Nodes
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: True
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    lastpass_required: True
+
+  tasks:
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    - name: Include blocking Tor exit nodes traffic
+      include_tasks: tasks/portal-firewall-iptables-block-tor-exit-nodes.yml
+      args:
+        apply:
+          become: True
+      when: block_tor_exit_nodes

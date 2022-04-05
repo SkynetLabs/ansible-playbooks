@@ -2,28 +2,28 @@
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: False
-  
+
   # Limit concurrency to keep batch_hosts order deterministic
   serial: 1
-  
+
   # Stop on first error, do not execute on the next host
   any_errors_fatal: True
 
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    portal_action: "portals-takedown"
 
   tasks:
-
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
-    
+
     # Print timestamp
     - name: Print timestamp
       debug:
         msg: "{{ inventory_hostname + ' takedown start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
-    
+
     # Check portal is added to webportals_takedown inventory group
     - name: Fail if portal is not added to webportals_takedown inventory group
       fail:
@@ -32,24 +32,27 @@
           inventory group in hosts.ini file to prevent starting portal during
           deployments and restarts later.
       when: "'webportals_takedown' not in group_names"
-    
+
     # Disable health checks and stop docker services
     - name: Include disabling health check and stopping portal docker services
       include_tasks: tasks/portal-stop.yml
-    
+
     # Include getting wanted docker-compose files
     - name: Include getting wanted docker-compose files
       include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
-    
+
     # Start just sia docker service
-    - name: Start just sia docker service
+    - name: Start just mongo and sia docker services
       community.docker.docker_compose:
         project_src: "{{ webportal_dir }}"
         files: "{{ webportal_docker_compose_files_wanted }}"
         build: False
-        nocache: True
+        remove_orphans: True
+        nocache: False
         pull: True
-        services: sia
+        services:
+          - mongo
+          - sia
         state: present
       become: True
       become_user: "user"

@@ -1,3 +1,5 @@
+[![Lint](https://github.com/SkynetLabs/ansible-playbooks/actions/workflows/lint.yml/badge.svg)](https://github.com/SkynetLabs/ansible-playbooks/actions/workflows/lint.yml)
+
 # Skynet Labs Ansible Playbooks
 > The table of contents for this README can be accessed from the menu icon by `README.md`
 
@@ -81,8 +83,7 @@ a playbook.
 
 ### Check Access
 
-To check that you have access to all portals, execute:  
-`scripts/portals-ping.sh`
+To check that you have access to all portals with the [portal-ping](#portal-ping) script.
 
 ### LastPass Login
 
@@ -106,6 +107,22 @@ you can execute playbooks as usually.
 the login script to refresh your session to be able to see the updates.
 
 ## Playbooks
+
+### Portal Ping
+
+#### Playbook Actions
+This playbook pings a portal to check if it is accessible. 
+
+**NOTE** The ansible `ping` module is going to try and ping `user@host`. So if
+you have not run the [`portal-setup-initial`](#playbook-portals-setup-initial)
+script yet to initialize the user, you should include the `-u root` option. Or,
+if your server was initialized with a non root user, use that username, i.e.
+`-u debian`.
+
+#### Execution
+`scripts/portals-ping.sh --limit eu-ger-1`  
+`scripts/portals-ping.sh -u root --limit eu-ger-1`  
+`scripts/portals-ping.sh -u debian --limit eu-ger-1`  
 
 ### Get Webportal Status
 
@@ -172,7 +189,9 @@ Server aliases (`eu-ger-1`, `us-pa-1`, ...) are stored in `inventory/hosts.ini`.
 - Starts docker compose services.
 - Waits for Sia full setup finished.
 - Waits for Sia `/daemon/ready` (if the endpoint is available).
+- Waits for Sia Blockchain to be synced.
 - Runs portal integration tests.
+- Runs portal health check.
 - Enables health check.
 
 For logs see above Playbook: Restart Skynet Webportal.
@@ -219,7 +238,7 @@ or:
 
 By default portals-deploy playbook performs deployments one server at a time
 (rolling updates/deploys). You can enable parallel deployments (deploy to the
-given number of hosts in parallel) by setting optional `parallel_deploys`
+given number of hosts in parallel) by setting optional `parallel_executions`
 variable in used `config.yml`.
 
 Example `config.yml`:
@@ -230,7 +249,7 @@ portal_repo_version: "deploy-2021-08-24"
 portal_skyd_version: "deploy-2021-08-24"
 portal_accounts_version: "deploy-2021-08-23"
 
-parallel_deploys: 3
+parallel_executions: 3
 ```
 
 #### How to Set Deploy Batch
@@ -297,9 +316,10 @@ stopping all the docker services.
 #### Playbook Actions
 
 - Disables health check.
-- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Waits for all uploads/downloads to finish (max 5 minutes), on dev servers it
+  doesn't wait.
 - Stops docker compose services.
-- Starts only sia docker service.
+- Starts only mongo and sia docker services.
 
 #### Preparation
 
@@ -318,14 +338,9 @@ To takedown portal on `eu-ger-1` and `us-pa-1` execute:
 #### Following Portal Deployments and Restarts
 
 Once the portal host is included in `webportals_takedown` inventory group,
-portal deployment and portal restart playbooks ignore this host, deployments
-and restarts are not performed on this host even if the portal is included in
-an inventory group you are deploying to.
-
-If you want to restart or deploy portal, remove the host from
-`webportals_takedown` group and execute either portal restart playbook to start
-the portal with the last deployed versions of the portal or portal deploy
-playbook to deploy configured versions of the portal.
+portal deployment and portal restart playbooks initiate for this host,
+deployments and restarts start only mongo and sia docker services and playbook
+execution stops.
 
 ### Rollback Skynet Webportal
 
@@ -337,7 +352,8 @@ doing!!!
 Playbook:
 
 - Disables health check.
-- Waits 5 minutes for load balancer (with dev servers it doesn't wait).
+- Waits for all uploads/downloads to finish (max 5 minutes), on dev servers it
+  doesn't wait.
 - Stops docker compose services.
 - Gets last working portal configuration with passed integration tests (i.e.
   with `status.tested`).
@@ -381,25 +397,27 @@ To check `eu-ger-1` portal:
 To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
 `scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
 
-### Set Allowance Max Storage Price
+### Set Allowance Max Storage Price, Max Contract Price, and Max Sector Access
+Price
 
 Playbook:
 
 - Sets allowance defined in
-  `playbooks/portals-set-allowance-max-storage-price.yml` > `vars` >
-  `max_storage_price`
+  `playbooks/portals-set-allowance-price-controls.yml` > `vars` >
+  `max_storage_price`, `max_contract_price`, `max_sector_access_price`
   on the portal server(s).
 
 Notes:
 
 - `--limit` must be used, it's not possible to set allowance on all
   `portals_dev` and `portals_prod` servers at once.
-- Format of `max_storage_price` value must be same as is expected by executing
-  `docker exec sia siac renter setallowance --max-storage-price`
+- Format of `max_storage_price`, `max_contract_price`, `max_sector_access_price`
+  value must be same as is expected by executing
+  `docker exec sia siac renter setallowance --max-storage-price --max-contract-price --max-sector-access-price`
 
 To run:  
-`scripts/portals-set-allowance-max-storage-price.sh --limit webportals_prod`  
-`scripts/portals-set-allowance-max-storage-price.sh --limit eu-ger-3`
+`scripts/portals-set-allowance-price-controls.sh --limit webportals_prod`  
+`scripts/portals-set-allowance-price-controls.sh --limit eu-ger-3`
 
 ### Block Portal Skylinks
 
@@ -539,10 +557,6 @@ To run:
 
 ### Setup Portal from Scratch
 
-Work in progress:  
-The setup playbooks currently setup single portal without Jaeger, Accounts and
-cluster.
-
 Setup process requires 3 playbooks:
 
 - `portals-setup-initial.sh` (run once)
@@ -569,7 +583,7 @@ Playbook (as `root`):
 
 - Installs `sudo`
 - Creates passworded user
-- Adds SSH keys from `skynet-webportal` repo
+- Adds SSH keys from `skynet-webportal` repo (defined by `webportal_user_authorized_keys` variable in `my-vars/config.yml`)
 - Performs basic security setup
   - Disables `root` access, ...
 
@@ -578,7 +592,7 @@ This playbook can be run successfully just once, then root access is disabled.
 Execute (e.g. on `eu-fin-5`):  
 `scripts/portals-setup-initial.sh --limit eu-fin-5`
 
-If you are using any no default variable values, i.e. LastPass folder names,
+If you are using any no default variable values, i.e. LastPass folder names or `webportal_user_authorized_keys`,
 include your config file in the command.
 `scripts/portals-setup-initial.sh -e @my-vars/config.yml --limit eu-fin-5`
 
@@ -612,17 +626,18 @@ Playbook:
   - Always recreate `.env` file from `.env.j2` template and portal config
   - Start sia container if not running, restart if config changed
   - Init new wallet (if not done previously)
-  - Wait for sia blockchain synced (takes time, can timeout)
   - Init wallet (with existing seed if exists, takes time, can timeout)
   - Unlock wallet
   - Set default allowance
   - Setup health checks
-
-Timeouts:  
-This playbook is expected to fail with a timeout (might be a couple of times).
-Timeouts are handled gracefully and next steps are described in ansible logs
-onscreen. Follow the instructions from the onscreen logs and restart the
-playbook when ready.
+- If variable `deploy_after_setup` is set to True
+  - Portal deployment is performed. Then you do not need to run `portals-deploy`
+    playbook separately, it's tasks are performed within `portal-setup-following`
+    playbook.
+- If variable `deploy_after_setup` is not set at all (it is default behaviur) or
+  is set to False
+  - Portal deployment is not performed. You need to run `portals-deploy` playbook
+    separately to bring portal online.
 
 Execute (e.g. on `eu-fin-5`):
 `scripts/portals-setup-following.sh -e @my-vars/config.yml --limit eu-fin-5`
@@ -631,6 +646,10 @@ Execute (e.g. on `eu-fin-5`):
 
 To finish portal setup and deployment execute portal deploy playbook (see
 separate section above).
+
+**NOTE** You should give your node enough time to sync the Sia blockchain and
+*form file contracts before running the deploy script. Otherwise the health
+*checks will fail as your node is not ready to upload and download
 
 ### Run Docker Command
 
@@ -782,3 +801,43 @@ Fix:
 Execute `scripts/lastpass-login.sh`.
 
 For more details see: [Playbook Execution > LastPass Login](#lastpass-login).
+
+### Host not found
+
+There are a few errors are can happen that are both related to a host not being found in the `hosts.ini` file.
+
+Example 1:
+```
+% ./scripts/portals-ping.sh --limit sev1
+Stopping Ansible Control Machine...
+Starting Ansible Control Machine...
+Ansible requirements (roles and collections) are up-to-date
+Executing:
+    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user --limit sev1 
+in a docker container...
+[WARNING]: Could not match supplied host pattern, ignoring: sev1
+ERROR! Specified hosts and/or --limit does not match any hosts
+ERROR: Error 1
+```
+
+Example 2:
+```
+❯ scripts/portals-ping.sh 
+Ansible Control Machine is running
+Ansible requirements (roles and collections) are up-to-date
+Executing:
+    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user  
+in a docker container...
+[WARNING]: Unable to parse /tmp/ansible-private/inventory/hosts.ini as an
+inventory source
+[WARNING]: No inventory was parsed, only implicit localhost is available
+[WARNING]: provided hosts list is empty, only localhost is available. Note that
+the implicit localhost does not match 'all'
+[WARNING]: Could not match supplied host pattern, ignoring: webportals
+SUCCESS: Command finished successfully
+```
+
+This can happen if the `ansiblecm` was started when you were not at the expected relative directory to `ansible-private` or started ansible before the directory existed. The fix is to stop `ansbilecm` and re-run the command.
+```
+docker stop ansiblecm
+```
