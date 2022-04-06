@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Version Release
-        uses: SkynetLabs/.github/.github/actions/version-release@master
+        uses: SkynetLabs/.github/actions/version-release@master
         with:
           version-bump: ${{github.event.inputs.version}}
           github-token: ${{secrets.GITHUB_TOKEN}}
