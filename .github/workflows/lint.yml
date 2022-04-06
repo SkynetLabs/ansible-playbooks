@@ -6,18 +6,9 @@ jobs:
   yamllint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Install yamllint
-        run: pip install yamllint
-
-      - name: Run yamllint
-        run: make yamllint
+      - uses: actions/checkout@v3
+      - name: Yamllint
+        uses: SkynetLabs/.github/actions/yamllint@master
 
   syntax_check:
     runs-on: ubuntu-latest
