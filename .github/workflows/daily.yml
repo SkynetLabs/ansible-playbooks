@@ -41,6 +41,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Version Release
-        uses: SkynetLabs/.github/actions/version-release
+        uses: SkynetLabs/.github/.github/actions/version-release
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
