@@ -1,4 +1,4 @@
-name: Push Requirements
+name: CI
 
 on: push
 
