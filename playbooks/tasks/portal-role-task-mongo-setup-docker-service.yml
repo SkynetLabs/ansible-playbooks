@@ -6,9 +6,11 @@
   assert:
     that:
       - >-
-        {{ webportal_common_config.mongo_db_mgkey is defined and
-        webportal_common_config.mongo_db_mgkey is not none and
-        webportal_common_config.mongo_db_mgkey != '' }}
+        {{
+          webportal_common_config.mongo_db_mgkey is defined
+          and webportal_common_config.mongo_db_mgkey is not none
+          and webportal_common_config.mongo_db_mgkey | length > 500
+        }}
 
 - name: Check mongo/mgkey file exists and it is not directory
   ansible.builtin.stat:

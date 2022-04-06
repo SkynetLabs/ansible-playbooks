@@ -2,6 +2,7 @@
 # Get portal configs
 # - Load portal configs from secrets backend (e.g. LastPass)
 # - Set default values (for unset keys)
+# - Set mongodb mgkey (if defined but empty)
 # - Set mongodb flag
 # - Set mongodb config (if mongodb is on)
 # - Set accounts flag
@@ -41,7 +42,17 @@
   when: webportal_common_config[item.key] is not defined
   loop: "{{ webportal_common_config_defaults | dict2items }}"
   no_log: True
-  register: cluster_config_missing_values_result
+
+- name: Set default value for MongoDB mgkey (if the value is not set)
+  set_fact:
+    webportal_common_config_last: >-
+      {{
+        webportal_common_config_last
+        | combine({'mongo_db_mgkey': webportal_common_config_defaults.mongo_db_mgkey})
+      }}
+  when: >-
+    webportal_common_config.mongo_db_mgkey is none
+    or webportal_common_config.mongo_db_mgkey | length == 0
 
 - name: Merge missing values to the common/cluster config
   set_fact:
