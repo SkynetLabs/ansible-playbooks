@@ -1,0 +1,7 @@
+name: Push Requirements
+
+on: push
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
