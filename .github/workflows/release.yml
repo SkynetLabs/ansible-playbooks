@@ -45,7 +45,7 @@ jobs:
 
   # Check if there were any changes since the last tag
   changes:
-    needs: [yamllint, syntax-check, ansible-lint]
+    needs: [yamllint, syntax_check, ansible-lint]
     runs-on: ubuntu-latest
     outputs:
       updates: ${{steps.changes.outputs.any == 'true'}}
