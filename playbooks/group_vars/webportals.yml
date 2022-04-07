@@ -195,6 +195,7 @@ webportal_server_config_defaults:
 webportal_common_config_defaults:
   s3_backup_path: ""
   abuse_log_level: "info"
+  abuse_ncmec_reporting_enabled: False
   accounts_log_level: "info"
   blocker_log_level: "info"
   cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
@@ -204,6 +205,7 @@ webportal_common_config_defaults:
   skynet_db_port: "{{ default_mongo_port }}"
   skynet_db_replicaset: "{{ portal_cluster_id }}"
   skynet_db_user: "admin"
+  ncmec_debug: True
 
 # TODO: move to role default vars
 # TODO: default to: False
