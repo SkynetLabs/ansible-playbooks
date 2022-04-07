@@ -199,6 +199,7 @@ webportal_common_config_defaults:
   blocker_log_level: "info"
   cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
   cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+  mongo_db_mgkey: "{{ lookup('pipe','openssl rand -base64 756') }}"
   skynet_db_host: "mongo"
   skynet_db_pass: "{{ lookup('pipe','openssl rand -base64 32') }}"
   skynet_db_port: "{{ default_mongo_port }}"

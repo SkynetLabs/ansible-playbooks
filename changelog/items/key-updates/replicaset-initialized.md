@@ -1,0 +1,1 @@
+- Improve detection if MongoDB replicaset is correctly initialized.
