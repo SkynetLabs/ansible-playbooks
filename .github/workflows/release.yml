@@ -61,7 +61,7 @@ jobs:
   release:
     needs: changes
     runs-on: ubuntu-latest
-    if: ${{ (needs.changes.outputs.updates == 'true' && GITHUB_EVENT_NAME == 'schedule') || GITHUB_EVENT_NAME == 'workflow_dispatch' }}
+    if: ${{ (needs.changes.outputs.updates == 'true' && env.GITHUB_EVENT_NAME == 'schedule') || env.GITHUB_EVENT_NAME == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v2
       - name: Version Release
