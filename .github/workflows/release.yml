@@ -43,12 +43,14 @@ jobs:
       - name: Lint Ansible Playbook
         uses: ansible/ansible-lint-action@main
 
-  # Check if there were any changes since the last tag
+  # Check if there were any changes since the last tag if this isn't a push
+  # event
   changes:
     needs: [yamllint, syntax_check, ansible-lint]
     runs-on: ubuntu-latest
     outputs:
       updates: ${{steps.changes.outputs.any == 'true'}}
+    if: ${{ github.event_name != 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v3
         with:
