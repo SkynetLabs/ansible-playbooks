@@ -1,7 +1,8 @@
-name: Release
+name: CI and Release
 on:
-  # Run daily at 1:15am
+  push:
   schedule:
+    # Run daily at 1:15am
     - cron: "15 1 * * *"
   workflow_dispatch:
     # Inputs the workflow accepts.
@@ -19,28 +20,48 @@ on:
 
 jobs:
   # Run the linting
-  lint:
-    uses: ./.github/workflows/lint.yml
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Yamllint
+        uses: SkynetLabs/.github/actions/yamllint@master
 
-  # Check if there were any changes since the last tag if this is a scheduled
-  # run
+  syntax_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check playbooks with --syntax-check
+        run: make syntax-check
+
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Lint Ansible Playbook
+        uses: ansible/ansible-lint-action@main
+
+  # Check if there were any changes since the last tag
   changes:
-    needs: lint
+    needs: [yamllint, syntax-check, ansible-lint]
     runs-on: ubuntu-latest
     outputs:
       updates: ${{steps.changes.outputs.any == 'true'}}
-    if: ${{ GITHUB_EVENT_NAME == schedule}}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Required due to the weg Git works, without it this action won't be able to find any or the correct tags
       - uses: SkynetLabs/.github/actions/changes-since-last-tag@master
 
-  # Make a release if there were changes
+  # Make a release if
+  # - there were changes and this is a scheduled job
+  # - This is a manually trigger job, i.e. workflow_dispatch
   release:
     needs: changes
     runs-on: ubuntu-latest
-    if: ${{needs.changes.outputs.updates == 'true'}}
+    if: ${{ (needs.changes.outputs.updates == 'true' && GITHUB_EVENT_NAME == schedule) || GITHUB_EVENT_NAME == workflow_dispatch }}
     steps:
       - uses: actions/checkout@v2
       - name: Version Release
