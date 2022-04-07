@@ -49,6 +49,33 @@
           and your config files and then rerun this playbook.
       when: update_lastpass_result.user_input[:1] not in 'yY'
 
+    # In case default yaml formatting is used for mongo_db_mgkey, yaml record
+    # in LastPass becomes hard to read like:
+    #
+    # some_key: some_value
+    # mongo_db_mgkey: very...long...string...
+    # spread...over...jhgjgjhgjhgjhgjhgjhgjhg
+    # multiple...jgfgdfdytrytoiuyiuuytuytuyty
+    # lines...uytuytuytuytuytuytuytuytuytuiyt
+    # in...yaml...record...uyrhvnjfsrewkhljhk
+    # some_other_key: some_other_value
+    #
+    # The following block formats (i.e. indents) mongo_db_mgkey the following
+    # way:
+    #
+    # some_key: some_value
+    # mongo_db_mgkey: |
+    #   very...long...string...
+    #   spread...over...jhgjgjhgjhgjhgjhgjhgjhg
+    #   multiple...jgfgdfdytrytoiuyiuuytuytuyty
+    #   lines...uytuytuytuytuytuytuytuytuytuiyt
+    #   in...yaml...record...uyrhvnjfsrewkhljhk
+    # some_other_key: some_other_value
+    #
+    # In order to do it this way, we generate yaml string with a dummy
+    # mongo_db_mgkey using default formatting and then we replace
+    # dummy mongo_db_mgkey value with a correct value using an indented string.
+
     - name: Keep better yaml formatting for mongo_db_mgkey
       block:
         - name: Store mongo mgkey to temporary variable and indent it
@@ -56,7 +83,7 @@
             # Prefix that will be rendered in final LastPass yaml
             prefix: "  "
           set_fact:
-            # Add prefix to each mgkey line
+            # Add prefix to each mgkey line (indent each mgkey line)
             indented_mgkey: >-
               {{ [prefix]
               | product(webportal_common_config_last.mongo_db_mgkey.splitlines())
@@ -70,6 +97,9 @@
               {{ webportal_common_config_last
               | combine({'mongo_db_mgkey': 'dummy'}) }}
 
+        # Create last config yaml string with a dummy mgkey value using default
+        # yaml formatting and then replace mgkey with an actual value using
+        # indented string.
         - name: Create last config yaml string
           set_fact:
             common_config_last_yaml: >-
