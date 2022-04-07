@@ -205,7 +205,6 @@ webportal_common_config_defaults:
   skynet_db_port: "{{ default_mongo_port }}"
   skynet_db_replicaset: "{{ portal_cluster_id }}"
   skynet_db_user: "admin"
-  ncmec_debug: True
 
 # TODO: move to role default vars
 # TODO: default to: False
