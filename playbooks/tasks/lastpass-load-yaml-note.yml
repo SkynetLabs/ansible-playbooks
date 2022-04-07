@@ -25,14 +25,14 @@
 
 - name: Check if LastPass item exists
   delegate_to: localhost
-  ansible.builtin.command: "lpass ls --sync now {{ item.lastpass_path }}"
+  ansible.builtin.command: "lpass ls --sync now '{{ item.lastpass_path }}'"
   register: lastpass_ls_result
   changed_when: False
 
 - block:
     - name: Get LastPass data
       delegate_to: localhost
-      ansible.builtin.command: "lpass show --sync now {{ item.lastpass_path }}"
+      ansible.builtin.command: "lpass show --sync now '{{ item.lastpass_path }}'"
       register: lastpass_show_result
       changed_when: False
 

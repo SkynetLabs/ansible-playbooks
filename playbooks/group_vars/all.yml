@@ -8,3 +8,6 @@ default_ssh_port: 22
 five_minutes_in_secs: 300
 ten_minutes_in_secs: 600
 fifteen_minutes_in_secs: 900
+
+# Workaround for Jinja templates
+backslash: "\\"

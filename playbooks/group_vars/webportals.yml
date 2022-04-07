@@ -88,7 +88,7 @@ lastpass_ansible_dir: "Shared-Ansible"
 # and the lpass cli tool shows a path separator of a forward slash / for Shared
 # folders under business accounts and shows a path separator of a double back
 # slash \\ for personal folders.
-lastpass_directory_separator: '{{ "/" if "Shared" in lastpass_ansible_dir else "\\" }}'
+lastpass_directory_separator: '{{ "/" if "Shared" in lastpass_ansible_dir else backslash }}'
 lastpass_file_separator: "/"
 
 lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
