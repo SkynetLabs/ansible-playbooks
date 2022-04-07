@@ -18,6 +18,9 @@ on:
           - minor
           - major
 
+env:
+  reusable_action_path: SkynetLabs/.github/.github/actions
+
 jobs:
   # Run the linting
   yamllint:
@@ -25,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Yamllint
-        uses: SkynetLabs/.github/actions/yamllint@master
+        uses: ${{ reusable_action_path }}/yamllint@master
 
   syntax_check:
     runs-on: ubuntu-latest
@@ -55,7 +58,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Required due to the weg Git works, without it this action won't be able to find any or the correct tags
-      - uses: SkynetLabs/.github/actions/changes-since-last-tag@master
+      - uses: ${{ reusable_action_path }}/changes-since-last-tag@master
 
   # Make a release if
   # - there were changes and this is a scheduled job
@@ -67,6 +70,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Version Release
-        uses: SkynetLabs/.github/actions/version-release@master
+        uses: ${{ reusable_action_path }}/version-release@master
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
