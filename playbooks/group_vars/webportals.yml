@@ -195,6 +195,7 @@ webportal_server_config_defaults:
 webportal_common_config_defaults:
   s3_backup_path: ""
   abuse_log_level: "info"
+  abuse_ncmec_reporting_enabled: False
   accounts_log_level: "info"
   blocker_log_level: "info"
   cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
