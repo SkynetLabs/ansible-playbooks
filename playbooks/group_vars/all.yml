@@ -10,5 +10,5 @@ ten_minutes_in_secs: 600
 fifteen_minutes_in_secs: 900
 
 # Constants (workarounds for Jinja templates)
-backslash: "\\"
-new_line: "\n"
+backslash_char: "\\"
+newline_char: "\n"
