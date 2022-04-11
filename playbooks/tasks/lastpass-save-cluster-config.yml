@@ -6,7 +6,7 @@
 - name: Check if LastPass cluster record exists
   local_action:
     module: ansible.builtin.command
-    cmd: "lpass ls --sync now {{ cluster_config_last_path }}"
+    cmd: "lpass ls --sync now '{{ cluster_config_last_path }}'"
   register: lastpass_ls_result
 
 - name: Set LastPass command add or edit
@@ -108,7 +108,7 @@
                 | to_nice_yaml(width=2048)
                 | replace(
                     'mongo_db_mgkey: dummy',
-                    'mongo_db_mgkey: |' + new_line + indented_mgkey
+                    'mongo_db_mgkey: |' + newline_char + indented_mgkey
                   )
               }}
       when: webportal_common_config_last.mongo_db_mgkey is defined
@@ -116,7 +116,7 @@
     - name: Update LastPass cluster config record
       local_action:
         module: shell
-        cmd: printf "{{ common_config_last_yaml }}" | lpass {{ lastpass_command }} --sync now --notes --non-interactive {{ cluster_config_last_path }}
+        cmd: printf "{{ common_config_last_yaml }}" | lpass {{ lastpass_command }} --sync now --notes --non-interactive '{{ cluster_config_last_path }}'
       no_log: True
 
   when: (lastpass_command == "edit" and different_dict ) or lastpass_command == "add"
