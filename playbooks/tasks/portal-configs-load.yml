@@ -43,10 +43,14 @@
   loop: "{{ webportal_common_config_defaults | dict2items }}"
   no_log: True
 
-- name: Merge missing values to the common/cluster config
+- name: Merge missing key/value pairs to the common/cluster config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | combine(webportal_common_config_last, recursive=True) }}"
 
+# If the 'mgkey' key was not defined at all in any of common/cluster configs,
+# the key/value pair with auto-generated value was added by above tasks, but if
+# the 'mgkey' key was defined and the value is empty, undefined or null we set
+# it now.
 - name: Set default value for MongoDB mgkey (if the value is not set)
   set_fact:
     webportal_common_config_last: >-
