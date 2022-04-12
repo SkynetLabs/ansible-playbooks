@@ -43,6 +43,10 @@
   loop: "{{ webportal_common_config_defaults | dict2items }}"
   no_log: True
 
+- name: Merge missing values to the common/cluster config
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | combine(webportal_common_config_last, recursive=True) }}"
+
 - name: Set default value for MongoDB mgkey (if the value is not set)
   set_fact:
     webportal_common_config_last: >-
@@ -53,10 +57,6 @@
   when: >-
     webportal_common_config.mongo_db_mgkey is none
     or webportal_common_config.mongo_db_mgkey | length == 0
-
-- name: Merge missing values to the common/cluster config
-  set_fact:
-    webportal_common_config: "{{ webportal_common_config | combine(webportal_common_config_last, recursive=True) }}"
 
 # Get MongoDB config
 # NOTE: Server config preference:
