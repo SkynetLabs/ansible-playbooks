@@ -15,10 +15,10 @@
 # Below are some of the recommended server level settings for portals. If you
 # wish to disable any of these settings, uncomment the variable and change the
 # value.
-# 
+#
 # PLEASE NOTE: We have not tested any non-default conditions for these
 # settings, so you should be comfortable debugging the server and portal on
-# your own if you plan to change these settings. 
+# your own if you plan to change these settings.
 #
 # Setup basic security (default: True)
 # Creates sudo users, adds SSH keys, executes geerlingguy.security Ansible
@@ -159,6 +159,31 @@ git_checkout_email: ""
 # Below are a list of variables that are optional depending on the playbook you
 # are running.
 ###############################################################################
+
+# Deploying a custom website for your portal is supported by defining a
+# dockerfile for your website.
+#
+# The custom website dockerfile can be defined in the following ways:
+#
+# If you have a simple repo with a Dockerfile at the root level, you simply
+# define a website_custom_build varialbe that is the https git url with a target
+# branch defined.
+# website_custom_build: https://github.com/user/website-repo.git#main
+#
+# or
+#
+# If you have a repo where the Dockerfile is not at the root level, you will
+# need to define a website_custom_build_context which is the https git url with
+# a target branch defined and a website_custom_build_dockerfile which is the
+# relative path to the dockerfile in the repository.
+# website_custom_build_context: https://github.com/user/website-repo.git#main
+# website_custom_build_dockerfile: ./path/to/Dockerfile
+#
+# If you need to define a custom website dockerfile, simply uncomment and define
+# the variables you need based on the above options.
+# website_custom_build:
+# website_custom_build_context:
+# website_custom_build_dockerfile:
 
 # Set the skynet-webportal, skyd, and accounts versions by entering a git
 # branch, git tag or git commit.
