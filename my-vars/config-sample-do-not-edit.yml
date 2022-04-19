@@ -166,7 +166,7 @@ git_checkout_email: ""
 # The custom website dockerfile can be defined in the following ways:
 #
 # If you have a simple repo with a Dockerfile at the root level, you simply
-# define a website_custom_build varialbe that is the https git url with a target
+# define a website_custom_build variable that is the https git url with a target
 # branch defined.
 # website_custom_build: https://github.com/user/website-repo.git#main
 #
