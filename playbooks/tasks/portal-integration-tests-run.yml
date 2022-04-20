@@ -1,32 +1,48 @@
 ---
+# Run integration tests locally against webportal
+
 - name: Include getting skynet-js repository latest valid semver version
   include_tasks: tasks/portal-skynet-js-repo-get-latest-version.yml
 
-# Run integration tests locally against webportal
+# Checkout skynet-js repo locally
+# NOTE: Each portal server has its own repo directory so the tests of
+# different portals do not clash when they are executed in parallel.
+- name: Checkout skynet-js repo
+  local_action:
+    module: ansible.builtin.git
+    repo: "{{ skynet_js_repo_url }}"
+    dest: "{{ local_temp_skynetlabs_git_repos_skynet_js }}/{{ inventory_hostname }}"
+    version: "{{ skynet_js_latest_version }}"
+    update: True
+    force: True
+
+- name: Get authentication cookie
+  ansible.builtin.command: docker exec health-check cli __authenticate
+  # Handle error until health checks are updated to support authentication
+  ignore_errors: True
+  register: auth_cookie_result
+
+- name: Set authentication cookie
+  set_fact:
+    auth_cookie: "{{ (auth_cookie_result.stdout | trim) if (auth_cookie_result.failed | default(False) == False) else '' }}"
+
+- name: Get Accounts limit access from .env file
+  ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $ACCOUNTS_LIMIT_ACCESS"
+  register: accounts_limit_access_result
+
+# Get Skynet API key only if Accounts limit access is defined and it is not false
+- name: Get Skynet API key from .env file
+  ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $ACCOUNTS_TEST_USER_API_KEY"
+  vars:
+    accounts_limit_access: "{{ accounts_limit_access_result.stdout | lower }}"
+  register: skynet_api_key_result
+  when: >-
+    accounts_limit_access != '' and accounts_limit_access != 'false'
+
+# Run integration tests in block so that we can remove test container always,
+# even in case integration tests fail.
 - name: Run integration tests
   block:
-    # Checkout skynet-js repo locally
-    # NOTE: Each portal server has its own repo directory so the tests of
-    # different portals do not clash when they are executed in parallel.
-    - name: Checkout skynet-js repo
-      local_action:
-        module: ansible.builtin.git
-        repo: "{{ skynet_js_repo_url }}"
-        dest: "{{ local_temp_skynetlabs_git_repos_skynet_js }}/{{ inventory_hostname }}"
-        version: "{{ skynet_js_latest_version }}"
-        update: True
-        force: True
-
-    - name: Get authentication cookie
-      ansible.builtin.command: docker exec health-check cli __authenticate
-      # Handle error until health checks are updated to support authentication
-      ignore_errors: True
-      register: auth_cookie_result
-
-    - name: Set authentication cookie
-      set_fact:
-        auth_cookie: "{{ (auth_cookie_result.stdout | trim) if (auth_cookie_result.failed | default(False) == False) else '' }}"
-
     # Run integration tests locally against the portal
     # NOTE: Container name should be unique between portals so that portal
     # tests can be executed in parallel.
@@ -41,6 +57,9 @@
         volumes:
           - "{{ local_temp_skynetlabs_git_repos_skynet_js }}:/skynet-js"
         env:
+          # Set Skynet API key variable only if it is defined (don't set on
+          # anonymous portals)
+          SKYNET_JS_INTEGRATION_TEST_SKYNET_API_KEY: "{{ skynet_api_key_result.stdout | default(omit) }}"
           SKYNET_JS_INTEGRATION_TEST_SERVER: "https://{{ ansible_host }}"
           SKYNET_JS_INTEGRATION_TEST_CUSTOM_COOKIE: "{{ auth_cookie }}"
         working_dir: "/skynet-js/{{ inventory_hostname }}"

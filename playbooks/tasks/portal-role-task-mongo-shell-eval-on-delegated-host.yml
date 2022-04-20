@@ -7,7 +7,7 @@
 # - mongodb_shell_delegated:
 #   - host
 #   - eval
-#   - ignore_errors
+#   - ignore_errors (optional, default: False)
 # output: mongo_shell_delegated_result
 
 - name: Run mongo shell command on MongoDB primary host

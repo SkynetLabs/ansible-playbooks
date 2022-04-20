@@ -17,7 +17,7 @@
   set_fact:
     mongo_primary_host: ""
 
-- name: Include adding the mongo node to the replicaset by primary member
+- name: Include getting mongo replicaset primary member
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary-sub-task.yml
   loop: "{{ mongo_cluster_hosts }}"
   loop_control:

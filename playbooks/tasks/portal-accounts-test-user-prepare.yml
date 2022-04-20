@@ -1,0 +1,100 @@
+---
+# Create and Save Accounts Skynet API Key to .env file and to secure storage
+# (LastPass).
+
+- name: Set Accounts variables
+  set_fact:
+    accounts_test_user_email: "{{ webportal_server_config.accounts_test_user_email }}"
+    accounts_test_user_password: "{{ webportal_server_config.accounts_test_user_password }}"
+    accounts_api_url: "https://account.{{ ansible_host }}/api"
+
+- name: Ensure portal Accounts user exists
+  ansible.builtin.uri:
+    url: "{{ accounts_api_url }}/user"
+    method: POST
+    body:
+      email: "{{ accounts_test_user_email }}"
+      password: "{{ accounts_test_user_password }}"
+    body_format: json
+    status_code:
+      - 200
+      - 400
+  vars:
+    expected_error_message: 'identity already belongs to an existing user'
+  register: create_user_result
+  # If the user already exists we expect status code 400 and an expected
+  # error message in the response. If the user didn't exist before, user is
+  # created, we expect status code 200 and skynet-token in the response.
+  # Otherwise we fail.
+  failed_when: >-
+    (
+      create_user_result.status == 400
+      and
+      create_user_result.json.message != expected_error_message
+    )
+    or
+    (
+      create_user_result.status == 200
+      and
+      create_user_result.skynet_token is not defined
+      and
+      create_user_result.skynet_token | length < 1000
+    )
+
+# If the user was created above, we already have skynet JWT token, if the
+# user already existed and was not created, we need to login to get token.
+- name: Login to portal to get JWT token
+  ansible.builtin.uri:
+    url: "{{ accounts_api_url }}/login"
+    method: POST
+    body:
+      email: "{{ accounts_test_user_email }}"
+      password: "{{ accounts_test_user_password }}"
+    body_format: json
+    status_code: 204
+  register: login_user_result
+  when: create_user_result.status != 200
+
+- name: Create Skynet API key
+  ansible.builtin.uri:
+    url: "{{ accounts_api_url }}/user/apikeys"
+    method: POST
+    body: "{}"
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ token }}"
+    status_code: 200
+  vars:
+    token: "{{ create_user_result.skynet_token | default(login_user_result.skynet_token) }}"
+  register: create_api_key_result
+
+- name: Set Skynet API key
+  set_fact:
+    skynet_api_key: "{{ create_api_key_result.json.key }}"
+
+- name: Update server config with Skynet API key
+  set_fact: 
+    webportal_server_config: "{{ webportal_server_config | combine({'accounts_test_user_api_key': skynet_api_key}, recursive=True) }}"
+
+# Ensure Accounts test user has the highest paid tier
+
+- name: Include getting MongoDB replicaset primary member
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary-v2.yml
+
+- name: Include updating Accounts test user to the highest paid tier in MongoDB
+  include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
+  vars:
+    mongodb_shell_delegated:
+      host: "{{ mongo_primary_host }}"
+      eval: |
+        use skynet
+        db.getCollection('users').updateOne({"email": accounts_test_user_email}, {"$set":{"tier": "4"}})
+
+# Update Skynet API key in secure storage (LastPass)
+- name: Include saving portal configs
+  include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+
+- name: Update .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ webportal_dir }}/.env"
