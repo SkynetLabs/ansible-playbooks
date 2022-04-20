@@ -19,6 +19,7 @@
     login_user: "{{ webportal_common_config.skynet_db_user }}"
     login_password: "{{ webportal_common_config.skynet_db_pass }}"
     mongo_cmd: "docker exec mongo mongo"
+    db: "{{ mongodb_shell_delegated.db | default(omit) }}"
     eval: "{{ mongodb_shell_delegated.eval }}"
     # transformed_output can't be parsed correctly by this module, keep it raw
     transform: raw

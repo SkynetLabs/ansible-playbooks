@@ -73,7 +73,7 @@
     skynet_api_key: "{{ create_api_key_result.json.key }}"
 
 - name: Update server config with Skynet API key
-  set_fact: 
+  set_fact:
     webportal_server_config: "{{ webportal_server_config | combine({'accounts_test_user_api_key': skynet_api_key}, recursive=True) }}"
 
 # Ensure Accounts test user has the highest paid tier
@@ -86,9 +86,12 @@
   vars:
     mongodb_shell_delegated:
       host: "{{ mongo_primary_host }}"
+      db: "skynet"
       eval: |
-        use skynet
-        db.getCollection('users').updateOne({"email": accounts_test_user_email}, {"$set":{"tier": "4"}})
+        db.getCollection('users').updateOne({'email':'{{ hostvars[inventory_hostname].accounts_test_user_email }}'},{'$set':{'tier':4}})
+    webportal_common_config:
+      skynet_db_user: "{{ mongodb_config.skynet_db_user }}"
+      skynet_db_pass: "{{ mongodb_config.skynet_db_pass }}"
 
 # Update Skynet API key in secure storage (LastPass)
 - name: Include saving portal configs

@@ -204,7 +204,7 @@
 
     - name: xxx include role task
       include_tasks: tasks/portal-role-task.yml
-    
+
     # For authenticated only or paid only portals we need to ensure Skynet API
     # key is set for integration tests. To get API key we need running portal
     # services, so we have split deployment between starting services and
