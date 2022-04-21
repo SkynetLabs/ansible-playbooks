@@ -185,6 +185,15 @@ git_checkout_email: ""
 # website_custom_build_context:
 # website_custom_build_dockerfile:
 
+# Custom docker images.
+#
+# If you want to override a docker image for a specific service, you can do so
+# by defining the service and image in the docker_image_overrides variable.
+#
+# docker_image_overrides:
+#   - { service: "website", image: "skynetlabs/website-skynetpro-net" }
+#   - { service: "blocker", image: "skynetlabs/blocker" }
+
 # Set the skynet-webportal, skyd, and accounts versions by entering a git
 # branch, git tag or git commit.
 portal_repo_version: "..."
