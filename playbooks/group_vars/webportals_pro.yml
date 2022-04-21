@@ -1,0 +1,4 @@
+# Config override for pro servers (hosts in webportals_pro group)
+
+docker_image_overrides:
+  - { service: "website", image: "{{ website_docker_image }}" }
