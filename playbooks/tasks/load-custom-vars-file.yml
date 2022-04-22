@@ -1,0 +1,10 @@
+---
+# Load any custom variable files when they are defined
+
+- name: Load Custom Variable File
+  include_vars: "{{ common_vars_file }}"
+  when: common_vars_file is defined
+
+- name: Load Custom Variable File
+  include_vars: "{{ custom_vars_file }}"
+  when: custom_vars_file is defined

@@ -29,6 +29,9 @@
       # add hosts according to batch size and batch number
       when: ansible_play_hosts_all.index(inventory_hostname) % batch_size == batch_number - 1
 
+    - name: Load Custom Variable File
+      include_tasks: tasks/load-custom-vars-file.yml
+
 - name: Deploy Skynet Webportals to Current Batch Hosts
   hosts: batch_hosts
   remote_user: "{{ webportal_user }}"

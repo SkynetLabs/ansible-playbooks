@@ -25,6 +25,9 @@
     - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
+    - name: Load Custom Variable File
+      include_tasks: tasks/load-custom-vars-file.yml
+
     # Stop docker services gracefully - begin
 
     # If we rerun this playbook on any server which successfully started up
