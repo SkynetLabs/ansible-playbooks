@@ -51,6 +51,7 @@
   ansible.builtin.assert:
     that:
       - >-
+        (website_custom_build is not defined and website_custom_build_context is not defined and website_custom_build_dockerfile is not defined) or
         (website_custom_build is defined and website_custom_build_context is not defined and website_custom_build_dockerfile is not defined) or
         (website_custom_build is not defined and website_custom_build_context is defined and website_custom_build_dockerfile is defined)
     fail_msg: |
