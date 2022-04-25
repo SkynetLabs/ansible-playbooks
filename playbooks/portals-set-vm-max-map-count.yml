@@ -14,6 +14,9 @@
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
     vm_max_map_count: 262144
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
 
   tasks:
     # Set vm.max_map_count directly

@@ -17,6 +17,9 @@
     docker_compose_build: True
     # Set portal, skyd, accounts versions
     set_portal_versions: True
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
 
   tasks:
     - name: Check '--limit' is used
@@ -24,9 +27,6 @@
 
     - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
-
-    - name: Load Custom Variable File
-      include_tasks: tasks/load-custom-vars-file.yml
 
     # Stop docker services gracefully - begin
 
