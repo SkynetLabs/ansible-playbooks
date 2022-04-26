@@ -107,6 +107,15 @@
       webportal_server_config.portal_modules is not none and
       'a' in webportal_server_config.portal_modules }}
 
+# Portal is anonymous if Accounts are off or if Accounts are on and
+# accounts_limit_access is set to 'false' (case insensitive).
+- name: Set portal is anonymou flag
+  set_fact:
+    portal_is_anonymous: >-
+      {{ not portal_accounts_on
+      or webportal_common_config.accounts_limit_access
+      | default(False) | string | lower == 'false' }}
+
 - name: Set Blocker flag
   set_fact:
     portal_blocker_on: >-
