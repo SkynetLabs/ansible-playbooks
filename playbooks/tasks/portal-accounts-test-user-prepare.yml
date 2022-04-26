@@ -85,7 +85,7 @@
   include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
   vars:
     mongodb_shell_delegated:
-      host: "{{ mongo_primary_host }}"
+      host: "{{ hostvars[inventory_hostname].mongo_primary_host }}"
       db: "skynet"
       eval: |
         db.getCollection('users').updateOne({'email':'{{ hostvars[inventory_hostname].accounts_test_user_email }}'},{'$set':{'tier':4}})
