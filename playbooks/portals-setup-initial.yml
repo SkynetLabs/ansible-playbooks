@@ -26,6 +26,9 @@
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
     lastpass_allow_missing_user_credentials: True
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
   tasks:
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
@@ -42,6 +45,9 @@
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
     lastpass_required: True
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
   tasks:
     - name: Skip if initial root like user is defined
       meta: end_host
@@ -74,6 +80,9 @@
   vars:
     # LastPass required to set webportal_temp_user password to webportal_user password
     lastpass_required: True
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
   tasks:
     - name: Skip if initial root like user is not defined
       meta: end_host
@@ -157,6 +166,9 @@
     # LastPass required to read password for 'become: True' and for setting
     # webportal_user password from LastPass
     lastpass_required: True
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
   tasks:
     - name: Skip if initial root like user is not defined
       meta: end_host
