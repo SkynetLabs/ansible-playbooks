@@ -18,8 +18,10 @@
     # Set portal, skyd, accounts versions
     set_portal_versions: True
   vars_files:
-    - "{{ common_vars_file }}"
-    - "{{ custom_vars_file  }}"
+    # Define as an array to handle undefined files. At least one file needs to
+    # be defined otherwise there will be an error. common_vars_file is expected
+    # to always be defined.
+    - ["{{ common_vars_file }}", "{{ custom_vars_file  }}"]
 
   tasks:
     - name: Check '--limit' is used
