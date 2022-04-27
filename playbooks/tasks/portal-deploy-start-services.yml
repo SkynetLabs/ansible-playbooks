@@ -1,0 +1,15 @@
+---
+# Deploy Portal to Server Part 1: Start Portal Stack Services
+
+- name: Print timestamp
+  debug:
+    msg: "{{ inventory_hostname + ' deployment start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
+
+- name: Include preparing portal prerequisities
+  include_tasks: tasks/portals-prepare.yml
+
+- name: Include disabling health check and stopping portal docker services
+  include_tasks: tasks/portal-stop.yml
+
+- name: Include starting portal docker services
+  include_tasks: tasks/portal-docker-services-start.yml

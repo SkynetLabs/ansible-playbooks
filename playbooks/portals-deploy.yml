@@ -53,5 +53,8 @@
     portal_action: "portal-deploy"
 
   tasks:
-    - name: Including deploying portal
-      include_tasks: tasks/portal-deploy.yml
+    - name: Include deploying portal - start services
+      include_tasks: tasks/portal-deploy-start-services.yml
+
+    - name: Include deploying portal - run tests and enable loadbalancer
+      include_tasks: tasks/portal-deploy-enable-loadbalancer.yml
