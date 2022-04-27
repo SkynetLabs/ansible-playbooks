@@ -26,6 +26,9 @@
   # error message in the response. If the user didn't exist before, user is
   # created, we expect status code 200 and skynet-token in the response.
   # Otherwise we fail.
+  # Generated JWT token length depends also on user email but it's length
+  # should always be at least 1000 characters and we added a condition to check
+  # this if something is misconfigured or broken.
   failed_when: >-
     (
       create_user_result.status == 400
