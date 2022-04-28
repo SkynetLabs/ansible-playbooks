@@ -13,10 +13,8 @@
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     lastpass_required: True
   vars_files:
-    # Define as an array to handle undefined files. At least one file needs to
-    # be defined otherwise there will be an error. common_vars_file is expected
-    # to always be defined.
-    - ["{{ common_vars_file }}", "{{ custom_vars_file  }}"]
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
 
   tasks:
     - name: Fail if you are targeting all dev and prod webportals
