@@ -1,0 +1,1 @@
+- Remove authentication cookie from integration tests.
