@@ -307,13 +307,11 @@
 - block:
     - name: Install Python modules for health checks
       pip:
-        name: "{{ item }}"
-        state: latest
-      loop:
-        - discord-webhook
-        - python-dotenv
-        - requests
-        - elasticsearch-curator
+        name:
+          - discord-webhook==0.15.0
+          - python-dotenv==0.20.0
+          - requests==2.27.1
+          - elasticsearch-curator==5.8.4
 
     - name: Update hardcoded username in cron file
       ansible.builtin.replace:
