@@ -3,9 +3,10 @@
 
 - name: Install ufw firewall
   apt:
-    name: ufw
+    update_cache: true
+    cache_valid_time: 1800 # 30 minutes
     state: latest
-    update_cache: True
+    name: ufw
 
 - block:
     - name: Reset ufw (reset ufw rules and disables ufw firewall)

@@ -25,22 +25,16 @@
     - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
-    # Configure server
-    - name: Run "apt-get update"
-      apt:
-        update_cache: yes
-        cache_valid_time: 900
-      become: True
-
     - name: Install packages
       apt:
-        name: "{{ item }}"
-        state: present
+        update_cache: true
+        cache_valid_time: 1800 # 30 minutes
+        state: latest
+        name:
+          - sudo
+          - python3-pip
+          - lastpass-cli
       become: True
-      loop:
-        - sudo
-        - python3-pip
-        - lastpass-cli
 
     - name: Create lpass working dir
       ansible.builtin.file:

@@ -16,17 +16,13 @@
     - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
-    # Update apt
-    - name: Run "apt-get update"
-      apt:
-        update_cache: yes
-        cache_valid_time: 900
-
     # Install sudo
     - name: Install sudo
       apt:
+        update_cache: true
+        cache_valid_time: 1800 # 30 minutes
+        state: latest
         name: sudo
-        state: present
 
     # Ensure docker group
     - name: Ensure group "docker" exists

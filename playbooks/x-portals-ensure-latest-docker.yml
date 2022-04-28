@@ -30,11 +30,6 @@
     - name: Include disabling health check and stopping portal docker services
       include_tasks: tasks/portal-stop.yml
 
-    - name: Update apt
-      ansible.builtin.apt:
-        update_cache: True
-      become: True
-
     - name: Include role to ensure latest Docker
       include_role:
         name: geerlingguy.docker

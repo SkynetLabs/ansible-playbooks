@@ -3,8 +3,10 @@
 
 - name: Install ufw firewall
   apt:
+    update_cache: true
+    cache_valid_time: 1800 # 30 minutes
+    state: latest
     name: ufw
-    state: present
 
 - name: Set ufw defaults
   community.general.ufw:

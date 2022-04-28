@@ -3,13 +3,13 @@
 
 - name: Install required packages
   apt:
-    name: "{{ item }}"
+    update_cache: true
+    cache_valid_time: 1800 # 30 minutes
     state: latest
-  loop:
-    - python3-pip
-    - git
-    # Install libffi-dev as a dependency for pip3 docker-compose
-    - libffi-dev
+    name:
+      - python3-pip
+      - git
+      - libffi-dev # dependency for pip3 docker-compose
   become: True
 
 - name: Include role to install Docker
