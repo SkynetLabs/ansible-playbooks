@@ -15,8 +15,10 @@
     lastpass_required: True
     vm_max_map_count: 262144
   vars_files:
-    - "{{ common_vars_file }}"
-    - "{{ custom_vars_file  }}"
+    # Define as an array to handle undefined files. At least one file needs to
+    # be defined otherwise there will be an error. common_vars_file is expected
+    # to always be defined.
+    - ["{{ common_vars_file }}", "{{ custom_vars_file  }}"]
 
   tasks:
     # Set vm.max_map_count directly

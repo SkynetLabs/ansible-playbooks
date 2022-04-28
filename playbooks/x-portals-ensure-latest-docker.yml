@@ -17,8 +17,10 @@
     portal_action: "portal-ensure-latest-docker"
     lastpass_required: True
   vars_files:
-    - "{{ common_vars_file }}"
-    - "{{ custom_vars_file  }}"
+    # Define as an array to handle undefined files. At least one file needs to
+    # be defined otherwise there will be an error. common_vars_file is expected
+    # to always be defined.
+    - ["{{ common_vars_file }}", "{{ custom_vars_file  }}"]
 
   tasks:
     - name: Fail if you are targeting all dev and prod webportals
