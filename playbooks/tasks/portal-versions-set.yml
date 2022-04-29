@@ -12,7 +12,7 @@
       - portal_skyd_version must be defined
         current value: {{ portal_skyd_version | default('- not set -') }}
 
-      - Only one of
+      - optionally one of (but not both)
           - portal_accounts_version
             current value: {{ portal_accounts_version | default('- not set -') }}
 
