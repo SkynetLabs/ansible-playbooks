@@ -25,12 +25,10 @@
 
 - name: Install required Python modules
   pip:
-    name: "{{ item }}"
-    state: latest
-  loop:
-    - docker
-    - docker-compose
-    - pexpect
+    name:
+      - docker==5.0.3
+      - docker-compose==1.29.2
+      - pexpect==4.8.0
 
 - name: Set timezone
   community.general.timezone:
