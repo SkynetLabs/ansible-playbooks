@@ -49,6 +49,12 @@
       become: True
   when: portal_jaeger_on
 
+# Set portal versions now, especially because we need to correctly configure
+# mongo service in docker-compose.override.yml so that we can start it
+# correctly even before the full stack deployment is done.
+- name: Include setting portal versions (needed for mongo service)
+  include_tasks: tasks/portal-versions-set.yml
+
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
 # skyd depends on mongo.
@@ -102,6 +108,13 @@
         nocache: True
         pull: True
         state: present
+
+    - name: Wait for sia API to become available
+      ansible.builtin.command: docker logs sia
+      register: sia_logs_result
+      until: "'API is now available, synchronous startup completed in' in sia_logs_result.stdout"
+      delay: 1
+      retries: 300
 
     - name: Update portal setup status
       ansible.builtin.copy:
