@@ -1,6 +1,35 @@
 ---
 # Set portal versions (portal, skyd, accounts)
 
+- name: Fail if portal versions (portal, skyd, accounts) are not set correctly
+  ansible.builtin.fail:
+    msg: |
+      Portal versions are not defined correctly.
+
+      - portal_repo_version must be defined
+        current value: {{ portal_repo_version | default('- not set -') }}
+
+      - portal_skyd_version must be defined
+        current value: {{ portal_skyd_version | default('- not set -') }}
+
+      - optionally one of (but not both)
+          - portal_accounts_version
+            current value: {{ portal_accounts_version | default('- not set -') }}
+
+          - portal_accounts_image_version
+            current value: {{ portal_accounts_image_version | default('- not set -') }}
+        can be defined or both can be omitted.
+  when: >-
+    portal_repo_version | default('') == ''
+    or
+    portal_skyd_version | default('') == ''
+    or
+    (
+      portal_accounts_version | default('') != ''
+      and
+      portal_accounts_image_version | default('') != ''
+    )
+
 - name: Checkout skynet-webportal repository
   ansible.builtin.git:
     repo: "{{ webportal_repo_url }}"
@@ -95,12 +124,35 @@
 - name: Include checking if accounts use docker image
   include_tasks: tasks/portal-docker-compose-accounts-check-image-is-used.yml
 
-- name: >-
-    Update accounts version in data variable (if accounts are on and are
-    defined by branch)
+# We need to support this task file with and without LastPass
+# accounts_on flag is set during deploys without needing LastPass
+# portal_accounts_on flag is set during portal setup via loading portal config
+# from LastPass
+
+- name: Set accounts on flag for non-LastPass tasks
   set_fact:
-    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'accounts': {'build': {'args': {'branch': portal_accounts_version}}}}}, recursive=True) }}" # noqa var-spacing
-  when: accounts_on and not docker_compose_accounts_image_is_used
+    accounts_on: "{{ accounts_on | default(portal_accounts_on)}}"
+
+- name: >-
+    Update accounts version in data variable (if accounts are on and branch
+    variable is defined)
+  set_fact:
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'accounts': {'build': accounts_repo_url + '#' + portal_accounts_version }}}, recursive=True) }}" # noqa var-spacing
+  when: accounts_on and portal_accounts_version | default('') != ''
+
+- name: >-
+    Update accounts version in data variable (if accounts are on and image
+    variable is defined)
+  set_fact:
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'accounts': {'image': portal_accounts_image_version | default (docker_compose_accounts_image) }}}, recursive=True) }}" # noqa var-spacing
+  when: >-
+    accounts_on
+    and
+    (
+      portal_accounts_image_version | default('') != ''
+      or
+      docker_compose_accounts_image_is_used
+    )
 
 - name: Get accounts only services
   vars:

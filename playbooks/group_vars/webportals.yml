@@ -154,6 +154,7 @@ use_existing_sia_seed_if_exists: True
 # Skynet webportal role settings
 
 webportal_repo_url: "https://github.com/SkynetLabs/skynet-webportal.git"
+accounts_repo_url: "https://github.com/SkynetLabs/skynet-accounts.git"
 dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
 
 # TODO: make optional, general
