@@ -1,0 +1,1 @@
+- Fix saving mongo `mgkey` to LastPass. 
