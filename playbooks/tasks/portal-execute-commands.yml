@@ -1,0 +1,16 @@
+---
+# Execute any defined docker commands
+- name: Executing Docker Command
+  include_tasks: tasks/portal-docker-command.yml
+
+# Block any defined hosts
+- name: Block any bad hosts
+  ansible.builtin.command: "{{ item }}"
+  loop: "docker exec sia siac hostdb block {{ item }}"
+  when: hostdb_blocked_domains is defined
+
+# Unblock any defined hosts
+- name: Unblock hosts
+  ansible.builtin.command: "{{ item }}"
+  loop: "docker exec sia siac hostdb unblock {{ item }}"
+  when: hostdb_unblock_domains is defined
