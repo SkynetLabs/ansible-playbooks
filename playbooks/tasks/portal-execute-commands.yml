@@ -5,12 +5,12 @@
 
 # Block any defined hosts
 - name: Block any bad hosts
-  ansible.builtin.command: "{{ item }}"
-  loop: "docker exec sia siac hostdb block {{ item }}"
+  ansible.builtin.command: "docker exec sia siac hostdb block {{ item }}"
+  loop: hostdb_blocked_domains
   when: hostdb_blocked_domains is defined
 
 # Unblock any defined hosts
 - name: Unblock hosts
-  ansible.builtin.command: "{{ item }}"
-  loop: "docker exec sia siac hostdb unblock {{ item }}"
+  ansible.builtin.command: "docker exec sia siac hostdb unblock {{ item }}"
+  loop: hostdb_unblock_domains
   when: hostdb_unblock_domains is defined

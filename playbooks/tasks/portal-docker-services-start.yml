@@ -137,16 +137,16 @@
     docker_containers_check_list: "{{ docker_compose_services }}"
     docker_containers_check_timeout_secs: "{{ fifteen_minutes_in_secs }}"
 
-# Include running any commands post startup
-- name: Include running any commands post startup
-  include_tasks: tasks/portal-execute-commands.yml
-
 # Update log status to 'started'
 - name: Update log status to 'started'
   include_tasks: tasks/portal-logs-update-status.yml
   vars:
     tag_from: "starting"
     tag_to: "{{ 'started-takedown' if takedown else 'started' }}"
+
+# Include running any commands post startup
+- name: Include running any commands post startup
+  include_tasks: tasks/portal-execute-commands.yml
 
 # Stop the playbook if on takedown
 - name: Stop the playbook if on takedown
