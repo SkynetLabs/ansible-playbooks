@@ -1,0 +1,1 @@
+- Fix blocked/unblock bad host domains variables.
