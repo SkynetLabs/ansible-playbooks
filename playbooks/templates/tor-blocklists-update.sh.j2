@@ -22,13 +22,21 @@ if [[ ! -f $timestamp_file || $(cat $timestamp_file) -lt $past ]]; then
     curl -sSL $url -o $file
 
     echo "Loading torproject exitnodelist to ipset"
-    cat $file | xargs -n 1 ipset -exist add $ipset 
+
+    if [ -s $file ]; then
+        # The file is not-empty.
+        cat $file | xargs -r -n 1 ipset -exist add $ipset
+    else
+        # The file is empty.
+        echo 'Official torproject exitnodelist seems to have outage, we skip and continue the the next, unofficial list.'
+    fi
 
     echo "Creating/Updating torproject timestamp"
     echo "$(date +%s)" > $timestamp_file
 else
     echo "It's too soon to redownload torproject exitnodelist, using cached version from $(cat $timestamp_file)."
 fi
+
 
 # Dan list
 # Check timestamp (if present)
