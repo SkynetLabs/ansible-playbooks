@@ -28,7 +28,7 @@ if [[ ! -f $timestamp_file || $(cat $timestamp_file) -lt $past ]]; then
         cat $file | xargs -n 1 ipset -exist add $ipset
     else
         # The file is empty.
-        echo 'Official torproject exitnodelist seems to have outage, we skip and continue the the next, unofficial list.'
+        echo 'Official torproject exitnodelist seems to have outage, we skip and continue with the next, unofficial list.'
     fi
 
     echo "Creating/Updating torproject timestamp"
