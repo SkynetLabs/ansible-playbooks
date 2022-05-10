@@ -119,6 +119,7 @@ lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_se
 # Webportal Paths
 webportal_user_home_dir: "/home/{{ webportal_user }}"
 webportal_dir: "{{ webportal_user_home_dir }}/skynet-webportal"
+webportal_logs_dir: "{{ webportal_dir }}/logs"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
 elasticsearch_data_data_dir: "{{ webportal_dir }}/docker/data/elasticsearch/data"
 
@@ -212,7 +213,7 @@ webportal_common_config_defaults:
 
 # TODO: move to role default vars
 # TODO: default to: False
-webportal_setup_health_checks: True
+webportal_setup_cron_jobs: True
 
 # =============================================================================
 # Portal deploy settings (on running server)

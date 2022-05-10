@@ -1,0 +1,1 @@
+- Create webportal `logs` dir to fix some of the cron jobs (e.g. backup to S3).

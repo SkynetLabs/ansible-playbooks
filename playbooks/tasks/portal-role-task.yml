@@ -316,7 +316,7 @@
   failed_when: set_allowance_result.stdout.find("Allowance updated. 10 setting(s) changed.") == -1
   when: allowance_is_not_set
 
-# Setup health checks
+# Setup cron jobs
 # TODO: Move to role task file
 - block:
     - name: Install Python modules for health checks
@@ -327,6 +327,13 @@
           - requests==2.27.1
           - elasticsearch-curator==5.8.4
 
+    - name: Ensure logs directory for some cronjobs exists
+      ansible.builtin.file:
+        path: "{{ webportal_logs_dir }}"
+        state: directory
+        owner: "{{ webportal_user }}"
+        group: "{{ webportal_user }}"
+
     - name: Update hardcoded username in cron file
       ansible.builtin.replace:
         path: "{{ webportal_cron_file }}"
@@ -336,4 +343,4 @@
     - name: Add health checks cron entries to user crontab
       command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
 
-  when: webportal_setup_health_checks
+  when: webportal_setup_cron_jobs
