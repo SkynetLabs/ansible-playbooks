@@ -1,0 +1,8 @@
+---
+# Override hosting provider nameservers
+
+- name: Override default hosting provider nameservers
+  ansible.builtin.copy:
+    dest: "/etc/resolv.conf"
+    content: "{{ etc_resolve_conf_override }}"
+  become: True
