@@ -1,0 +1,1 @@
+- Fix elasticsearch permissions recursively.

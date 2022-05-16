@@ -144,6 +144,10 @@
     tag_from: "starting"
     tag_to: "{{ 'started-takedown' if takedown else 'started' }}"
 
+# Include running any commands post startup
+- name: Include running any commands post startup
+  include_tasks: tasks/portal-execute-commands.yml
+
 # Stop the playbook if on takedown
 - name: Stop the playbook if on takedown
   meta: end_host
