@@ -35,7 +35,7 @@ ansiblecm_image='skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.7.0'
 # distinguish them via docker container postfix. Postfix is based on the
 # checksum of the absolute path of the current ansible playbooks directory.
 wd=$(pwd)
-container_postfix=$(docker run alpine sh -c "echo '$wd' | cksum | cut -d ' ' -f 1")
+container_postfix=$(docker run -rm alpine sh -c "echo '$wd' | cksum | cut -d ' ' -f 1")
 ansiblecm_container=ansiblecm-$container_postfix
 
 # Set LastPass session timeout
