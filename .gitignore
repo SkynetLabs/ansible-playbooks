@@ -17,3 +17,6 @@ roles
 
 # Files in development with filename starting 'xxx'
 xxx*
+
+# Code Editors
+.vscode
