@@ -109,7 +109,7 @@
 
 # Portal is anonymous if Accounts are off or if Accounts are on and
 # accounts_limit_access is set to 'false' (case insensitive).
-- name: Set portal is anonymou flag
+- name: Set portal is anonymous flag
   set_fact:
     portal_is_anonymous: >-
       {{ not portal_accounts_on
@@ -136,3 +136,10 @@
       {{ webportal_server_config.portal_modules is defined and
       webportal_server_config.portal_modules is not none and
       'j' in webportal_server_config.portal_modules }}
+
+- name: Set Pinner flag
+  set_fact:
+    portal_pinner_on: >-
+      {{ webportal_server_config.portal_modules is defined and
+      webportal_server_config.portal_modules is not none and
+      'p' in webportal_server_config.portal_modules }}
