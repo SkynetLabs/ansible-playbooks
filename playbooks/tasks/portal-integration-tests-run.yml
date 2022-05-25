@@ -20,10 +20,12 @@
   ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $ACCOUNTS_LIMIT_ACCESS"
   register: accounts_limit_access_result
 
-# Get Skynet API key only if portal is not anonymous, i.e. when
-# ACCOUNTS_LIMIT_ACCESS is defined and it is not set to 'false' (case
-# insensitive), otherwise we are at an anonymous portal and we do not need API
+# Get Skynet API key if portal is not anonymous, i.e. when ACCOUNTS_LIMIT_ACCESS
+# is not set to 'false' (case insensitive). In all other cases we need the API
 # key to run integration tests.
+#
+# Since the default behavior is authenticated, a portal must explicitly set
+# `accounts_limit_access` to false to be an anonymous portal
 - block:
     - name: Get Skynet API key from .env file
       ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $ACCOUNTS_TEST_USER_API_KEY"
@@ -43,8 +45,7 @@
           process.
       when: skynet_api_key_result.stdout == ''
   when: >-
-    accounts_limit_access_result.stdout != ''
-    and accounts_limit_access_result.stdout | lower != 'false'
+    accounts_limit_access_result.stdout | lower != 'false'
 
 # Run integration tests in block so that we can remove test container always,
 # even in case integration tests fail.
