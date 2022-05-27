@@ -43,7 +43,7 @@ jobs:
 
       - name: Lint Ansible Playbook
         # TODO: bump to v6 and handle new errors with new enabled defaults
-        uses: ansible/ansible-lint-action@v4
+        uses: ansible/ansible-lint-action@v4.1.0
 
   # Check if there were any changes since the last tag if this isn't a push
   # event
