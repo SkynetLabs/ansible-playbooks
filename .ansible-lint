@@ -41,9 +41,6 @@ use_default_rules: True
 
 # This makes linter to fully ignore rules/tags listed below
 skip_list:
-  # TODO: enable, this was added as a default in a recent ansible release.
-  # ansible-builtin-shell instead of shell for example.
-  - fqcn-builtins
   # TODO: enable
   # https://ansible-lint.readthedocs.io/en/latest/default_rules/#no-changed-when
   - no-changed-when
