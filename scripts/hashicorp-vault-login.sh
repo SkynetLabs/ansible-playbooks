@@ -126,7 +126,8 @@ if [[ "$login_result" != "$hcv_token_prefix"* ]]; then
   return
 fi
 
-# Extract token by removing pr<efix and export it in shell for Ansible:
+# Extract token by removing prefix and export it in the current user's shell
+# for Ansible:
 token=${login_result#"$hcv_token_prefix"}
 export HCV_TOKEN="$token"
 echo "Success."
