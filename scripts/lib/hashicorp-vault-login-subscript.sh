@@ -1,6 +1,6 @@
-# Handle arguments:
-hcv_username="$1"
-hcv_password="$2"
+# Expected parameters:
+# - $1: HashiCorp Vault username
+# - $2: HashiCorp Vault password
 
 # Set working directory to ansible-playbooks root directory:
 script_path="$BASH_SOURCE"
@@ -15,8 +15,8 @@ login_result=$(docker run --rm --network host dwdraju/alpine-curl-jq \
   curl \
   --request POST \
   -sS \
-  --data '{"password": "'"$hcv_password"'"}' \
-  "$HCV_URL/v1/auth/userpass/login/$hcv_username")
+  --data '{"password": "'"$2"'"}' \
+  "$HCV_URL/v1/auth/userpass/login/$1")
 
 # Exit if there was a docker run or curl error:
 ec=$?
