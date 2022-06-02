@@ -100,6 +100,12 @@
       {% endfor %}
   failed_when: mongodb_config_server_preference_result.failed | default(False)
 
+# If portal_modules is defined in hosts.ini, update the values
+- name: Update portal_modules
+  set_fact:
+    webportal_server_config: "{{ webportal_server_config | combine({'portal_modules': portal_modules}, recursive=True) }}"
+  when: portal_modules is defined
+
 - name: Set Accounts flag
   set_fact:
     portal_accounts_on: >-
