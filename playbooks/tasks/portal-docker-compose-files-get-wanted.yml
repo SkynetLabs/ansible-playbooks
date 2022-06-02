@@ -62,6 +62,13 @@
       [webportal_docker_compose_files_dict['b'], webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['s']] }}
   when: "'s' in portal_modules"
 
+- name: Add pinner docker-compose files
+  set_fact:
+    webportal_docker_compose_files_wanted: >-
+      {{ webportal_docker_compose_files_wanted +
+      [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['p']] }}
+  when: "'p' in portal_modules"
+
 - name: Add mongo docker-compose file
   set_fact:
     webportal_docker_compose_files_wanted: >-
