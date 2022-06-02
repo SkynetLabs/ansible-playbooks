@@ -5,16 +5,23 @@
   set_fact:
     webportal_docker_compose_files_wanted: "{{ webportal_docker_compose_files_mandatory }}"
 
+# Since portal modules can be defined in the hosts.ini file, pulling the
+# portal_modules from the .env file is now a deprecated partice.  Only pull from
+# the .env file if the portal_modules variable is not already defined.
+
 # Get PORTAL_MODULES from .env file
 # If PORTAL_MODULES is not defined in .env, this task returns empty string,
 # which is our default value same as if PORTAL_MODULES=''.
-- name: Get PORTAL_MODULES from .env file
-  ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $PORTAL_MODULES"
-  register: portal_modules_result
 
-- name: Set portal modules var
-  set_fact:
-    portal_modules: "{{ portal_modules_result.stdout }}"
+- block:
+    - name: Get PORTAL_MODULES from .env file
+      ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $PORTAL_MODULES"
+      register: portal_modules_result
+
+    - name: Set portal modules var
+      set_fact:
+        portal_modules: "{{ portal_modules_result.stdout }}"
+  when: portal_modules is not defined
 
 - name: Set flag for accounts module
   set_fact:
