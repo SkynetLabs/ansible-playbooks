@@ -1,0 +1,12 @@
+---
+# This task updates specific sections in the .env file.
+#
+# TODO: Currently this is only set up to update portal_modules but it should be
+# updated to handle any updates to the .env file for deploys when a full
+# regeneration of the .env isn't needed.
+
+- name: Update PORTAL_MODULES
+  ansible.builtin.command:
+    cmd: |
+      sed -i 's/^PORTAL_MODULES=.*/PORTAL_MODULES={{portal_modules}}/' {{ webportal_dir }}/.env
+    warn: False
