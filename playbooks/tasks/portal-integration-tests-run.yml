@@ -50,6 +50,10 @@
 # even in case integration tests fail.
 - name: Run integration tests
   block:
+    # Sleep before running the tests to avoid NDFs
+    - name: Wait 5 minutes before running integration tests
+      ansible.builtin.shell: "sleep 300"
+
     # Run integration tests locally against the portal
     # NOTE: Container name should be unique between portals so that portal
     # tests can be executed in parallel.
