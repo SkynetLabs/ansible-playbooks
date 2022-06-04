@@ -51,8 +51,8 @@
 - name: Run integration tests
   block:
     # Sleep before running the tests to avoid NDFs
-    - name: Wait 5 minutes before running integration tests
-      ansible.builtin.shell: "sleep 300"
+    - name: Wait 10 minutes before running integration tests
+      ansible.builtin.shell: "sleep 600"
 
     # Run integration tests locally against the portal
     # NOTE: Container name should be unique between portals so that portal
@@ -74,6 +74,9 @@
           SKYNET_JS_INTEGRATION_TEST_SERVER: "https://{{ ansible_host }}"
         working_dir: "/skynet-js/{{ inventory_hostname }}"
         command: /bin/sh -c 'yarn && yarn run jest integration'
+      # Retry 5 times with 2 minutes in between
+      delay: 120
+      retries: 5
 
   always:
     # Remove test container
