@@ -3,3 +3,6 @@
 
 - name: Run integration tests
   ansible.builtin.command: "docker run --rm --env-file {{ webportal_dir }}/.env node:alpine sh -c 'apk add git && git clone https://github.com/SkynetLabs/skynet-js.git && cd skynet-js && yarn && SKYNET_JS_INTEGRATION_TEST_SERVER=https://${SERVER_DOMAIN:-${PORTAL_DOMAIN}} SKYNET_JS_INTEGRATION_TEST_SKYNET_API_KEY=${ACCOUNTS_TEST_USER_API_KEY} yarn jest integration'"
+  # Retry 5 times with 1 minute in between
+  delay: 60
+  retries: 5
