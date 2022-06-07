@@ -1,14 +1,6 @@
 ---
 # Start portal docker services
 
-# Include updating any deploy variables.
-#
-# TODO: current this is just setup for PORTAL_MODULES but should be updated in
-# the future to handle other deploy variables like log levels
-- name: Update env values for deploy
-  include_tasks: tasks/portal-update-env-value.yml
-  when: portal_modules is defined
-
 # Include getting wanted docker-compose files
 - name: Include getting wanted docker-compose files
   include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
