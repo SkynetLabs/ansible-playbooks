@@ -1,1 +1,0 @@
-- Autogenerate `mongo_db_mgkey` and save it to LastPass if it is not set.
