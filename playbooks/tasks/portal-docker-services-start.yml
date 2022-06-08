@@ -76,6 +76,10 @@
   become_user: "user"
   register: docker_compose_start_result
 
+- name: Pause for 10 minutes
+  ansible.builtin.pause:
+    minutes: 10
+
 # Set list of started docker compose services
 - name: Set list of started docker compose services
   set_fact:
