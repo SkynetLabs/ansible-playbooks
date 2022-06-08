@@ -1,1 +1,0 @@
-- Fix loading/saving from personal (or non-shared) LastPass.
