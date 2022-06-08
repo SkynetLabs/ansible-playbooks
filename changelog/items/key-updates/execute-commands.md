@@ -1,1 +1,0 @@
-- Add execute commands tasks for combining temporary and long term commands

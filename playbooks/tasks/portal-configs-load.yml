@@ -128,12 +128,16 @@
 
 # Portal is anonymous if Accounts are off or if Accounts are on and
 # accounts_limit_access is set to 'false' (case insensitive).
+#
+# The default for `accounts_limit_access` is authenticated as defined in the
+# skynet-webportal repo
+# https://github.com/SkynetLabs/skynet-webportal/blob/master/docker-compose.accounts.yml
 - name: Set portal is anonymous flag
   set_fact:
     portal_is_anonymous: >-
       {{ not portal_accounts_on
       or webportal_common_config.accounts_limit_access
-      | default(False) | string | lower == 'false' }}
+      | default("authenticated") | string | lower == 'false' }}
 
 - name: Set Blocker flag
   set_fact:

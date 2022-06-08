@@ -1,1 +1,0 @@
-- Add yamllint to repo
