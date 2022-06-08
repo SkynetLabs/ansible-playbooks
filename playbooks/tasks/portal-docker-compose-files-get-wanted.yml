@@ -14,22 +14,22 @@
 
 - name: Set portal modules var
   set_fact:
-    portal_modules: "{{ portal_modules_result.stdout }}"
+    env_portal_modules: "{{ portal_modules_result.stdout }}"
 
 - name: Set flag for accounts module
   set_fact:
-    accounts_on: "{{ 'a' in portal_modules }}"
+    accounts_on: "{{ 'a' in env_portal_modules }}"
 
 - name: Set flag for Jaeger module
   set_fact:
-    jaeger_on: "{{ 'j' in portal_modules }}"
+    jaeger_on: "{{ 'j' in env_portal_modules }}"
 
 - name: Check webportal_docker_compose_files_dict contains all wanted portal modules
   assert:
     that:
       - "'{{ item }}' in {{ webportal_docker_compose_files_dict }}"
     fail_msg: "Module {{ item }} is not defined in webportal_docker_compose_files_dict"
-  loop: "{{ portal_modules | list }}"
+  loop: "{{ env_portal_modules | list }}"
 
 # Add optional docker-compose files defined by PORTAL_MODULES
 # See https://github.com/SkynetLabs/skynet-webportal/blob/master/dc
@@ -39,35 +39,35 @@
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['a']] }}
-  when: "'a' in portal_modules"
+  when: "'a' in env_portal_modules"
 
 - name: Add blocker docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['b']] }}
-  when: "'b' in portal_modules"
+  when: "'b' in env_portal_modules"
 
 - name: Add jaeger docker-compose file
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['j']] }}
-  when: "'j' in portal_modules"
+  when: "'j' in env_portal_modules"
 
 - name: Add malware-scanner docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['b'], webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['s']] }}
-  when: "'s' in portal_modules"
+  when: "'s' in env_portal_modules"
 
 - name: Add pinner docker-compose files
   set_fact:
     webportal_docker_compose_files_wanted: >-
       {{ webportal_docker_compose_files_wanted +
       [webportal_docker_compose_files_dict['m'], webportal_docker_compose_files_dict['p']] }}
-  when: "'p' in portal_modules"
+  when: "'p' in env_portal_modules"
 
 - name: Add mongo docker-compose file
   set_fact:
@@ -119,7 +119,7 @@
       loop: "{{ webportal_docker_compose_files_dict['u'] }}"
       loop_control:
         index_var: loop_index
-  when: "'u' in portal_modules"
+  when: "'u' in env_portal_modules"
 
 - name: Add docker-compose.override.yml file to the list
   set_fact:
