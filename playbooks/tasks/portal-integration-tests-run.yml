@@ -6,3 +6,5 @@
   # Retry 5 times with 1 minute in between
   delay: 60
   retries: 5
+  register: test_result
+  until: test_result.rc == 0
