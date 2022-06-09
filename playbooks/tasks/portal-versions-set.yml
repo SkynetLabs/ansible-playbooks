@@ -132,9 +132,8 @@
       docker_compose_accounts_image_is_used
     )
 
-# Render docker-compose.override.yml with our data, remove accounts/jaeger only
-# services if these are turned off.
-- name: Save final docker-compose.override.yml file
+# Render docker-compose.override.yml with our data
+- name: Save docker-compose.override.yml file
   ansible.builtin.template:
     src: templates/docker-compose.override.yml.j2
     dest: "{{ webportal_dir }}/docker-compose.override.yml"
