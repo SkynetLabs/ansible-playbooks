@@ -2,7 +2,9 @@ version: "3.7"
 
 services:
   sia:
-    {{ docker_compose_override_data.services.sia | to_nice_yaml(width=255, indent=2) | indent(4) }}
+    build:
+      args:
+        branch: "{{ portal_skyd_version }}"
 {% if accounts_on and (portal_accounts_version | default('') != '' or portal_accounts_image_version | default('') != '') %}
   accounts:
     {{ docker_compose_override_data.services.accounts | to_nice_yaml(width=255, indent=2) | indent(4) }}
