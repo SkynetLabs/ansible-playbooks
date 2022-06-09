@@ -83,12 +83,14 @@ lastpass_ansible_dir: "Shared-Ansible"
 #
 # The file separator appears to always be a forward slash /
 #
-# The directory separator appears to change based on Shared folders for business
-# accounts and folders for personal accounts. Ansible uses the lpass cli tool,
-# and the lpass cli tool shows a path separator of a forward slash / for Shared
-# folders under business accounts and shows a path separator of a double back
-# slash \\ for personal folders.
-lastpass_directory_separator: '{{ "/" if "Shared" in lastpass_ansible_dir else "\\" }}'
+# The directory separator appears to change based on Shared folders for
+# business accounts and folders for personal accounts. Ansible uses the lpass
+# cli tool, and the lpass cli tool shows a path separator of a forward slash
+# '/' for Shared folders under business accounts and shows a path separator of
+# backslash '\' for personal folders, non-shared folders. Depending on way to
+# print the output, backslash can be printed as single or double backslash in
+# debug messages and logs in Ansible.
+lastpass_directory_separator: '{{ "/" if "Shared" in lastpass_ansible_dir else backslash_char }}'
 lastpass_file_separator: "/"
 
 lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
@@ -99,7 +101,7 @@ lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 
 # See my-vars/config-sample-do-not-edit.yml file for documentation.
 lastpass_portal_common_and_cluster_configs_list:
-  # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
+  # - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_common_subfolder }}{{ lastpass_file_separator }}common.yml"
   - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
 
 lastpass_portal_config_server_subfolder: "portal-server-configs"
@@ -152,6 +154,7 @@ use_existing_sia_seed_if_exists: True
 # Skynet webportal role settings
 
 webportal_repo_url: "https://github.com/SkynetLabs/skynet-webportal.git"
+accounts_repo_url: "https://github.com/SkynetLabs/skynet-accounts.git"
 dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
 
 # TODO: make optional, general
@@ -195,10 +198,12 @@ webportal_server_config_defaults:
 webportal_common_config_defaults:
   s3_backup_path: ""
   abuse_log_level: "info"
+  abuse_ncmec_reporting_enabled: False
   accounts_log_level: "info"
   blocker_log_level: "info"
   cookie_hash_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
   cookie_enc_key: "{{ lookup('pipe','openssl rand -hex 32') }}"
+  mongo_db_mgkey: "{{ lookup('pipe','openssl rand -base64 756') }}"
   skynet_db_host: "mongo"
   skynet_db_pass: "{{ lookup('pipe','openssl rand -base64 32') }}"
   skynet_db_port: "{{ default_mongo_port }}"
@@ -226,10 +231,12 @@ webportal_docker_compose_files_optional:
   - "docker-compose.blocker.yml"
   - "docker-compose.jaeger.yml"
   - "docker-compose.malware-scanner.yml"
+  - "docker-compose.pinner.yml"
   # Abuse file was renamed, only one of the following two will be present, for
   # backwards compatibility playbook will select the present one automatically.
   - "docker-compose.abuse-scanner.yml"
   - "docker-compose.abuse.yml"
+  # Load override last
   - "docker-compose.override.yml"
 
 # Dictionary of optional portal modules defining which docker-compose files
@@ -242,6 +249,7 @@ webportal_docker_compose_files_dict:
   s: "docker-compose.malware-scanner.yml"
   # See Abuse file comment above
   u: ["docker-compose.abuse-scanner.yml", "docker-compose.abuse.yml"]
+  p: "docker-compose.pinner.yml"
 
 webportal_other_config_files:
   - ".env"

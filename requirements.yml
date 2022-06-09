@@ -26,4 +26,4 @@ collections:
 
   # Required e.g. for adding SSH keys (ansible.posix.authorized_key)
   - name: ansible.posix
-    version: 1.2.0
+    version: 1.3.0

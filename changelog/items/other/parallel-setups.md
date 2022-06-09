@@ -1,2 +1,0 @@
-- Rename optional variable `parallel_deploys` to `parallel_executions`.
-- Add an option to run `portals-setup-following` in parallel.

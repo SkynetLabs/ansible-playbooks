@@ -1,1 +1,0 @@
-- Add syntax-check script and make command

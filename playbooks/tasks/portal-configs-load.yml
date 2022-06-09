@@ -2,6 +2,7 @@
 # Get portal configs
 # - Load portal configs from secrets backend (e.g. LastPass)
 # - Set default values (for unset keys)
+# - Set mongodb mgkey (if defined but empty)
 # - Set mongodb flag
 # - Set mongodb config (if mongodb is on)
 # - Set accounts flag
@@ -41,11 +42,25 @@
   when: webportal_common_config[item.key] is not defined
   loop: "{{ webportal_common_config_defaults | dict2items }}"
   no_log: True
-  register: cluster_config_missing_values_result
 
-- name: Merge missing values to the common/cluster config
+- name: Merge missing key/value pairs to the common/cluster config
   set_fact:
     webportal_common_config: "{{ webportal_common_config | combine(webportal_common_config_last, recursive=True) }}"
+
+# If the 'mgkey' key was not defined at all in any of common/cluster configs,
+# the key/value pair with auto-generated value was added by above tasks, but if
+# the 'mgkey' key was defined and the value is empty, undefined or null we set
+# it now.
+- name: Set default value for MongoDB mgkey (if the value is not set)
+  set_fact:
+    webportal_common_config_last: >-
+      {{
+        webportal_common_config_last
+        | combine({'mongo_db_mgkey': webportal_common_config_defaults.mongo_db_mgkey})
+      }}
+  when: >-
+    webportal_common_config.mongo_db_mgkey is none
+    or webportal_common_config.mongo_db_mgkey | length == 0
 
 # Get MongoDB config
 # NOTE: Server config preference:
@@ -92,6 +107,19 @@
       webportal_server_config.portal_modules is not none and
       'a' in webportal_server_config.portal_modules }}
 
+# Portal is anonymous if Accounts are off or if Accounts are on and
+# accounts_limit_access is set to 'false' (case insensitive).
+#
+# The default for `accounts_limit_access` is authenticated as defined in the
+# skynet-webportal repo
+# https://github.com/SkynetLabs/skynet-webportal/blob/master/docker-compose.accounts.yml
+- name: Set portal is anonymous flag
+  set_fact:
+    portal_is_anonymous: >-
+      {{ not portal_accounts_on
+      or webportal_common_config.accounts_limit_access
+      | default("authenticated") | string | lower == 'false' }}
+
 - name: Set Blocker flag
   set_fact:
     portal_blocker_on: >-
@@ -112,3 +140,10 @@
       {{ webportal_server_config.portal_modules is defined and
       webportal_server_config.portal_modules is not none and
       'j' in webportal_server_config.portal_modules }}
+
+- name: Set Pinner flag
+  set_fact:
+    portal_pinner_on: >-
+      {{ webportal_server_config.portal_modules is defined and
+      webportal_server_config.portal_modules is not none and
+      'p' in webportal_server_config.portal_modules }}

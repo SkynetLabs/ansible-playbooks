@@ -52,10 +52,8 @@
 
     - name: Install Docker SDK for Python
       pip:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - docker
+        name:
+          - docker==5.0.3
 
     - name: Set timezone
       community.general.timezone:

@@ -18,6 +18,10 @@
     batch_size: 1
     batch_number: 1
 
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
+
   tasks:
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
@@ -48,6 +52,13 @@
     set_portal_versions: True
     portal_action: "portal-deploy"
 
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
+
   tasks:
-    - name: Including deploying portal
-      include_tasks: tasks/portal-deploy.yml
+    - name: Include deploying portal - start services
+      include_tasks: tasks/portal-deploy-start-services.yml
+
+    - name: Include deploying portal - run tests and enable loadbalancer
+      include_tasks: tasks/portal-deploy-enable-loadbalancer.yml

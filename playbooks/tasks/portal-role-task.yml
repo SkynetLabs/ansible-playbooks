@@ -46,8 +46,22 @@
         state: directory
         owner: "1000"
         group: "1000"
+        recurse: True
       become: True
   when: portal_jaeger_on
+
+# Set portal versions now, especially because we need to correctly configure
+# mongo service in docker-compose.override.yml so that we can start it
+# correctly even before the full stack deployment is done.
+- name: Include setting portal versions (needed for mongo service)
+  include_tasks: tasks/portal-versions-set.yml
+
+# Setup MongoDB
+# NOTE: MongoDB docker service must be setup before Sia docker service, because
+# skyd depends on mongo.
+# TODO: Finish and add back
+# - name: Include ensuring MongoDB node is a member of replicaset
+#   include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
 
 # TODO: NOTE WIP:
 # Extract all to new mongo-setup.yml
@@ -56,13 +70,6 @@
 # - init rs (if not done), will incl. first primary
 # - add non-voting members
 # - add voting members (till first 7)
-
-# Setup MongoDB
-# NOTE: MongoDB docker service must be setup before Sia docker service, because
-# skyd depends on mongo.
-# TODO: Finish and add back
-# - name: Include ensuring MongoDB node is a member of replicaset
-#   include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
 
 - name: Include setting MongoDB docker service
   include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
@@ -113,6 +120,13 @@
         nocache: True
         pull: True
         state: present
+
+    - name: Wait for sia API to become available
+      ansible.builtin.command: docker logs sia
+      register: sia_logs_result
+      until: "'API is now available, synchronous startup completed in' in sia_logs_result.stdout"
+      delay: 1
+      retries: 300
 
     - name: Update portal setup status
       ansible.builtin.copy:
@@ -318,13 +332,11 @@
 - block:
     - name: Install Python modules for health checks
       pip:
-        name: "{{ item }}"
-        state: latest
-      loop:
-        - discord-webhook
-        - python-dotenv
-        - requests
-        - elasticsearch-curator
+        name:
+          - discord-webhook==0.15.0
+          - python-dotenv==0.20.0
+          - requests==2.27.1
+          - elasticsearch-curator==5.8.4
 
     - name: Update hardcoded username in cron file
       ansible.builtin.replace:

@@ -17,6 +17,9 @@
     serverlist_marker: "ANSIBLE MANAGED - serverlist script vars"
     serverlist_version: "v0.0.4"
     serverlist_command: "{{ devops_scripts_dir }}/servers {{ webportal_dir }}/.env"
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
 
   tasks:
     # Check '--limit' is used

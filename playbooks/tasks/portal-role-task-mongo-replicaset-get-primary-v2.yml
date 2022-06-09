@@ -1,0 +1,36 @@
+---
+
+# Find primary node in the MongoDB replicaset
+# TODO: This ansible playbook task, should be moved to portal role
+
+# This task expects:
+# - MongoDB node where we run this task is a member of the replicaset
+
+- name: Reset mongo primary host
+  set_fact:
+    mongo_primary_host: ""
+
+- name: Get MongoDB replicaset primary member
+  include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
+  vars:
+    mongodb_shell:
+      # Due to yaml escaping following eval must use ':', not ":".
+      # isMaster.primary returns string in format '<FQDN>:<port>', we need to
+      # extract only the first subdomain which is Ansible host.
+      eval: |
+        rs.isMaster().primary.split('.')[0]
+      until: True
+      retries: 0
+
+- name: Set MongoDB primary host
+  set_fact:
+    mongo_primary_host: "{{ mongo_shell_result.transformed_output }}"
+
+- name: Fail if primary node was not found
+  fail:
+    msg: "MongoDB Primary host was not found"
+  when: mongo_primary_host | default('') == ''
+
+- name: Log MongoDB primary member Ansible host
+  debug:
+    msg: "MongoDB primary member Ansible host: {{ mongo_primary_host }}"

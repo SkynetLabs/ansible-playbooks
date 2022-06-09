@@ -12,11 +12,9 @@
 # Install Docker and docker-compose SDKs for Python
 - name: Install Docker and docker-compose SDKs for Python
   pip:
-    name: "{{ item }}"
-    state: latest
-  loop:
-    - "docker"
-    - "docker-compose"
+    name:
+      - docker==5.0.3
+      - docker-compose==1.29.2
 
 # Create devops/logs dir to log activity
 - name: Create devops/logs directory

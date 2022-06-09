@@ -1,3 +1,67 @@
+## Jun 8, 2022:
+### v0.2.0
+**Key Updates**
+- Update playbooks to use Accounts docker image automatically if it is used
+  instead of Accounts git branch. This change is backwards compatible with
+  using Accounts branches (no user intervention is needed).
+- Add loading of custom vars file for setups and deploys
+- Add Pinner Service
+- Add saving of cluster config
+- Add ansible-lint to repo
+- Autogenerate `mongo_db_mgkey` and save it to LastPass if it is not set.
+- Add docker compose override option for website dockerfile.
+- Add the ability to override docker images
+- Update all variables to match server_domain and portal_domain conventions
+- Add execute commands tasks for combining temporary and long term commands
+- Fix running integration tests on authenticated portals (use Skynet API key).
+- Add portal_modules to hosts.ini and reference in default values.
+- Improve detection if MongoDB replicaset is correctly initialized.
+- Add support for Ubuntu 20.04.
+- Add syntax-check script and make command
+- Add yamllint to repo
+
+**Bugs Fixed**
+- Update checks for restarting docker containers.
+- Added task for checking if a dictionary had a difference as the built in
+  difference method doesn't properly handle all differences.
+- Fix blocked/unblock bad host domains variables.
+- Fix permissions of `devops` directory on fresh setup.
+- Fix elasticsearch permissions recursively.
+- Fixed setting default values (backwards compatibility) for `.env` template.
+- Fix setting MongoDB mgkey.
+- Fix loading/saving from personal (or non-shared) LastPass.
+- Fix setting Accounts image or branch in `docker-compose.override.yml`.
+- Fix issue when `portal-setup-following` with included deploy didn't honor
+  server takedown.
+- Fix issue with takedown starting only `sia` service and not `mongo`.
+- Enable portal deploys and restarts for takedown portals.
+- Move setting iptables rules after docker is installed (`DOCKER-USER` chain is
+  present in iptables).
+- Fix bug in escaping characters for lastpass personal yml note loading
+- Fix bug for seed being defined when it wasn't.
+- Add CS sync block for initializing wallet with seed.
+
+**Other**
+- Expose `BLOCKER_PORTALS_SYNC` environment variable
+- Add (NCMEC) reporting environment variable
+- Abuse docker compose file was renamed in `skynet-webportal` repository. For
+  backwards compatibility Ansible will now select the present Abuse file
+  automatically.
+- Replace `ignore_errors` with `failed_when` in setup following to avoid
+  confusion around red logs.
+- Handle Tor Project exit node list service outage.
+- Install Python3 for Ansible if it's not installed on the fresh server.
+- Do not wait for uploads/downloads to finish when sia container is restarting.
+- Rename optional variable `parallel_deploys` to `parallel_executions`.
+- Add an option to run `portals-setup-following` in parallel.
+- Remove authentication cookie from integration tests.
+- Remove helper `alpine` containers after use.
+- Add an option to perform portal deployment in `portals-setup-following`
+  playbook controlled by optional variable `deploy_after_setup`. Default
+  behavior is do not deploy during `portals-setup-following` execution.
+- Log task execution times.
+- Updating a comment on redownloading and time intervals for Tor blocklists.
+
 ## Mar 8, 2022:
 ### v0.1.1
 **Key Updates**

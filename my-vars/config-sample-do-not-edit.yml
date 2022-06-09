@@ -15,10 +15,10 @@
 # Below are some of the recommended server level settings for portals. If you
 # wish to disable any of these settings, uncomment the variable and change the
 # value.
-# 
+#
 # PLEASE NOTE: We have not tested any non-default conditions for these
 # settings, so you should be comfortable debugging the server and portal on
-# your own if you plan to change these settings. 
+# your own if you plan to change these settings.
 #
 # Setup basic security (default: True)
 # Creates sudo users, adds SSH keys, executes geerlingguy.security Ansible
@@ -101,9 +101,13 @@ lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 # in several levels (both common and cluster) the setting in earlier config in
 # the list (common.yml) is overriden with later config in the list
 # (cluster-{...}.yml).
+#
+# Variables lastpass_directory_separator and lastpass_file_separator are used
+# to automatically handle LastPass directory inconsistency between shared and
+# non-shared folders, they should be kept and should not be changed.
 lastpass_portal_common_and_cluster_configs_list:
-  # - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_common_subfolder }}/common.yml"
-  - "{{ lastpass_ansible_dir }}/{{ lastpass_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+  # - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_common_subfolder }}{{ lastpass_file_separator }}common.yml"
+  - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
 lastpass_portal_config_server_subfolder: "portal-server-configs"
 
 ###############################################################################
@@ -155,6 +159,40 @@ git_checkout_email: ""
 # Below are a list of variables that are optional depending on the playbook you
 # are running.
 ###############################################################################
+
+# Deploying a custom website for your portal is supported by defining a
+# dockerfile for your website.
+#
+# The custom website dockerfile can be defined in the following ways:
+#
+# If you have a simple repo with a Dockerfile at the root level, you simply
+# define a website_custom_build variable that is the https git url with a target
+# branch defined.
+# website_custom_build: https://github.com/user/website-repo.git#main
+#
+# or
+#
+# If you have a repo where the Dockerfile is not at the root level, you will
+# need to define a website_custom_build_context which is the https git url with
+# a target branch defined and a website_custom_build_dockerfile which is the
+# relative path to the dockerfile in the repository.
+# website_custom_build_context: https://github.com/user/website-repo.git#main
+# website_custom_build_dockerfile: ./path/to/Dockerfile
+#
+# If you need to define a custom website dockerfile, simply uncomment and define
+# the variables you need based on the above options.
+# website_custom_build:
+# website_custom_build_context:
+# website_custom_build_dockerfile:
+
+# Custom docker images.
+#
+# If you want to override a docker image for a specific service, you can do so
+# by defining the service and image in the docker_image_overrides variable.
+#
+# docker_image_overrides:
+#   - { service: "website", image: "skynetlabs/website-skynetpro-net" }
+#   - { service: "blocker", image: "skynetlabs/blocker" }
 
 # Set the skynet-webportal, skyd, and accounts versions by entering a git
 # branch, git tag or git commit.

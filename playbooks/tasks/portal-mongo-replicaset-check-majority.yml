@@ -34,9 +34,13 @@
           retries: 0
           ignore_errors: True
 
-    - name: Set mongo replicaset initialized
+    - name: Set mongo replicaset is initialized correctly
       set_fact:
-        mongo_replicaset_initialized: "{{ not ('NotYetInitialized' in (mongo_shell_result.msg | default(''))) }}"
+        mongo_replicaset_initialized: >-
+          {{
+            '"members" : ['
+            in (mongo_shell_result.transformed_output | default(''))
+          }}
 
     # If the MongoDB replicaset was not yet initialized, we can skip MongoDB
     # replicaset majority check, it doesn't matter that we stop the rest of
@@ -107,3 +111,4 @@
     - mongo_docker_container_result.exists
     - mongo_docker_container_result.container is defined
     - mongo_docker_container_result.container.State.Running
+    - not mongo_docker_container_result.container.State.Restarting
