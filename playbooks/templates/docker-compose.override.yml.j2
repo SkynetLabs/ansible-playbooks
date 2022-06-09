@@ -1,0 +1,9 @@
+version: "{{ docker_compose_override_data.version }}"
+
+services:
+  sia:
+    {{ docker_compose_override_data.services.sia | to_nice_yaml(width=255, indent=2) | indent(4) }}
+{% if accounts_on and (portal_accounts_version | default('') != '' or portal_accounts_image_version | default('') != '') %}
+  accounts:
+    {{ docker_compose_override_data.services.accounts | to_nice_yaml(width=255, indent=2) | indent(4) }}
+{% endif %}
