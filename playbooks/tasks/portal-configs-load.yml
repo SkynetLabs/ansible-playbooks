@@ -3,11 +3,8 @@
 # - Load portal configs from secrets backend (e.g. LastPass)
 # - Set default values (for unset keys)
 # - Set mongodb mgkey (if defined but empty)
-# - Set mongodb flag
+# - Set portal modules flag
 # - Set mongodb config (if mongodb is on)
-# - Set accounts flag
-# - Set blocker flag
-# - Set abuse flag
 
 - name: Include loading portal config
   include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
@@ -119,12 +116,11 @@
     - portal_modules is defined
     - webportal_server_config.portal_modules is defined
 
-- name: Set Accounts flag
-  set_fact:
-    portal_accounts_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'a' in webportal_server_config.portal_modules }}
+# Set portal module flags
+- name: Set Portal Module Flags from hosts.ini
+  include_tasks: tasks/portal-set-module-flags.yml
+  vars:
+    portal_modules_string: "{{ portal_modules | default(webportal_server_config.portal_modules) }}"
 
 # Portal is anonymous if Accounts are off or if Accounts are on and
 # accounts_limit_access is set to 'false' (case insensitive).
@@ -138,31 +134,3 @@
       {{ not portal_accounts_on
       or webportal_common_config.accounts_limit_access
       | default("authenticated") | string | lower == 'false' }}
-
-- name: Set Blocker flag
-  set_fact:
-    portal_blocker_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'b' in webportal_server_config.portal_modules }}
-
-- name: Set Abuse Scanner flag
-  set_fact:
-    portal_abuse_scanner_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'u' in webportal_server_config.portal_modules }}
-
-- name: Set Jaeger flag
-  set_fact:
-    portal_jaeger_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'j' in webportal_server_config.portal_modules }}
-
-- name: Set Pinner flag
-  set_fact:
-    portal_pinner_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'p' in webportal_server_config.portal_modules }}
