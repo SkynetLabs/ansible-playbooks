@@ -1,0 +1,34 @@
+# This playbook expects set `shell_commands` list of commands.
+# E.g. in a file `my-vars/shell-commands.yml` with content:
+#
+# shell_commands:
+#   - "echo abc > abc.txt"
+#   - "docker exec <...>"
+#
+# Execute the playbook this way:
+#
+# scripts/x-portals-run-shell-command.sh -e @my-vars/shell-commands.yml --limit dev1
+
+- name: Run Shell Command(s) Against Skynet Webportals
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  # Playbook specific vars
+  vars:
+    max_hosts: "{{ groups['webportals'] | length - 1 }}"
+
+  tasks:
+    # Check '--limit' is used
+    - name: Fail if you are targeting all dev and prod webportals
+      include_tasks: tasks/host-limit-check.yml
+
+    - name: Run shell command
+      ansible.builtin.shell: "{{ item }}"
+      loop: "{{ shell_commands }}"

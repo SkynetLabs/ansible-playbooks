@@ -1,0 +1,1 @@
+- Add a playbook to run ad-hoc shell command(s) against the host(s).
