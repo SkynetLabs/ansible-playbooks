@@ -29,6 +29,20 @@
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
-    - name: Run shell command
+    - name: Run shell command(s)
       ansible.builtin.shell: "{{ item }}"
       loop: "{{ shell_commands }}"
+      register: shell_commands_result
+
+    - name: Log shell command(s) output
+      debug:
+        msg: |
+          command:
+          {{ item.cmd }}
+          
+          stdout:
+          {{ item.stdout }}
+
+      loop: "{{ shell_commands_result.results }}"
+      loop_control:
+        label: "{{ item.cmd }}"
