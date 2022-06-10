@@ -42,7 +42,6 @@
           
           stdout:
           {{ item.stdout }}
-
       loop: "{{ shell_commands_result.results }}"
       loop_control:
         label: "{{ item.cmd }}"
