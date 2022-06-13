@@ -658,17 +658,18 @@ There are several options to run shell commands against portals via Ansible.
 Requires (all options):
 
 - `shell_commands` variable must be defined as a list of commands to be run.
-- It can be defined either in `portal_versions.yml` (e.g. for `portals-deploy`)
-  playbook or in a separate file named e.g. `shell-commands.yml`
+- It can be defined either in `my-vars/portal_versions.yml` (e.g. for
+  `portals-deploy` playbook with other variables) or in a separate file e.g.
+  `my-vars/shell-commands.yml`
 
 Depreciation note:
 
 Previously there was `docker_commands` variable with the similar functionality,
-it's usage is now depreciated, but for backwards compatibility it works as it
+its usage is now depreciated, but for backwards compatibility it works as it
 used to work.
 
 If both `docker_commands` and `shell_commands` are used, commands in both of
-these lists are run (commands from these two lists are added).
+these lists are run (commands from these two lists are added together).
 
 Example:
 
