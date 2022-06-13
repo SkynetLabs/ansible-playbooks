@@ -5,7 +5,7 @@
   ansible.builtin.shell: "{{ item }}"
   register: shell_command_result
 
-- name: "Log output for shell command: {{ item }}" 
+- name: "Log output for shell command: {{ item }}"
   debug:
     msg: |
       {{ shell_command_result.stdout }}
