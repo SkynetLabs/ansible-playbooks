@@ -621,7 +621,7 @@ Playbook:
   - TBD: Setup dev tools
 - Sets portal (simplified)
   - Checkout `skynet-webportal` repo
-  - Load existing portal config (if dockerexists) from LastPass otherwise generate
+  - Load existing portal config (if exists) from LastPass otherwise generate
     portal config and save it to LastPass
   - Always recreate `.env` file from `.env.j2` template and portal config
   - Start sia container if not running, restart if config changed
@@ -675,6 +675,8 @@ syntax requires it.
 
 #### Disable from a load balancer, run shell commands, test and enable portals
 
+See above for `shell_commands` configuration.
+
 Playbook:
 
 - Disables health check.
@@ -688,6 +690,8 @@ To run:
 
 #### Run Shell Commands Without Disabling Health Checks
 
+See above for `shell_commands` configuration.
+
 Playbook:
 
 - Runs shell commands defined in `shell_commands` variable and logs outputs.
@@ -699,6 +703,8 @@ To run:
 `scripts/x-portals-run-shell-commands-without-disable-without-test.sh -e @my-vars/shell-commands.yml --limit eu-fin-1`
 
 #### Run Shell Commands During Deploys
+
+See above for `shell_commands` configuration.
 
 The deploy script also supports the shell command execution:
 `scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
