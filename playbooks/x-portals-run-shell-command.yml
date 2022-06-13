@@ -1,13 +1,16 @@
 # This playbook expects set `shell_commands` list of commands.
-# E.g. in a file `my-vars/shell-commands.yml` with content:
-#
+# E.g. in a file `my-vars/shell-commands.yml` with content (quotes around each
+# command are optional, but sometimes needed to fix Yaml issues):
+# ```
 # shell_commands:
 #   - "echo abc > abc.txt"
 #   - "docker exec <...>"
+# ```
 #
 # Execute the playbook this way:
-#
+# ````
 # scripts/x-portals-run-shell-command.sh -e @my-vars/shell-commands.yml --limit dev1
+# ```
 
 - name: Run Shell Command(s) Against Skynet Webportals
   hosts: webportals
@@ -39,7 +42,7 @@
         msg: |
           command:
           {{ item.cmd }}
-          
+
           stdout:
           {{ item.stdout }}
       loop: "{{ shell_commands_result.results }}"
