@@ -3,7 +3,7 @@
 
 - name: Assert that user defined `shell_commands` variable
   ansible.builtin.assert:
-    that: 
+    that:
       - shell_commands is defined
       - shell_commands | type_debug == "list"
     fail_msg: |
