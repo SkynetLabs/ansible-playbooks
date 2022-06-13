@@ -1,19 +1,32 @@
 ---
-# Run shell commands one at a time defined in `shell_commands` variable.
+# Run shell commands one at a time defined in `shell_commands` (or depreciated
+# `docker_commands`) variable.
 
-- name: Assert that user defined `shell_commands` variable
+- name: >-
+    Assert that user defined `shell_commands`
+    (or depreciated `docker_commands`) variable
   ansible.builtin.assert:
     that:
-      - shell_commands is defined
-      - shell_commands | type_debug == "list"
+      - docker_commands is defined or shell_commands is defined
+      - docker_commands | default([]) | type_debug == "list"
+      - shell_commands | default([]) | type_debug == "list"
     fail_msg: |
       Configuration error:
-      Variable shell_commands must be defined as a list of commands to be run.
+      At least one of `shell_commands` or depreciated `docker_commands`
+      variable must be defined as a list of commands to be run.
+
+      docker_commands is defined: {{ docker_commands is defined }}
+      {% if docker_commands is defined %}
+      docker_commands is list: {{ docker_commands | type_debug == "list" }}
+      {% endif %}
+
       shell_commands is defined: {{ shell_commands is defined }}
       {% if shell_commands is defined %}
       shell_commands is list: {{ shell_commands | type_debug == "list" }}
       {% endif %}
 
 - name: Include running and logging output of a single command
+  vars:
+    commands: "{{ (docker_commands | default([])) + (shell_commands | default([])) }}"
   include_tasks: tasks/shell-commands-run-subtask.yml
-  loop: "{{ shell_commands }}"
+  loop: "{{ commands }}"

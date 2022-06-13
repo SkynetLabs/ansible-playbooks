@@ -661,6 +661,15 @@ Requires (all options):
 - It can be defined either in `portal_versions.yml` (e.g. for `portals-deploy`)
   playbook or in a separate file named e.g. `shell-commands.yml`
 
+Depreciation note:
+
+Previously there was `docker_commands` variable with the similar functionality,
+it's usage is now depreciated, but for backwards compatibility it works as it
+used to work.
+
+If both `docker_commands` and `shell_commands` are used, commands in both of
+these lists are run (commands from these two lists are added).
+
 Example:
 
 ```yaml

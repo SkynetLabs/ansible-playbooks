@@ -1,11 +1,14 @@
 ---
-# Execute any defined shell command(s).
-# This loops over all the shell commands listed and executes them one at a
-# time.
+# Execute any defined docker/shell command(s).
+# This loops over all the docker/shell commands listed and executes them one at a
+# time. Variable docker_commands is depreciated, shell_commands should be used
+# instead.
 - name: Executing shell command(s)
+  vars:
+    commands: "{{ (docker_commands | default([])) + (shell_commands | default([])) }}"
   ansible.builtin.shell: "{{ item }}"
-  loop: "{{ shell_commands }}"
-  when: shell_commands is defined
+  loop: "{{ commands }}"
+  when: docker_commands is defined or shell_commands is defined
 
 # Block any defined hosts
 - name: Block any bad hosts
