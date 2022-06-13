@@ -621,7 +621,7 @@ Playbook:
   - TBD: Setup dev tools
 - Sets portal (simplified)
   - Checkout `skynet-webportal` repo
-  - Load existing portal config (if exists) from LastPass otherwise generate
+  - Load existing portal config (if dockerexists) from LastPass otherwise generate
     portal config and save it to LastPass
   - Always recreate `.env` file from `.env.j2` template and portal config
   - Start sia container if not running, restart if config changed
@@ -651,29 +651,57 @@ separate section above).
 *form file contracts before running the deploy script. Otherwise the health
 *checks will fail as your node is not ready to upload and download
 
-### Run Docker Command
+### Run Shell Commands
 
-Playbook:
+There are several options to run shell commands against portals via Ansible.
 
-- Run a docker command on portals define in `docker_commands` variable.
+Requires (all options):
 
-Preparation:  
-Defined a `docker_commands` variable in your `portal_versions.yml` file.
+- `shell_commands` variable must be defined as a list of commands to be run.
+- It can be defined either in `portal_versions.yml` (e.g. for `portals-deploy`)
+  playbook or in a separate file named e.g. `shell-commands.yml`
 
 Example:
 
 ```yaml
 ---
-docker_commands:
+shell_commands:
   - "docker exec sia siac"
   - "docker exec sia siac renter"
 ```
 
-To run:  
-`scripts/portals-docker-command.sh -e @my-vars/config.yml --limit eu-fin-1`
+Wrapping commands into quotes is optional, but might be needed if Ansible/Yaml
+syntax requires it.
 
-The deploy script also supports the docker command execution:
-`scripts/portals-deploy.sh -e @my-vars/config.yml --limit eu-fin-1`
+#### Disable from a load balancer, run shell commands, test and enable portals
+
+Playbook:
+
+- Disables health check.
+- Runs shell commands defined in `shell_commands` variable and logs outputs.
+- Runs integration tests and health checks.
+- Enables portals.
+
+To run:  
+
+`scripts/portals-run-shell-commands-with-disable-run-test-enable.sh -e @my-vars/shell-commands.yml --limit eu-fin-1`
+
+#### Run Shell Commands Without Disabling Health Checks
+
+Playbook:
+
+- Runs shell commands defined in `shell_commands` variable and logs outputs.
+
+I.e. commands can be run on live portal - use carefully.
+
+To run:  
+
+`scripts/x-portals-run-shell-commands-without-disable-without-test.sh -e @my-vars/shell-commands.yml --limit eu-fin-1`
+
+#### Run Shell Commands During Deploys
+
+The deploy script also supports the shell command execution:
+`scripts/portals-deploy.sh -e @my-vars/portal-versions.yml --limit eu-fin-1`
 
 ### Update Allowance
 

@@ -1,4 +1,6 @@
-- name: Run Docker Command on Skynet Webportal
+- name: >-
+    Run Shell Commands on Skynet Webportal
+    (disable, run commands, test, enable portal)
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: False
@@ -12,6 +14,7 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
+    portal_action: "portal-run-shell-commands"
 
   tasks:
     # Check '--limit' is used. This is to protect against taking the entire
@@ -19,7 +22,7 @@
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
-    # Skip portals on takedown as they are already out of the LB
+    # Skip portals on takedown
     - block:
         - name: Stop play for portals in webportals_takedown group
           debug:
@@ -38,9 +41,9 @@
     - name: Include disabling portal health check
       include_tasks: tasks/portal-health-check-disable.yml
 
-    # Execute Docker command from yml file
-    - name: Executing Docker Command
-      include_tasks: tasks/portal-docker-command.yml
+    # Execute shell command(s) from yml file
+    - name: Include running shell commands
+      include_tasks: tasks/shell-commands-run.yml
 
     # Run portal integration tests
     - name: Include running portal integration tests
@@ -53,3 +56,5 @@
     # Enable health check
     - name: Include enabling portal health check
       include_tasks: tasks/portal-health-check-enable.yml
+      # Do not enable health checks on hosts from out_of_LB group
+      when: ('out_of_LB' not in group_names)

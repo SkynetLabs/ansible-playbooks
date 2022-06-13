@@ -1,7 +1,11 @@
 ---
-# Execute any defined docker commands
-- name: Executing Docker Command
-  include_tasks: tasks/portal-docker-command.yml
+# Execute any defined shell command(s).
+# This loops over all the shell commands listed and executes them one at a
+# time.
+- name: Executing shell command(s)
+  ansible.builtin.shell: "{{ item }}"
+  loop: "{{ shell_commands }}"
+  when: shell_commands is defined
 
 # Block any defined hosts
 - name: Block any bad hosts

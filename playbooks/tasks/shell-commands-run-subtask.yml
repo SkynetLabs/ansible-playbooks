@@ -1,0 +1,15 @@
+---
+# Run shell commands subtask.
+
+- name: Run shell command
+  ansible.builtin.shell: "{{ item }}"
+  register: shell_command_result
+
+- name: Log shell command output
+  debug:
+    msg: |
+      command:
+      {{ item }}
+
+      stdout:
+      {{ shell_command_result.stdout }}
