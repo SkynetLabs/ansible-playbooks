@@ -126,7 +126,7 @@
   when: create_env_file_result.changed or sia_container_info_result.container == None or not sia_container_info_result.container.State.Running
 
 - name: Check wallet
-  command: docker exec sia siac wallet
+  command: docker exec sia skyc wallet
   register: sia_wallet_result
   until: "'Wallet status:' in sia_wallet_result.stdout"
   delay: 1
@@ -161,7 +161,7 @@
 - block:
     # Check that the Sia Blockchain is synced
     - name: Check Sia blockchain sync status
-      command: docker exec sia siac consensus
+      command: docker exec sia skyc consensus
       register: siac_consensus_result
       until: "'Synced: Yes' in siac_consensus_result.stdout"
       delay: 30
@@ -179,12 +179,12 @@
           Wait for Sia blockchain synced and rerun the playbook.
           To check sync status, execute (on the server):
 
-            docker exec sia siac consensus
+            docker exec sia skyc consensus
       when: "'Synced: Yes' not in siac_consensus_result.stdout"
 
     - name: Initialize a wallet with existing seed
       ansible.builtin.expect:
-        command: docker exec -it sia siac wallet init-seed
+        command: docker exec -it sia skyc wallet init-seed
         responses:
           Seed: "{{ webportal_server_config.sia_wallet_seed }}"
       register: sia_init_seed_result
@@ -202,7 +202,7 @@
 # Init a new wallet
 - block:
     - name: Init a new wallet
-      ansible.builtin.command: docker exec sia siac wallet init
+      ansible.builtin.command: docker exec sia skyc wallet init
       register: wallet_init_result
 
     - name: Get wallet seed
@@ -228,7 +228,7 @@
   when: not sia_wallet_initialized and not (sia_wallet_seed_defined and use_existing_sia_seed_if_exists)
 
 - name: Check wallet
-  command: docker exec sia siac wallet
+  command: docker exec sia skyc wallet
   register: sia_wallet_result
 
 - name: Set Sia wallet is locked
@@ -237,7 +237,7 @@
 
 - name: Unlock the wallet
   ansible.builtin.expect:
-    command: docker exec -it sia siac wallet unlock
+    command: docker exec -it sia skyc wallet unlock
     responses:
       Wallet password: "{{ webportal_server_config.sia_wallet_seed }}"
   when: sia_wallet_locked
@@ -257,7 +257,7 @@
       Wait for Sia wallet initialized and rerun the playbook.
       You can check initialization status, executing (on the server):
 
-        docker exec -it sia siac wallet unlock
+        docker exec -it sia skyc wallet unlock
 
       You don't have to unlock the wallet manually,
       as a wallet password you can supply empty string and check you don't
@@ -279,7 +279,7 @@
 
 # TODO: Create an address?
 # - name: Create a new address
-#   ansible.builtin.command: docker exec sia siac wallet address
+#   ansible.builtin.command: docker exec sia skyc wallet address
 #   register: wallet_address_result
 # TODO: Log address
 
@@ -288,18 +288,18 @@
 # Set Sia allowance
 
 - name: Check if allowance is already set
-  ansible.builtin.command: docker exec sia siac renter
+  ansible.builtin.command: docker exec sia skyc renter
   register: get_allowance_result
 
 - name: Set allowance is not set flag
   set_fact:
-    # When allowance is not set, command 'docker exec sia siac renter'
+    # When allowance is not set, command 'docker exec sia skyc renter'
     # contains line 'Allowance:      0 SC (No current allowance)'.
     allowance_is_not_set: '{{ get_allowance_result.stdout is match(".*\nAllowance:\s+0 SC \(No current allowance\).*") | bool }}'
 
 - name: Set allowance
   ansible.builtin.command: >
-    docker exec sia siac renter setallowance
+    docker exec sia skyc renter setallowance
       --amount {{ webportal_allowance.amount }}
       --expected-storage {{ webportal_allowance.expected_storage }}
       --expected-upload {{ webportal_allowance.expected_upload }}

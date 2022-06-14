@@ -106,7 +106,7 @@
 
 # Check that the Sia Blockchain is synced
 - name: Check Sia blockchain sync status
-  command: docker exec sia siac consensus
+  command: docker exec sia skyc consensus
   register: siac_consensus_result
   until: "'Synced: Yes' in siac_consensus_result.stdout"
   delay: 30
@@ -123,7 +123,7 @@
       Wait for Sia blockchain synced and rerun the playbook.
       To check sync status, execute (on the server):
 
-        docker exec sia siac consensus
+        docker exec sia skyc consensus
   when: "'Synced: Yes' not in siac_consensus_result.stdout"
 
 # Include waiting for sia daemon/ready

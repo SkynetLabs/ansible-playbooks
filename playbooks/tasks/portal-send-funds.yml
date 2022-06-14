@@ -4,7 +4,7 @@
 #
 # -s to suppress alerts
 - name: Get wallet address from destination host
-  ansible.builtin.command: "docker exec sia siac wallet address -s"
+  ansible.builtin.command: "docker exec sia skyc wallet address -s"
   register: docker_wallet_address_result
 
 # Pull the wallet address from stdout
@@ -15,7 +15,7 @@
 
 # Send amount defined in vars file from remote host to current host
 - name: Send Funds
-  ansible.builtin.command: "docker exec sia siac wallet send siacoins {{ wallet_fund_amount }} {{ wallet_address }}"
+  ansible.builtin.command: "docker exec sia skyc wallet send siacoins {{ wallet_fund_amount }} {{ wallet_address }}"
   when:
     - wallet_address is defined
     - wallet_fund_amount is defined

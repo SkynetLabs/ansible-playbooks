@@ -25,7 +25,7 @@
     # Set allowance
     - name: Set allowance
       ansible.builtin.command: >
-        docker exec sia siac renter setallowance
+        docker exec sia skyc renter setallowance
           --max-storage-price {{ webportal_allowance.max_storage_price }}
           --max-contract-price {{ webportal_allowance.max_contract_price }}
           --max-sector-access-price {{ webportal_allowance.max_sector_access_price }}

@@ -10,5 +10,5 @@
       ansible.builtin.ping:
 
     - name: Unblock skylinks
-      ansible.builtin.command: "docker exec sia siac skynet blocklist remove {{ item }}"
+      ansible.builtin.command: "docker exec sia skyc skynet blocklist remove {{ item }}"
       loop: "{{ skylinks_unblock_list }}"

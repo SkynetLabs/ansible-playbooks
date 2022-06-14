@@ -64,5 +64,5 @@
 # If either of the allowance update checks are valid, increase the allowance.
 - name: Update Allowance if needed
   # All units are in hastings so H suffix must be used
-  ansible.builtin.command: "docker exec sia siac renter setallowance --amount {{ update_amount }}H"
+  ansible.builtin.command: "docker exec sia skyc renter setallowance --amount {{ update_amount }}H"
   when: eighty_percent_used_update|bool or below_threshold_update|bool

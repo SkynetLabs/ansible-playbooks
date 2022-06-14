@@ -38,7 +38,7 @@
 # large download which can also be resumed on another server.
 - block:
     - name: "Wait for uploads to finish"
-      ansible.builtin.command: docker exec sia siac renter uploads
+      ansible.builtin.command: docker exec sia skyc renter uploads
       register: docker_renter_uploads
       # Wait until 'No files are uploading.' is found in the stdout. If sia is
       # starting up for some reason or the docker container is restarting which
@@ -61,7 +61,7 @@
         - docker_renter_uploads.stderr.find("490 Module not loaded") == -1
 
     - name: "Wait for downloads to finish"
-      ansible.builtin.command: docker exec sia siac renter downloads
+      ansible.builtin.command: docker exec sia skyc renter downloads
       register: docker_renter_downloads
       # Wait until 'No files are downloading.' is found in the stdout. If sia
       # is starting up for some reason or the docker container is restarting

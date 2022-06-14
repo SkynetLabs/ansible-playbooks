@@ -1,6 +1,7 @@
 [![Lint](https://github.com/SkynetLabs/ansible-playbooks/actions/workflows/lint.yml/badge.svg)](https://github.com/SkynetLabs/ansible-playbooks/actions/workflows/lint.yml)
 
 # Skynet Labs Ansible Playbooks
+
 > The table of contents for this README can be accessed from the menu icon by `README.md`
 
 This repo is a collection of ansible playbooks used to manage a Skynet
@@ -8,9 +9,10 @@ Webportal. For more information of setting up a Skynet Webportal checkout the
 documentation [here](https://docs.siasky.net/webportal-management/overview).
 
 ## Requirements
+
 Clone this repository to the machine you plan to use to run the ansible
 playbooks from. This can be either your local machine or a dedicated deploy
-machine.  There is currently no need to fork this repo.
+machine. There is currently no need to fork this repo.
 
 ### Git repository ansible-private
 
@@ -19,7 +21,7 @@ Head over to the
 repo and follow the process of coping that repo outlined in the README.
 
 `ansible-private` contains `inventory/hosts.ini` file which defines a list of
-our servers which we target with our Ansible scripts.  `hosts.ini` definition is
+our servers which we target with our Ansible scripts. `hosts.ini` definition is
 quite flexible, we can e.g. define server subgroups if needed etc. Also if you
 need a short term change in the `hosts.ini` you can edit the file locally
 according to your needs.
@@ -111,7 +113,8 @@ the login script to refresh your session to be able to see the updates.
 ### Portal Ping
 
 #### Playbook Actions
-This playbook pings a portal to check if it is accessible. 
+
+This playbook pings a portal to check if it is accessible.
 
 **NOTE** The ansible `ping` module is going to try and ping `user@host`. So if
 you have not run the [`portal-setup-initial`](#playbook-portals-setup-initial)
@@ -120,9 +123,10 @@ if your server was initialized with a non root user, use that username, i.e.
 `-u debian`.
 
 #### Execution
+
 `scripts/portals-ping.sh --limit eu-ger-1`  
 `scripts/portals-ping.sh -u root --limit eu-ger-1`  
-`scripts/portals-ping.sh -u debian --limit eu-ger-1`  
+`scripts/portals-ping.sh -u debian --limit eu-ger-1`
 
 ### Get Webportal Status
 
@@ -305,10 +309,12 @@ batch_number: 1
 ### Stop A Skynet Webportal
 
 #### Playbook Actions
+
 This playbook shuts down a portal by removing it from the load balancer and
 stopping all the docker services.
 
 #### Execution
+
 `scripts/portals-stop.sh --limit eu-ger-1`
 
 ### Takedown Skynet Webportal
@@ -398,6 +404,7 @@ To check `eu-ger-1`, `us-pa-1` and `us-va-1` portals:
 `scripts/portals-get-versions.sh --limit eu-ger-1,us-pa-1,us-va-1`
 
 ### Set Allowance Max Storage Price, Max Contract Price, and Max Sector Access
+
 Price
 
 Playbook:
@@ -413,7 +420,7 @@ Notes:
   `portals_dev` and `portals_prod` servers at once.
 - Format of `max_storage_price`, `max_contract_price`, `max_sector_access_price`
   value must be same as is expected by executing
-  `docker exec sia siac renter setallowance --max-storage-price --max-contract-price --max-sector-access-price`
+  `docker exec sia skyc renter setallowance --max-storage-price --max-contract-price --max-sector-access-price`
 
 To run:  
 `scripts/portals-set-allowance-price-controls.sh --limit webportals_prod`  
@@ -503,25 +510,27 @@ IP/IP range, remove it from the block list and add it to the unblock list and
 execute the playbook.
 
 Example `private-vars.yml` file:
+
 ```yaml
 incoming_ips_ip_ranges_block:
-- "1.2.3.4"
-- "4.5.6.7"
-- "11.22.33.0/24"
-- "22.33.44.0/24"
+  - "1.2.3.4"
+  - "4.5.6.7"
+  - "11.22.33.0/24"
+  - "22.33.44.0/24"
 
 incoming_ips_ip_ranges_unblock: []
 ```
 
 Example `private-vars.yml` file to unblock previously blocked IPs/IP ranges:
+
 ```yaml
 incoming_ips_ip_ranges_block:
-- "1.2.3.4"
-- "11.22.33.0/24"
+  - "1.2.3.4"
+  - "11.22.33.0/24"
 
 incoming_ips_ip_ranges_unblock:
-- "4.5.6.7"
-- "22.33.44.0/24"
+  - "4.5.6.7"
+  - "22.33.44.0/24"
 ```
 
 To run:  
@@ -666,7 +675,7 @@ Example:
 ---
 docker_commands:
   - "docker exec sia siac"
-  - "docker exec sia siac renter"
+  - "docker exec sia skyc renter"
 ```
 
 To run:  
@@ -680,7 +689,7 @@ The deploy script also supports the docker command execution:
 Playbook:
 
 - Automatically update the allowance of a webportal based on the same
-calculations of the Skynet dashboard.
+  calculations of the Skynet dashboard.
 
 To run:  
 `scripts/portals-update-allowance.sh --limit eu-fin-1`
@@ -691,14 +700,15 @@ allowance on with `update_allowance`. This allows updating some webportals that
 need updating during deployments.
 
 Example:
+
 ```yaml
 ---
 update_allowance:
   - eu-fin-1
   - eu-fin-2
 ```
-`scripts/portals-deploy.sh -e @my-vars/config.yml --limit depl_batch1`
 
+`scripts/portals-deploy.sh -e @my-vars/config.yml --limit depl_batch1`
 
 ### Send Funds
 
@@ -713,6 +723,7 @@ variable in your `portal_versions.yml` file to define the portal that should sen
 the funds.
 
 Example:
+
 ```yaml
 ---
 wallet_fund_amount: 100KS
@@ -807,13 +818,14 @@ For more details see: [Playbook Execution > LastPass Login](#lastpass-login).
 There are a few errors are can happen that are both related to a host not being found in the `hosts.ini` file.
 
 Example 1:
+
 ```
 % ./scripts/portals-ping.sh --limit sev1
 Stopping Ansible Control Machine...
 Starting Ansible Control Machine...
 Ansible requirements (roles and collections) are up-to-date
 Executing:
-    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user --limit sev1 
+    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user --limit sev1
 in a docker container...
 [WARNING]: Could not match supplied host pattern, ignoring: sev1
 ERROR! Specified hosts and/or --limit does not match any hosts
@@ -821,12 +833,13 @@ ERROR: Error 1
 ```
 
 Example 2:
+
 ```
-❯ scripts/portals-ping.sh 
+❯ scripts/portals-ping.sh
 Ansible Control Machine is running
 Ansible requirements (roles and collections) are up-to-date
 Executing:
-    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user  
+    ansible --inventory /tmp/ansible-private/inventory/hosts.ini webportals -m ping -u user
 in a docker container...
 [WARNING]: Unable to parse /tmp/ansible-private/inventory/hosts.ini as an
 inventory source
@@ -838,6 +851,7 @@ SUCCESS: Command finished successfully
 ```
 
 This can happen if the `ansiblecm` was started when you were not at the expected relative directory to `ansible-private` or started ansible before the directory existed. The fix is to stop `ansbilecm` and re-run the command.
+
 ```
 docker stop ansiblecm
 ```
