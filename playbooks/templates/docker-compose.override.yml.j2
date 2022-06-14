@@ -9,3 +9,9 @@ services:
   accounts:
     {{ docker_compose_override_data.services.accounts | to_nice_yaml(width=255, indent=2) | indent(4) }}
 {% endif %}
+
+{#- other (non-sia, non-accounts) services rendered when present -#}
+{% for k, v in docker_compose_override_data.services.items() %}{% if k != 'sia' and k != 'accounts' %}
+  {{ k }}:
+    {{ v | to_nice_yaml(width=255, indent=2) | indent(4) }}
+{% endif %}{% endfor %}

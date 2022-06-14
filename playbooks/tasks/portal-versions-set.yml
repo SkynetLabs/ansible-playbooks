@@ -65,22 +65,6 @@
   set_fact:
     docker_compose_override_data: {}
 
-- name: Set custom website Dockerfile build
-  set_fact:
-    # ignoring ansible-lint var-spacing here because it is a false failure
-    # caused by the }}}}} in the combine statement
-    docker_compose_override_data: "{{ {'services': {'website': {'build': website_custom_build}}} }}" # noqa var-spacing
-  when: website_custom_build is defined
-
-- name: Set custom website Dockerfile build with context and dockerfile
-  set_fact:
-    # ignoring ansible-lint var-spacing here because it is a false failure
-    # caused by the }}}}} in the combine statement
-    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'website': {'build': {'context': website_custom_build_context, 'dockerfile': website_custom_build_dockerfile}}}}, recursive=True) }}" # noqa var-spacing
-  when:
-    - website_custom_build_context is defined
-    - website_custom_build_dockerfile is defined
-
 # Handle setting an docker image overrides
 #
 # Expected syntax
@@ -94,7 +78,41 @@
     # caused by the }}}}} in the combine statement
     docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {item.service: {'image': item.image}}}, recursive=True) }}" # noqa var-spacing
   loop: "{{ docker_image_overrides }}"
-  when: docker_image_overrides is defined
+  # Do not set website docker image when website custom build/context/
+  # dockerfile is defined
+  when: >-
+    item.service != 'website'
+    or
+    (
+      item.service == 'website'
+      and not
+      (
+        website_custom_build is defined
+        or
+        website_custom_build_context is defined
+        or
+        website_custom_build_dockerfile is defined
+      )
+    )
+
+# Setting custom builds is below docker image overrides, so that default
+# website images can be overriden by website custom builds.
+
+- name: Set custom website Dockerfile build
+  set_fact:
+    # ignoring ansible-lint var-spacing here because it is a false failure
+    # caused by the }}}}} in the combine statement
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'website': {'build': website_custom_build}}}, recursive=True) }}" # noqa var-spacing
+  when: website_custom_build is defined
+
+- name: Set custom website Dockerfile build with context and dockerfile
+  set_fact:
+    # ignoring ansible-lint var-spacing here because it is a false failure
+    # caused by the }}}}} in the combine statement
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'website': {'build': {'context': website_custom_build_context, 'dockerfile': website_custom_build_dockerfile}}}}, recursive=True) }}" # noqa var-spacing
+  when:
+    - website_custom_build_context is defined
+    - website_custom_build_dockerfile is defined
 
 # Handle accounts. Account version can be set via accounts docker image in
 # docker-compose.accounts.yml otherwise via branch in config.yml variable.
