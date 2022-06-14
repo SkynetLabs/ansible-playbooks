@@ -698,20 +698,6 @@ To run:
 
 `scripts/portals-run-shell-commands.sh -e @my-vars/shell-commands.yml --limit eu-fin-1`
 
-#### Run Shell Commands Without Disabling Health Checks
-
-See above for `shell_commands` configuration.
-
-Playbook:
-
-- Runs shell commands defined in `shell_commands` variable and logs outputs.
-
-I.e. commands can be run on live portal - use carefully.
-
-To run:  
-
-`scripts/x-portals-run-shell-commands-without-disable-without-test.sh -e @my-vars/shell-commands.yml --limit eu-fin-1`
-
 #### Run Shell Commands During Deploys
 
 See above for `shell_commands` configuration.
