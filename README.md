@@ -696,7 +696,7 @@ Playbook:
 
 To run:  
 
-`scripts/portals-run-shell-commands-with-disable-run-test-enable.sh -e @my-vars/shell-commands.yml --limit eu-fin-1`
+`scripts/portals-run-shell-commands.sh -e @my-vars/shell-commands.yml --limit eu-fin-1`
 
 #### Run Shell Commands Without Disabling Health Checks
 
