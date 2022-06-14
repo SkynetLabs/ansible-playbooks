@@ -674,7 +674,7 @@ Example:
 ```yaml
 ---
 docker_commands:
-  - "docker exec sia siac"
+  - "docker exec sia skyc"
   - "docker exec sia skyc renter"
 ```
 
