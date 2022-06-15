@@ -111,7 +111,7 @@
 # overwritten
 - name: Update portal_modules
   set_fact:
-    webportal_server_config: "{{ webportal_server_config | combine({'portal_modules': 'DEPRECATED: update value in hosts.ini'}) }}"
+    webportal_server_config: "{{ webportal_server_config | combine({'portal_modules': 'DEPRECATED - update value in hosts.ini'}) }}"
   when:
     - portal_modules is defined
     - webportal_server_config.portal_modules is defined
