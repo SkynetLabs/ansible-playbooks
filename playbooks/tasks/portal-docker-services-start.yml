@@ -67,7 +67,7 @@
     files: "{{ webportal_docker_compose_files_wanted }}"
     build: "{{ docker_compose_build }}"
     remove_orphans: True
-    nocache: False
+    nocache: True
     pull: True
     services: "{{ docker_compose_services_limit }}"
     state: present
