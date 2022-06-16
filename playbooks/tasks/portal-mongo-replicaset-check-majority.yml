@@ -46,7 +46,9 @@
     # replicaset majority check, it doesn't matter that we stop the rest of
     # services.
     - block:
-        - name: Include checking mongo replicaset majority
+      # Get MongoDB replicaset status details
+
+        - name: Include getting mongo replicaset status details
           include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
           vars:
             mongodb_shell:
@@ -74,26 +76,26 @@
               until: True
               retries: 0
 
-        - name: Set mongo replicaset result
+        - name: Set mongo replicaset status details
           set_fact:
-            mongo_replicaset_result: "{{ mongo_shell_result.transformed_output | from_json }}"
+            mongo_replicaset_status_details: "{{ mongo_shell_result.transformed_output | from_json }}"
 
         - name: Stop the playbook if we don't have majority (> 50%) MongoDB replicaset voting members online
           fail:
             msg: |
               MongoDB status:
 
-              - Voting members in config: {{ mongo_replicaset_result.votingMembers | length }}
-                {{ mongo_replicaset_result.votingMembers }}
+              - Voting members in config: {{ mongo_replicaset_status_details.votingMembers | length }}
+                {{ mongo_replicaset_status_details.votingMembers }}
 
-              - Voting members currently online and healthy: {{ mongo_replicaset_result.onlineVotingMembers | length }}
-                {{ mongo_replicaset_result.onlineVotingMembers }}
+              - Voting members currently online and healthy: {{ mongo_replicaset_status_details.onlineVotingMembers | length }}
+                {{ mongo_replicaset_status_details.onlineVotingMembers }}
 
-              - Members in the current Ansible batch: {{ mongo_replicaset_result.batchMembers | length }}
-                {{ mongo_replicaset_result.batchMembers }}
+              - Members in the current Ansible batch: {{ mongo_replicaset_status_details.batchMembers | length }}
+                {{ mongo_replicaset_status_details.batchMembers }}
 
-              - Voting members online if we continue: {{ mongo_replicaset_result.onlineVotingMembersAfter | length }}
-                {{ mongo_replicaset_result.onlineVotingMembersAfter }}
+              - Voting members online if we continue: {{ mongo_replicaset_status_details.onlineVotingMembersAfter | length }}
+                {{ mongo_replicaset_status_details.onlineVotingMembersAfter }}
 
               The playbook stops otherwise you don't have more than half MongoDB replicaset voting members online
               and MongoDB service would be disrupted.
@@ -103,9 +105,9 @@
               - Don't stop so many voting members in one Ansible batch
               - Reconfigure voting members (move voting from an offline member to some online member)
           when: >-
-            mongo_replicaset_result.thisMemberIsVoting and
-            mongo_replicaset_result.votingMembers | length > 2 and
-            not mongo_replicaset_result.replicasetMajorityOk
+            mongo_replicaset_status_details.thisMemberIsVoting and
+            mongo_replicaset_status_details.votingMembers | length > 2 and
+            not mongo_replicaset_status_details.replicasetMajorityOk
       when: mongo_replicaset_initialized
   when:
     - mongo_docker_container_result.exists

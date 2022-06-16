@@ -77,6 +77,24 @@
 - name: Include getting MongoDB replicaset status
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
 
+- name: Include initializing MongoDB replicaset
+  include_tasks: tasks/portal-role-task-mongo-setup-replicaset-init.yml
+  when: not mongo_replicaset_online
+  # If the playbook is run against several hosts, setup replicaset only once
+  # (on the first host of the batch)
+  run_once: True
+
+# Add a mongo node as a voting or non-voting member.
+# We need to throttle this operation so that voting members count is always
+# freshly read from the replicaset and also because mongo can add (i.e. to
+# reconfigure replicaset) just 1 member at a time. Ansible module include_tasks
+# doesn't allow throttling, so this task is wrapped inside a block that is
+# throttled.
+- block:
+    - name: Include adding a MongoDB node as a voting or non-voting member
+      include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-voting-non-voting-member.yml
+  throttle: 1
+
 # If we successfully set up mongo, save the cluster configs.
 - name: Include saving the cluster config
   include_tasks: "{{ playbook_dir }}/{{ save_cluster_config_handler }}"

@@ -34,6 +34,10 @@
   vars:
     mongodb_shell_delegated:
       host: "{{ host_item }}"
+      # In the following eval do not use simpler command:
+      # "rs.isMaster().primary"
+      # because the above command doesn't fail if the replicaset is not yet
+      # configured so giving us a false replicaset is ok status.
       eval: "rs.status().members.forEach(m => {if (m.stateStr == 'PRIMARY') {print(m.name)}})"
       ignore_errors: True
   register: mongo_getting_primary_result
@@ -51,12 +55,18 @@
 - name: Set mongo replicaset is online
   set_fact:
     mongo_replicaset_online: >-
-      {{ mongo_replicaset_online | default(False) or
-      (not (mongo_getting_primary_result.skipped | default(False)) and
-      not (mongo_shell_delegated_result.failed | default(False))) }}
+      {{
+        mongo_replicaset_online | default(False)
+        or
+        (
+          not (mongo_getting_primary_result.skipped | default(False))
+          and
+          not (mongo_shell_delegated_result.failed | default(False))
+        )
+      }}
 
-- name: Increment mongo not ok count
+- name: Update mongo not ok host list
   set_fact:
-    mongo_not_ok_count: "{{ mongo_not_ok_count | int + 1 }}"
+    mongo_not_ok_host_list: "{{ mongo_not_ok_host_list + [host_item] }}"
   # Increment on other delegated host_items only, not on the host itself
   when: not mongo_container_ok and host_item != inventory_hostname

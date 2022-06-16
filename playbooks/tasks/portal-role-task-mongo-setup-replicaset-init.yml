@@ -1,5 +1,5 @@
 ---
-# Setup MongoDB replicaset
+# Initialize MongoDB replicaset
 # TODO: This ansible playbook task, should be moved to portal role
 
 # Prompt if to continue if some mongo containers are not online
@@ -9,9 +9,17 @@
         prompt: |-
           MongoDB replicaset (i.e. cluster setup) was not found on any cluster
           mongo container that is running, however there are some portal hosts
-          or mongo container from this cluster offline.
+          or mongo containers from this cluster offline and you may already
+          initialized MongoDB replicaset on them.
 
-          (If you have already setup MongoDB replicaset, bring it online.)
+          Offline or not ok host(s)/container(s):
+          {% for h in mongo_not_ok_host_list %}
+          - {{ h }}
+          {% endfor %}
+
+          If you have already setup MongoDB replicaset on other host,
+          do not setup another replicaset now,
+          bring the offline hosts online first.
 
           Are you sure you want to setup a new MongoDB replicaset?
           (y/n)
@@ -21,7 +29,7 @@
     - name: Stop the playbook if the user doesn't want to setup new MongoDB replicaset
       meta: end_play
       when: setup_mongo_replicaset_result.user_input[:1].lower() != 'y'
-  when: mongo_not_ok_count | int > 0
+  when: mongo_not_ok_host_list | length > 0
 
 - name: Include MongoDB replicaset initialization
   include_tasks: tasks/portal-role-task-mongo-shell-eval.yml

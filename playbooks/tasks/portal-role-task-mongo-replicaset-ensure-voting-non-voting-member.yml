@@ -1,0 +1,107 @@
+---
+
+# Ensure MongoDB node is added as a voting or non-voting member of the MongoDB
+# replicaset
+# TODO: This ansible playbook task, should be moved to portal role
+
+# Notes:
+# - Execution of this task should be throttled to keep consistent voting
+#   members count.
+# - MongoDB primary node tasks should be executed on {{ mongo_primary_host }},
+#   not on the current Ansible host that we are handling.
+
+- name: Include getting MongoDB replicaset primary host
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
+
+- name: Handle lazy evaluation of mongo primary host variable on mongo primary host
+  set_fact:
+    mongo_primary_host: "{{ mongo_primary_host }}"
+  delegate_to: "{{ mongo_primary_host }}"
+  delegate_facts: True
+
+- name: Include checking if MongoDB node is part of the replicaset
+  include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
+  vars:
+    mongodb_shell_delegated:
+      host: "{{ mongo_primary_host }}"
+      eval: |
+        rs.config().members.forEach(m => {
+          if (m.host == '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}')
+          {
+            if (m.votes > 0) {print('is-voting-member')}
+            if (m.votes == 0) {print('is-non-voting-member')}
+          }
+        })
+
+- name: Set MongoDB node replicaset voting/non-voting member flags
+  set_fact:
+    node_is_voting_member: "{{ mongo_shell_delegated_result.transformed_output == 'is-voting-member' }}"
+    node_is_non_voting_member: "{{ mongo_shell_delegated_result.transformed_output == 'is-non-voting-member' }}"
+
+- name: Set MongoDB node replicaset member flag
+  set_fact:
+    node_is_member: "{{ node_is_voting_member or node_is_non_voting_member }}"
+
+- name: Log whether MongoDB node is in replicaset configuration
+  debug:
+    msg: |
+      Ansible host:
+      {{ inventory_hostname }}
+      
+      MongoDB host:
+      {{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}
+
+      MongoDB host is a replicaset member:
+      {{ node_is_member }}
+
+      MongoDB host is a voting member:
+      {{ node_is_voting_member }}
+
+      MongoDB host is a non-voting member:
+      {{ node_is_non_voting_member }}
+
+# Get voting members count
+
+- name: Include getting MongoDB voting members count
+  include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
+  vars:
+    mongodb_shell_delegated:
+      host: "{{ mongo_primary_host }}"
+      eval: |
+        print(rs.config().members.filter(m => m.votes > 0).length)
+
+- name: Set MongoDB replicaset voting members
+  set_fact:
+    voting_members_count: "{{ mongo_shell_delegated_result.transformed_output }}"
+
+- name: Set MongoDB votes and priority
+  set_fact:
+    node_votes_and_priority: "{{ 1 if (voting_members_count | int < mongo_max_voting_members) else 0 }}"
+
+- name: Handle lazy evaluation of node votes and priority variable on mongo primary host
+  set_fact:
+    node_votes_and_priority: "{{ node_votes_and_priority }}"
+  delegate_to: "{{ mongo_primary_host }}"
+  delegate_facts: True
+
+- name: Include adding MongoDB node as a voting or non-voting member
+  include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
+  vars:
+    mongodb_shell_delegated:
+      host: "{{ mongo_primary_host }}"
+      eval: |
+        rs.add({host: '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}', priority: node_votes_and_priority, votes: node_votes_and_priority })
+  when: not node_is_member
+  register: mongo_adding_member_result
+
+- name: Fail if adding a MongoDB node to replicaset config was not successful
+  fail:
+    msg: |
+      Add MongoDB node to replicaset result: {{ mongo_shell_delegated_result | to_nice_json }}
+
+      Add MongoDB node to replicaset transformed_output: {{ mongo_shell_delegated_result.transformed_output | default('') }}
+  when: >-
+    not (mongo_adding_member_result.skipped | default(False)) and
+    (mongo_shell_delegated_result.failed | default(False) or
+    mongo_shell_delegated_result.transformed_output is not defined or
+    '\"ok\" : 1,' not in mongo_shell_delegated_result.transformed_output)
