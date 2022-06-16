@@ -59,41 +59,8 @@
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
 # skyd depends on mongo.
-# TODO: Finish and add back
-# - name: Include ensuring MongoDB node is a member of replicaset
-#   include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
-
-# TODO: NOTE WIP:
-# Extract all to new mongo-setup.yml
-# - setup docker
-# - check rs status
-# - init rs (if not done), will incl. first primary
-# - add non-voting members
-# - add voting members (till first 7)
-
-- name: Include setting MongoDB docker service
-  include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
-
-- name: Include getting MongoDB replicaset status
-  include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
-
-- name: Include initializing MongoDB replicaset
-  include_tasks: tasks/portal-role-task-mongo-setup-replicaset-init.yml
-  when: not mongo_replicaset_online
-  # If the playbook is run against several hosts, setup replicaset only once
-  # (on the first host of the batch)
-  run_once: True
-
-# Add a mongo node as a voting or non-voting member.
-# We need to throttle this operation so that voting members count is always
-# freshly read from the replicaset and also because mongo can add (i.e. to
-# reconfigure replicaset) just 1 member at a time. Ansible module include_tasks
-# doesn't allow throttling, so this task is wrapped inside a block that is
-# throttled.
-- block:
-    - name: Include adding a MongoDB node as a voting or non-voting member
-      include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-voting-non-voting-member.yml
-  throttle: 1
+- name: Include setting up MongoDB
+  include_tasks: tasks/portal-role-task-mongo-setup-v2.yml
 
 # If we successfully set up mongo, save the cluster configs.
 - name: Include saving the cluster config

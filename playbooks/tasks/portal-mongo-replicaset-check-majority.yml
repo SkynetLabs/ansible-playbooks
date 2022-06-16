@@ -46,7 +46,7 @@
     # replicaset majority check, it doesn't matter that we stop the rest of
     # services.
     - block:
-      # Get MongoDB replicaset status details
+        # Get MongoDB replicaset status details
 
         - name: Include getting mongo replicaset status details
           include_tasks: tasks/portal-role-task-mongo-shell-eval.yml

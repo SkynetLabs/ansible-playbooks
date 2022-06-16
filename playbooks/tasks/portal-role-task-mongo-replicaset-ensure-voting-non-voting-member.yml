@@ -47,7 +47,7 @@
     msg: |
       Ansible host:
       {{ inventory_hostname }}
-      
+
       MongoDB host:
       {{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}
 
