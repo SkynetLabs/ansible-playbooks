@@ -1,4 +1,4 @@
-- name: Run integration tests against Skynet Webportals
+- name: Run Health Checks against Skynet Webportals
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: False
@@ -14,7 +14,6 @@
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
 
   tasks:
-
     # Check '--limit' is used
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
