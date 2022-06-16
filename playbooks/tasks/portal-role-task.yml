@@ -134,7 +134,14 @@
 
 - name: Set Sia wallet seed defined
   set_fact:
-    sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined and webportal_server_config.sia_wallet_seed != None }}"
+    sia_wallet_seed_defined: >-
+      {{
+        webportal_server_config.sia_wallet_seed is defined
+        and
+        webportal_server_config.sia_wallet_seed != None
+        and
+        webportal_server_config.sia_wallet_seed != ''
+      }}"
 
 # Init a wallet with existing seed
 
