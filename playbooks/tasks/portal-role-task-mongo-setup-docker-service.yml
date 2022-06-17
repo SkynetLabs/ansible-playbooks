@@ -40,6 +40,11 @@
       We will reset the mongo service.
   when: not (mongo_service_ok | default(False))
 
+- name: Check mongo/db directory exists
+  ansible.builtin.stat:
+    path: "{{ mongo_db_dir }}"
+  register: mongo_db_stat_result
+
 # Reset mongo service if it is not running correctly
 - block:
     # TODO: This prompt/next fail don't run ok in parallel
@@ -58,6 +63,8 @@
 
           Do you want to reset MongoDB database on {{ inventory_hostname }} (y/n)?
       register: reset_db_result
+      # If mongo/db directory doesn't exist we can skip this prompt.
+      when: mongo_db_stat_result.stat.exists
       delegate_to: localhost
 
     - name: Stop the playbook if the user doesn't want to delete and reset MongoDB database
@@ -65,7 +72,13 @@
         msg: |
           Your MongoDB database doesn't run as expected,
           you have to fix it manually and then rerun this playbook.
-      when: reset_db_result.user_input[:1] not in 'yY'
+      # If mongo/db directory doesn't exist the prompt was skipped, we need to
+      # skip this task, otherwise we fail the playbook if the user doesn't want
+      # to reset the mongo db.
+      when: >-
+        mongo_db_stat_result.stat.exists
+        and
+        reset_db_result.user_input[:1] not in 'yY'
 
     - name: Stop and remove mongo container
       community.docker.docker_container:
@@ -80,11 +93,6 @@
         group: "{{ webportal_user }}"
         state: directory
       become: True
-
-    - name: Check mongo/db directory exists
-      ansible.builtin.stat:
-        path: "{{ mongo_db_dir }}"
-      register: mongo_db_stat_result
 
     - name: Backup mongo/db directory
       community.general.archive:
