@@ -90,7 +90,7 @@
     mongodb_shell_delegated:
       host: "{{ mongo_primary_host }}"
       eval: |
-        rs.add({host: '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}', priority: node_votes_and_priority, votes: node_votes_and_priority })
+        rs.add({host: '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}', priority: {{ node_votes_and_priority }}, votes: {{ node_votes_and_priority }} })
   when: not node_is_member
   register: mongo_adding_member_result
 
