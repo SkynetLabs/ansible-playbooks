@@ -38,32 +38,6 @@
     update: True
     force: True
 
-- name: Check if docker-compose.override.yml exists
-  stat:
-    path: "{{ webportal_dir }}/docker-compose.override.yml"
-  register: docker_compose_override_stat
-
-- name: Create docker-compose.override.yml if not exists
-  ansible.builtin.template:
-    src: templates/docker-compose.override.yml.new.j2
-    dest: "{{ webportal_dir }}/docker-compose.override.yml"
-  when: not docker_compose_override_stat.stat.exists
-
-- name: Read docker-compose.override.yml
-  slurp:
-    path: "{{ webportal_dir }}/docker-compose.override.yml"
-  register: docker_compose_override_slurped
-
-- name: Parse docker-compose.override.yml
-  set_fact:
-    docker_compose_override_data: "{{ docker_compose_override_slurped['content'] | b64decode | from_yaml }}"
-
-- name: Update skyd version in data variable
-  set_fact:
-    # ignoring ansible-lint var-spacing here because it is a false failure
-    # caused by the }}}}} in the combine statement
-    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'sia': {'build': {'args': {'branch': portal_skyd_version}}}}}, recursive=True) }}" # noqa var-spacing
-
 # Handle custom website dockerfile
 #
 # The custom website dockerfile can be defined in the following ways
@@ -87,6 +61,43 @@
       Either website_custom_build must be defined or
       website_custom_build_context and website_custom_build_dockerfile must be defined
 
+- name: Set empty docker compose override data
+  set_fact:
+    docker_compose_override_data: {}
+
+# Handle setting an docker image overrides
+#
+# Expected syntax
+# docker_image_overrides:
+#   - { service: "website", image: "skynetlabs/website-skynetpro-net" }
+#   - { service: "blocker", image: "skynetlabs/blocker" }
+
+- name: Set docker image overrides
+  set_fact:
+    # ignoring ansible-lint var-spacing here because it is a false failure
+    # caused by the }}}}} in the combine statement
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {item.service: {'image': item.image}}}, recursive=True) }}" # noqa var-spacing
+  loop: "{{ docker_image_overrides }}"
+  # Do not set website docker image when website custom build/context/
+  # dockerfile is defined
+  when: >-
+    item.service != 'website'
+    or
+    (
+      item.service == 'website'
+      and not
+      (
+        website_custom_build is defined
+        or
+        website_custom_build_context is defined
+        or
+        website_custom_build_dockerfile is defined
+      )
+    )
+
+# Setting custom builds is below docker image overrides, so that default
+# website images can be overriden by website custom builds.
+
 - name: Set custom website Dockerfile build
   set_fact:
     # ignoring ansible-lint var-spacing here because it is a false failure
@@ -102,21 +113,6 @@
   when:
     - website_custom_build_context is defined
     - website_custom_build_dockerfile is defined
-
-# Handle setting an docker image overrides
-#
-# Expected syntax
-# docker_image_overrides:
-#   - { service: "website", image: "skynetlabs/website-skynetpro-net" }
-#   - { service: "blocker", image: "skynetlabs/blocker" }
-
-- name: Set docker image overrides
-  set_fact:
-    # ignoring ansible-lint var-spacing here because it is a false failure
-    # caused by the }}}}} in the combine statement
-    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {item.service: {'image': item.image}}}, recursive=True) }}" # noqa var-spacing
-  loop: "{{ docker_image_overrides }}"
-  when: docker_image_overrides is defined
 
 # Handle accounts. Account version can be set via accounts docker image in
 # docker-compose.accounts.yml otherwise via branch in config.yml variable.
@@ -154,36 +150,8 @@
       docker_compose_accounts_image_is_used
     )
 
-- name: Get accounts only services
-  vars:
-    accounts_only_services: []
-  set_fact:
-    accounts_only_services: "{{ accounts_only_services + [item] }}"
-  when: item not in keep_accounts_services
-  loop: "{{ docker_compose_accounts_data.services.keys() | list }}"
-
-# Get jaeger only services
-
-- name: Read docker-compose.jaeger.yml
-  slurp:
-    path: "{{ webportal_dir }}/docker-compose.jaeger.yml"
-  register: docker_compose_jaeger_slurped
-
-- name: Parse docker-compose.jaeger.yml
-  set_fact:
-    docker_compose_jaeger_data: "{{ docker_compose_jaeger_slurped['content'] | b64decode | from_yaml }}"
-
-- name: Get jaeger only services
-  vars:
-    jaeger_only_services: []
-  set_fact:
-    jaeger_only_services: "{{ jaeger_only_services + [item] }}"
-  when: item not in keep_jaeger_services
-  loop: "{{ docker_compose_jaeger_data.services.keys() | list }}"
-
-# Render docker-compose.override.yml with our data, remove accounts/jaeger only
-# services if these are turned off.
-- name: Save final docker-compose.override.yml file
+# Render docker-compose.override.yml with our data
+- name: Save docker-compose.override.yml file
   ansible.builtin.template:
-    src: templates/docker-compose.override.yml.final.j2
+    src: templates/docker-compose.override.yml.j2
     dest: "{{ webportal_dir }}/docker-compose.override.yml"
