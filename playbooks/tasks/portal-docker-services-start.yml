@@ -96,14 +96,6 @@
 - name: Include prunning old docker data
   include_tasks: tasks/portal-docker-prune-old-data.yml
 
-# Wait until Sia finished full setup
-- name: Wait until Sia finished full setup
-  command: docker logs sia
-  register: docker_logs_sia
-  until: docker_logs_sia.stdout.find("Finished full setup in") != -1
-  delay: 1
-  retries: "{{ sia_full_setup_timeout_secs }}"
-
 # Check that the Sia Blockchain is synced
 - name: Check Sia blockchain sync status
   command: docker exec sia siac consensus
@@ -125,6 +117,14 @@
 
         docker exec sia siac consensus
   when: "'Synced: Yes' not in siac_consensus_result.stdout"
+
+# Wait until Sia finished full setup
+- name: Wait until Sia finished full setup
+  command: docker logs sia
+  register: docker_logs_sia
+  until: docker_logs_sia.stdout.find("Finished full setup in") != -1
+  delay: 1
+  retries: "{{ sia_full_setup_timeout_secs }}"
 
 # Include waiting for sia daemon/ready
 - name: Include waiting for sia daemon/ready
