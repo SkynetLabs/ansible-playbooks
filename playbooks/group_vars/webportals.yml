@@ -275,8 +275,10 @@ portal_health_check_disable_delay_secs: 0
 # Disable portal when free disk space is lower then x GiB (60 GiB recommended)
 portal_health_check_disable_free_disk_space_limit_bytes: "{{ 60e+9 | int }}"
 
-# Waiting for sia full setup and /daemon/ready
-sia_full_setup_timeout_secs: 900
+# Waiting for sia consensus sync, sia full setup and /daemon/ready
+sia_consensus_sync_check_delays_secs: 5
+sia_consensus_sync_timeout_secs: 900
+sia_full_setup_timeout_secs: 60
 sia_daemon_ready_timeout_secs: 600
 curl_docker_image: "curlimages/curl:7.77.0"
 sia_endpoint_not_available_msg: "491 Module disabled - Refer to API.md"

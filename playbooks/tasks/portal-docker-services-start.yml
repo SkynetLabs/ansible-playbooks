@@ -96,13 +96,13 @@
 - name: Include prunning old docker data
   include_tasks: tasks/portal-docker-prune-old-data.yml
 
-# Check that the Sia Blockchain is synced
-- name: Check Sia blockchain sync status
+# Wait until Sia blockchain is synced
+- name: Wait until Sia blockchain is synced
   command: docker exec sia siac consensus
   register: siac_consensus_result
   until: "'Synced: Yes' in siac_consensus_result.stdout"
-  delay: 30
-  retries: 20
+  delay: "{{ sia_consensus_sync_check_delays_secs }}"
+  retries: "{{ (sia_consensus_sync_timeout_secs / sia_consensus_sync_check_delays_secs) | int }}"
   failed_when: False
 
 - name: Check if the Sia blockchain is synced
@@ -112,7 +112,7 @@
 
       {{ siac_consensus_result.stdout }}
 
-      Wait for Sia blockchain synced and rerun the playbook.
+      Wait until Sia blockchain is synced and rerun the playbook.
       To check sync status, execute (on the server):
 
         docker exec sia siac consensus
