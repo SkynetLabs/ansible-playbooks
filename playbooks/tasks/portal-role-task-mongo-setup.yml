@@ -1,5 +1,5 @@
 ---
-# Extract all to new mongo-setup.yml
+# Setup mongo docker service and mongo replicaset (cluster):
 # - setup docker
 # - check rs status
 # - init rs (if not done), will incl. first primary
