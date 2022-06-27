@@ -82,7 +82,7 @@
 # Ensure Accounts test user has the highest paid tier
 
 - name: Include getting MongoDB replicaset primary member
-  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary-v2.yml
+  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary.yml
 
 - name: Include updating Accounts test user to the highest paid tier in MongoDB
   include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml

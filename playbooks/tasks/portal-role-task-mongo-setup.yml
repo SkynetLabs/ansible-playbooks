@@ -1,207 +1,31 @@
 ---
-# Ensure MongoDB docker service is setup correctly
-# TODO: This ansible playbook task, should be moved to portal role
+# Extract all to new mongo-setup.yml
+# - setup docker
+# - check rs status
+# - init rs (if not done), will incl. first primary
+# - add voting members (till first 7 nodes)
+# - add voting non-voting members
 
-# Ensure mongo service is running correctly
-# - incl. admin initialization
-# - excl. replicaset setup
-
-- name: Check we have mongo config values
-  assert:
-    that:
-      - webportal_common_config.mongo_db_mgkey
-      - webportal_common_config.skynet_db_replicaset
-      - webportal_common_config.skynet_db_user
-      - webportal_common_config.skynet_db_pass
-    fail_msg: "MongoDB configuration variable(s) is not not defined."
-
-- name: Stat mongo/mgkey file or directory
-  ansible.builtin.stat:
-    path: "{{ mongo_mgkey_file }}"
-  register: mongo_mgkey_stat_result
-
-- name: Stat mongo/db file or directory
-  ansible.builtin.stat:
-    path: "{{ mongo_db_dir }}"
-  register: mongo_db_dir_stat_result
-
-- name: Stop and remove mongo container
-  community.docker.docker_container:
-    name: mongo
-    state: absent
-    container_default_behavior: no_defaults
-  when: >-
-    not mongo_mgkey_stat_result.stat.exists or
-    not mongo_mgkey_stat_result.stat.isreg
-
-- name: Remove mongo/mgkey directory
-  ansible.builtin.file:
-    path: "{{ mongo_mgkey_file }}"
-    state: absent
-  become: True
-  when: >-
-    mongo_mgkey_stat_result.stat.exists and
-    not mongo_mgkey_stat_result.stat.isreg
-
-# Create mongo directory first for mongo/mgkey file on fresh server
-- name: Ensure mongo/db directory exists
-  ansible.builtin.file:
-    path: "{{ mongo_db_dir }}"
-    state: directory
-    owner: "999"
-    group: "999"
-  become: True
-
-- name: Ensure mongo/mgkey file content
-  ansible.builtin.copy:
-    dest: "{{ mongo_mgkey_file }}"
-    content: "{{ webportal_common_config.mongo_db_mgkey }}"
-    owner: "999"
-    group: "999"
-    mode: "0400"
-  become: True
-
-- name: Set MongoDB start timestamp
-  set_fact:
-    mongodb_start_timestamp: "{{ ansible_date_time.iso8601_micro[:-1] }}"
-
-- name: Start mongo service
-  community.docker.docker_compose:
-    project_src: "{{ webportal_dir }}"
-    # Use intersection of wanted files and present files. E.g. wanted
-    # docker-compose.override.yml is wanted, but might not yet be created.
-    files: "{{ webportal_docker_compose_files_wanted | intersect(webportal_docker_compose_files_present) }}"
-    services: mongo
-    state: present
-  register: docker_mongo_result
-  ignore_errors: True
-
-- name: Set mongo service ok flag
-  set_fact:
-    mongo_service_ok: "{{ not (docker_mongo_result.failed | default(False)) }}"
-
-- name: Log docker compose result on error
-  debug:
-    msg: |
-      Starting mongo servise by docker compose failed:
-
-      {{ docker_mongo_result | to_nice_json }}
-  when: not mongo_service_ok
-
-- name: Wait for mongo container initialization before checking status
-  ansible.builtin.shell: "docker logs mongo | grep '\"Waiting for connections\"'"
-  vars:
-    fmt: "%Y-%m-%dT%H:%M:%S.%f"
-  register: mongo_ready_result
-  until: >-
-    mongo_ready_result.stdout_lines | length > 0 and
-    (mongo_ready_result.stdout_lines[-1] | from_json).t['$date'][:23] | to_datetime(fmt) > mongodb_start_timestamp | to_datetime(fmt)
-  delay: 1
-  retries: 20
-  when: mongo_service_ok and docker_mongo_result.changed | default(False)
-
-- name: Check mongo container is running
-  community.docker.docker_container_info:
-    name: mongo
-  register: mongo_container_result
-  when: mongo_service_ok
-
-- name: Update mongo service ok flag
-  set_fact:
-    mongo_service_ok: >-
-      {{ (mongo_container_result.exists | default(False) and
-      mongo_container_result.container.State.Running and
-      not mongo_container_result.container.State.Restarting) }}
-  # Update only if not already failing
-  when: mongo_service_ok
-
-- name: Log mongo container info when not running properly
-  debug:
-    msg: |
-      Mongo container info:
-
-      {{ mongo_container_result | to_nice_json }}
-  # Log only when checking container was performed (didn't fail previously)
-  when: not (mongo_container_result.skipped | default(False)) and not mongo_service_ok
-
-- name: Fail if mongo container is not running properly
-  debug:
-    msg: |
-      Mongo container is not running properly.
-  when: not mongo_service_ok
-
-- name: Include checking mongo container with admin login
-  include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
-  vars:
-    mongodb_shell:
-      eval: "db.serverStatus()"
-      until: "'\"ok\" : 1' in mongo_shell_result.transformed_output"
-      retries: 20
-      ignore_errors: True
-  when: mongo_service_ok
-  register: mongo_checking_admin_result
-
-- name: Set mongo admin ok flag
-  set_fact:
-    mongo_admin_ok: "{{ not (mongo_shell_result.failed | default(False)) }}"
-  when: mongo_service_ok
-
-- name: Log mongo admin login result when not ok
-  debug:
-    msg: |
-      MongoDB node admin login result:
-
-      {{ mongo_shell_result | to_nice_json }}
-  # Log only when checking admin login was performed (the playbook didn't fail
-  # before)
-  when: not (mongo_checking_admin_result.skipped | default(False)) and not mongo_admin_ok
-
-- name: Include initializing MongoDB with admin login
-  include_tasks: tasks/portal-role-task-mongo-setup-admin-init.yml
-  when: not mongo_admin_ok
-
-# Start the mongo service again if admin initialization took place
-- name: Start mongo service
-  community.docker.docker_compose:
-    project_src: "{{ webportal_dir }}"
-    # Use intersection of wanted files and present files. E.g. wanted
-    # docker-compose.override.yml is wanted, but might not yet be created.
-    files: "{{ webportal_docker_compose_files_wanted | intersect(webportal_docker_compose_files_present) }}"
-    services: mongo
-    state: present
-  register: docker_mongo_result
-  ignore_errors: True
-  when: not mongo_admin_ok
-
-# Ensure MongoDB replicaset is initialized for a cluster
+- name: Include setting MongoDB docker service
+  include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
 
 - name: Include getting MongoDB replicaset status
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-status.yml
-  # If the playbook is run against several hosts, setup replicaset only once
-  # (on the first host of the batch)
-  run_once: True
 
-- name: Include setting MongoDB replicaset
+- name: Include initializing MongoDB replicaset
   include_tasks: tasks/portal-role-task-mongo-setup-replicaset-init.yml
   when: not mongo_replicaset_online
   # If the playbook is run against several hosts, setup replicaset only once
   # (on the first host of the batch)
   run_once: True
-  register: mongo_replicaset_init
 
-# Ensure MongoDB nodes are in replicaset
-
-- name: Include ensuring MongoDB node is a replicaset non-voting member
-  include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
-  # Skip for host initializing MongoDB replicaset
-  when: mongo_replicaset_init.skipped | default(False)
-# TODO: Finish and add back
-# # Add first 7 MongoDB nodes as voting members
-# - block:
-#     - name: Include adding MongoDB node as voting members
-#       include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-voting-member.yml
-#   # Limit number of concurent hosts running this task to 1
-#   # throttle doesn't work with include_tasks so we use block
-#   throttle: 1
-#   # Skip for host initializing MongoDB replicaset
-#   when: mongo_replicaset_init.skipped | default(False)
+# Add a mongo node as a voting or non-voting member.
+# We need to throttle this operation so that voting members count is always
+# freshly read from the replicaset and also because mongo can add (i.e. to
+# reconfigure replicaset) just 1 member at a time. Ansible module include_tasks
+# doesn't allow throttling, so this task is wrapped inside a block that is
+# throttled.
+- block:
+    - name: Include adding a MongoDB node as a voting or non-voting member
+      include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-voting-non-voting-member.yml
+  throttle: 1
