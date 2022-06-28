@@ -74,7 +74,10 @@
   set_fact:
     voting_members_count: "{{ mongo_shell_delegated_result.transformed_output }}"
 
-- name: Set MongoDB votes and priority
+# Determine if the new mongo node should be a voting or 
+# non-voting member of the replicaset by checking if there are 
+# already `mongo_max_voting_members`
+- name: Determine if MongoDB node should be voting or non-voting
   set_fact:
     node_votes_and_priority: "{{ 1 if (voting_members_count | int < mongo_max_voting_members) else 0 }}"
 
