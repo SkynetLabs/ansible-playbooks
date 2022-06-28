@@ -1,13 +1,13 @@
 ---
 # Get portal configs
-# - Load portal configs from secrets backend (e.g. LastPass)
+# - Load portal configs from secrets backend (e.g. LastPass) xxxqqq update with HCV
 # - Set default values (for unset keys)
 # - Set mongodb mgkey (if defined but empty)
 # - Set portal modules flag
 # - Set mongodb config (if mongodb is on)
 
 - name: Include loading portal config
-  include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
+  include_tasks: tasks/portal-configs-load-subtask.yml
 
 # If the server config hasn't been yet saved to secrets backend, it is loaded
 # as undefined now and we set it to empty dictionary.
@@ -32,6 +32,65 @@
     webportal_common_config: "{{ webportal_common_config | default({}) }}"
     webportal_common_config_last: "{{ webportal_common_config_last | default({}) }}"
     webportal_common_config_last_old: "{{ webportal_common_config_last | default({}) }}"
+
+# xxxqqq - config tests begin
+- set_fact:
+    yaml_cfgs:
+      - webportal_server_config
+      - webportal_common_config
+      - webportal_common_config_last
+      - webportal_common_config_last_old
+
+- set_fact:
+    json_cfgs:
+      - accounts_jwks_data
+
+# - name: Save orig yaml configs
+#   ansible.builtin.copy:
+#     content: "{{ lookup('vars', item) | to_nice_yaml }}"
+#     dest: "/tmp/playbook/my-logs/{{ item }}_orig_{{ inventory_hostname }}.yml"
+#   delegate_to: localhost
+#   loop: "{{ yaml_cfgs }}"
+
+# - name: Save orig json configs
+#   ansible.builtin.copy:
+#     content: "{{ lookup('vars', item) | to_nice_json }}"
+#     dest: "/tmp/playbook/my-logs/{{ item }}_orig_{{ inventory_hostname }}.json"
+#   delegate_to: localhost
+#   loop: "{{ json_cfgs }}"
+
+- name: Save new yaml configs
+  ansible.builtin.copy:
+    content: "{{ lookup('vars', item) | to_nice_yaml }}"
+    dest: "/tmp/playbook/my-logs/{{ item }}_new_{{ inventory_hostname }}.yml"
+  delegate_to: localhost
+  loop: "{{ yaml_cfgs }}"
+
+- name: Save new json configs
+  ansible.builtin.copy:
+    content: "{{ lookup('vars', item) | to_nice_json }}"
+    dest: "/tmp/playbook/my-logs/{{ item }}_new_{{ inventory_hostname }}.json"
+  delegate_to: localhost
+  loop: "{{ json_cfgs }}"
+
+- name: compare orig and new yaml configs
+  vars:
+    orig: "/tmp/playbook/my-logs/{{ item }}_orig_{{ inventory_hostname }}.yml"
+    new: "/tmp/playbook/my-logs/{{ item }}_new_{{ inventory_hostname }}.yml" 
+  ansible.builtin.command: "git diff --no-index {{ orig }} {{ new }}"
+  delegate_to: localhost
+  loop: "{{ yaml_cfgs }}"
+
+- name: compare orig and new json configs
+  vars:
+    orig: "/tmp/playbook/my-logs/{{ item }}_orig_{{ inventory_hostname }}.json"
+    new: "/tmp/playbook/my-logs/{{ item }}_new_{{ inventory_hostname }}.json" 
+  ansible.builtin.command: "git diff --no-index {{ orig }} {{ new }}"
+  delegate_to: localhost
+  loop: "{{ json_cfgs }}"
+
+- meta: end_host
+# xxxqqq - config tests end
 
 - name: Set portal common/cluster config missing variables to default values to the last config
   set_fact:
@@ -107,8 +166,8 @@
     - portal_modules is not defined
     - webportal_server_config.portal_modules is not defined
 
-# If portal_modules is defined in hosts.ini, make sure any lastpass value is
-# overwritten
+# If portal_modules is defined in hosts.ini, make sure any secrets storage
+# value is overwritten
 - name: Update portal_modules
   set_fact:
     webportal_server_config: "{{ webportal_server_config | combine({'portal_modules': 'DEPRECATED - update value in hosts.ini'}) }}"

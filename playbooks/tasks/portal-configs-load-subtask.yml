@@ -1,0 +1,60 @@
+---
+# Load portal configs from secrets storage
+
+# Load server config
+- name: Include loading server config from secrets storage
+  # include_tasks: "tasks/{{ secrets_storage }}-load-yaml-note.yml"
+  include_tasks: "tasks/{{ secrets_storage }}-load-secret-yaml-or-json.yml"
+  loop:
+    # Set `secret_path` according to `{{secret_storage}}_portal_config_server`
+    # variable
+    - secret_path: "{{ lookup('vars', secrets_storage + '_portal_config_server') }}"
+      var_name: webportal_server_config
+
+# Load common/cluster configs defined in a list
+
+# `{{secret_storage}}_portal_common_and_cluster_configs_list` defines a list of
+# common/cluster configs to load. Former config values can be overridden by
+# later config values.
+
+- name: Generate list of secret paths and variable names
+  set_fact:
+    secrets_common_cluster_configs: "{{ secrets_common_cluster_configs | default([]) + [{'secret_path': item, 'var_name': 'config_' + config_index | string}] }}"
+  # Loop over list of common and cluster configs defined for the selected
+  # secrets storage.
+  loop: "{{ lookup('vars', secrets_storage + '_portal_common_and_cluster_configs_list') }}"
+  loop_control:
+    index_var: config_index
+
+- name: Include loading common/cluster configs from secrets storage
+  include_tasks: "tasks/{{ secrets_storage }}-load-secret-yaml-or-json.yml"
+  loop: "{{ secrets_common_cluster_configs }}"
+
+- name: Create list of configs variable names
+  set_fact:
+    secrets_common_cluster_configs_var_names: "{{ secrets_common_cluster_configs | map(attribute='var_name') }}"
+
+- name: Create complete webportal common config
+  set_fact:
+    webportal_common_config: "{{ webportal_common_config | default({}) | combine(lookup('vars', item), recursive=True) }}"
+  # We can skip last config if it is not defined, because Ansible will generate
+  # it. We shouldn't skip previous configs as this seems like misconfiguration.
+  when: not ((item == secrets_common_cluster_configs_var_names | last) and lookup('vars', item, default='not-defined') == 'not-defined')
+  loop: "{{ secrets_common_cluster_configs_var_names }}"
+
+# webportal_common_config contains all common/cluster config values from the
+# secrats storage configs list. webportal_common_config_last config contains
+# config values from the last config in the list. We will later set default/
+# missing values to this config and will save this config back to secrets
+# storage.
+- name: Create last (least specific) webportal common/cluster config
+  set_fact:
+    webportal_common_config_last: "{{ lookup('vars', secrets_common_cluster_configs_var_names | last, default={}) }}"
+
+# Load jwks.json
+
+- name: Load jwks.json from secrets storage
+  include_tasks: "tasks/{{ secrets_storage }}-load-secret-yaml-or-json.yml"
+  loop:
+    - secret_path: "{{ lookup('vars', secrets_storage + '_accounts_jwks_json') }}"
+      var_name: accounts_jwks_data
