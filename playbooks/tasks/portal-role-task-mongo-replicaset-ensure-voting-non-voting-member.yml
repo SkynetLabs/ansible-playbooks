@@ -74,8 +74,8 @@
   set_fact:
     voting_members_count: "{{ mongo_shell_delegated_result.transformed_output }}"
 
-# Determine if the new mongo node should be a voting or 
-# non-voting member of the replicaset by checking if there are 
+# Determine if the new mongo node should be a voting or
+# non-voting member of the replicaset by checking if there are
 # already `mongo_max_voting_members`
 - name: Determine if MongoDB node should be voting or non-voting
   set_fact:
