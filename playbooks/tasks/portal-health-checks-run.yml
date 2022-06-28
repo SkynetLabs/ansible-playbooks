@@ -17,8 +17,18 @@
 - name: Run critical health checks
   command: docker exec health-check cli run critical
   changed_when: False
+  # Retry 5 times with 1 minute in between
+  delay: 60
+  retries: 5
+  register: test_result
+  until: test_result.rc == 0
 
 # Run extended health checks
 - name: Run extended health checks
   command: docker exec health-check cli run extended
   changed_when: False
+  # Retry 5 times with 1 minute in between
+  delay: 60
+  retries: 5
+  register: test_result
+  until: test_result.rc == 0

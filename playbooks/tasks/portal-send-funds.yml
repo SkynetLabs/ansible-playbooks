@@ -1,8 +1,10 @@
 # Send funds to the webportal
 
 # Need current host wallet address
+#
+# -s to suppress alerts
 - name: Get wallet address from destination host
-  ansible.builtin.command: "docker exec sia siac wallet address"
+  ansible.builtin.command: "docker exec sia siac wallet address -s"
   register: docker_wallet_address_result
 
 # Pull the wallet address from stdout

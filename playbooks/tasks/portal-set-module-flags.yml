@@ -1,0 +1,32 @@
+---
+# Set portal module flags
+
+# Fail if portal modules are not defined or are none
+- name: Fail if portal modules are not defined or are none
+  fail:
+    msg: |
+      Portal modules must be defined.
+      Please define them in your hosts.ini file.
+  failed_when:
+    - portal_modules_string is not defined
+    - portal_modules_string is none
+
+- name: Set Accounts flag
+  set_fact:
+    portal_accounts_on: "{{ 'a' in portal_modules_string }}"
+
+- name: Set Blocker flag
+  set_fact:
+    portal_blocker_on: "{{ 'b' in portal_modules_string }}"
+
+- name: Set Abuse Scanner flag
+  set_fact:
+    portal_abuse_scanner_on: "{{ 'u' in portal_modules_string }}"
+
+- name: Set Jaeger flag
+  set_fact:
+    portal_jaeger_on: "{{ 'j' in portal_modules_string }}"
+
+- name: Set Pinner flag
+  set_fact:
+    portal_pinner_on: "{{ 'p' in portal_modules_string }}"

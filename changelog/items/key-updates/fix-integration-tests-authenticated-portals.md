@@ -1,1 +1,0 @@
-- Fix running integration tests on authenticated portals (use Skynet API key).

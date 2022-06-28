@@ -52,6 +52,10 @@
     set_portal_versions: True
     portal_action: "portal-deploy"
 
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
+
   tasks:
     - name: Include deploying portal - start services
       include_tasks: tasks/portal-deploy-start-services.yml
