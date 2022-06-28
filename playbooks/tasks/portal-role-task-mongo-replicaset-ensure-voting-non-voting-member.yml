@@ -70,7 +70,7 @@
       eval: |
         print(rs.config().members.filter(m => m.votes > 0).length)
 
-- name: Set MongoDB replicaset voting members
+- name: Set MongoDB replicaset voting members count
   set_fact:
     voting_members_count: "{{ mongo_shell_delegated_result.transformed_output }}"
 
