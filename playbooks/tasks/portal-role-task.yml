@@ -141,7 +141,7 @@
         webportal_server_config.sia_wallet_seed != None
         and
         webportal_server_config.sia_wallet_seed != ''
-      }}"
+      }}
 
 # Init a wallet with existing seed
 
