@@ -15,8 +15,8 @@
   vars:
     mongodb_shell:
       # Due to yaml escaping following eval must use ':', not ":".
-      # isMaster.primary returns string in format '<FQDN>:<port>', we need to
-      # extract only the first subdomain which is Ansible host.
+      # isMaster.primary returns string in format '<subdomain>.<domain>.<tld>:
+      # <port>', we need to extract only the subdomain which is Ansible host.
       eval: |
         rs.isMaster().primary.split('.')[0]
       until: True
