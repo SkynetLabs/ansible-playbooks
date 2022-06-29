@@ -26,7 +26,7 @@
       host: "{{ mongo_primary_host }}"
       eval: |
         rs.config().members.forEach(m => {
-          if (m.host == '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}')
+          if (m.host == '{{ ansible_host }}:{{ mongo_port | default(default_mongo_port | string) }}')
           {
             if (m.votes > 0) {print('is-voting-member')}
             if (m.votes == 0) {print('is-non-voting-member')}
@@ -49,7 +49,7 @@
       {{ inventory_hostname }}
 
       MongoDB host:
-      {{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}
+      {{ ansible_host }}:{{ mongo_port | default(default_mongo_port | string) }}
 
       MongoDB host is a replicaset member:
       {{ node_is_member }}
@@ -93,7 +93,7 @@
     mongodb_shell_delegated:
       host: "{{ mongo_primary_host }}"
       eval: |
-        rs.add({host: '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}', priority: {{ node_votes_and_priority }}, votes: {{ node_votes_and_priority }} })
+        rs.add({host: '{{ ansible_host }}:{{ mongo_port | default(default_mongo_port | string) }}', priority: {{ node_votes_and_priority }}, votes: {{ node_votes_and_priority }} })
   when: not node_is_member
   register: mongo_adding_member_result
 

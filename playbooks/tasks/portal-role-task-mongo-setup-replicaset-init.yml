@@ -39,7 +39,7 @@
       eval: |
         rs.initiate({
           _id : '{{ webportal_common_config.skynet_db_replicaset }}',
-          members: [{_id: 0, host: '{{ ansible_host }}:{{ subcrap_mongo_port | default(default_mongo_port | string) }}'}]
+          members: [{_id: 0, host: '{{ ansible_host }}:{{ mongo_port | default(default_mongo_port | string) }}'}]
         })
       until: True
       retries: 0
