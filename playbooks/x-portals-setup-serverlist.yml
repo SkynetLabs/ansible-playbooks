@@ -12,7 +12,7 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
+    secrets_storage_required: True
 
     serverlist_marker: "ANSIBLE MANAGED - serverlist script vars"
     serverlist_version: "v0.0.4"
@@ -28,7 +28,7 @@
 
     # Load vars from LastPass
     - name: Include loading LastPass portal common config
-      include_tasks: tasks/lastpass-load-webportal-config.yml
+      include_tasks: tasks/portal-configs-load.yml
 
     # Insert/update env vars
 

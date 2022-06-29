@@ -12,7 +12,7 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
+    secrets_storage_required: True
     vm_max_map_count: 262144
   vars_files:
     - "{{ common_vars_file }}"

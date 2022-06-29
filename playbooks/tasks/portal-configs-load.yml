@@ -89,7 +89,7 @@
   delegate_to: localhost
   loop: "{{ json_cfgs }}"
 
-- meta: end_host
+# - meta: end_host
 # xxxqqq - config tests end
 
 - name: Set portal common/cluster config missing variables to default values to the last config

@@ -9,7 +9,7 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
+    secrets_storage_required: True
     portal_action: "{{ 'portal-setup-and-deploy' if (deploy_after_setup | default(False)) else 'portal-setup' }}"
 
     # Deploy specific
@@ -39,7 +39,6 @@
     # Docker secrets/Hashicorp Vault/...)
     - name: Set load/save handlers for secure storage
       set_fact:
-        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
         save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
         save_cluster_config_handler: "tasks/lastpass-save-cluster-config.yml"
 

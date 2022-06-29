@@ -3,8 +3,7 @@
 
 # Load server config
 - name: Include loading server config from secrets storage
-  # include_tasks: "tasks/{{ secrets_storage }}-load-yaml-note.yml"
-  include_tasks: "tasks/{{ secrets_storage }}-load-secret-yaml-or-json.yml"
+  include_tasks: "tasks/secrets-storage-{{ secrets_storage }}-load-secret-yaml-or-json.yml"
   loop:
     # Set `secret_path` according to `{{secret_storage}}_portal_config_server`
     # variable
@@ -27,7 +26,7 @@
     index_var: config_index
 
 - name: Include loading common/cluster configs from secrets storage
-  include_tasks: "tasks/{{ secrets_storage }}-load-secret-yaml-or-json.yml"
+  include_tasks: "tasks/secrets-storage-{{ secrets_storage }}-load-secret-yaml-or-json.yml"
   loop: "{{ secrets_common_cluster_configs }}"
 
 - name: Create list of configs variable names
@@ -54,7 +53,7 @@
 # Load jwks.json
 
 - name: Load jwks.json from secrets storage
-  include_tasks: "tasks/{{ secrets_storage }}-load-secret-yaml-or-json.yml"
+  include_tasks: "tasks/secrets-storage-{{ secrets_storage }}-load-secret-yaml-or-json.yml"
   loop:
     - secret_path: "{{ lookup('vars', secrets_storage + '_accounts_jwks_json') }}"
       var_name: accounts_jwks_data

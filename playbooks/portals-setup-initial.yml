@@ -24,7 +24,7 @@
   any_errors_fatal: True
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
+    secrets_storage_required: True
     lastpass_allow_missing_user_credentials: True
   vars_files:
     - "{{ common_vars_file }}"
@@ -44,7 +44,7 @@
   serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
-    lastpass_required: True
+    secrets_storage_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -78,8 +78,8 @@
   serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
-    # LastPass required to set webportal_temp_user password to webportal_user password
-    lastpass_required: True
+    # Secrets required to set webportal_temp_user password to webportal_user password
+    secrets_storage_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -163,9 +163,9 @@
   serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
   vars:
-    # LastPass required to read password for 'become: True' and for setting
+    # Secrets required to read password for 'become: True' and for setting
     # webportal_user password from LastPass
-    lastpass_required: True
+    secrets_storage_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
