@@ -49,7 +49,7 @@
   when: >-
     not (mongo_getting_primary_result.skipped | default(False)) and
     not (mongo_shell_delegated_result.failed | default(False)) and
-    hostvars[item].ansible_host + ':' + (hostvars[item].mongo_port | default(default_mongo_port | string)) == mongo_shell_delegated_result.transformed_output
+    hostvars[item].ansible_host + ':' + (hostvars[item].custom_mongo_port | default(default_mongo_port | string)) == mongo_shell_delegated_result.transformed_output
   loop: "{{ mongo_cluster_hosts }}"
 
 - name: Set mongo replicaset is online

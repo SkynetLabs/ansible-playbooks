@@ -152,7 +152,7 @@
         env:
           MONGO_INITDB_ROOT_USERNAME: "{{ webportal_common_config.skynet_db_user }}"
           MONGO_INITDB_ROOT_PASSWORD: "{{ webportal_common_config.skynet_db_pass }}"
-        published_ports: "{{ default_mongo_port }}:{{ default_mongo_port }}"
+        published_ports: "{{ custom_mongo_port | default(default_mongo_port) }}:{{ default_mongo_port }}"
         auto_remove: True
         volumes:
           - "{{ mongo_db_dir }}:/data/db"

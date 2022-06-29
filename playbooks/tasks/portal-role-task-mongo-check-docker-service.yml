@@ -108,7 +108,7 @@
         rss = rs.status()
         if (rss.ok == 1) {
           rss.members.forEach(m => {
-            if (m.name == '{{ ansible_host }}:{{ mongo_port | default(default_mongo_port | string) }}')
+            if (m.name == '{{ ansible_host }}:{{ custom_mongo_port | default(default_mongo_port | string) }}')
             {
               print(m.stateStr)
             }

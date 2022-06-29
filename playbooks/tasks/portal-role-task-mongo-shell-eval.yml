@@ -6,8 +6,8 @@
 - name: Run mongo shell command
   community.mongodb.mongodb_shell:
     # Use secure localhost connection unless on subcrap test cluster
-    login_host: "{{ 'localhost' if (mongo_port is not defined) else ansible_host }}"
-    login_port: "{{ mongo_port | default(default_mongo_port | string) }}"
+    login_host: "{{ 'localhost' if (custom_mongo_port is not defined) else ansible_host }}"
+    login_port: "{{ custom_mongo_port | default(default_mongo_port | string) }}"
     login_user: "{{ webportal_common_config.skynet_db_user | default(mongodb_config.skynet_db_user) }}"
     login_password: "{{ webportal_common_config.skynet_db_pass | default(mongodb_config.skynet_db_pass) }}"
     mongo_cmd: "docker exec mongo mongo"

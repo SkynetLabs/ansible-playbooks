@@ -13,8 +13,8 @@
 - name: Run mongo shell command on MongoDB primary host
   community.mongodb.mongodb_shell:
     # Use secure localhost connection unless on subcrap test cluster
-    login_host: "{{ 'localhost' if (hostvars[mongodb_shell_delegated.host].mongo_port is not defined) else hostvars[mongodb_shell_delegated.host].ansible_host }}"
-    login_port: "{{ hostvars[mongodb_shell_delegated.host].mongo_port | default(default_mongo_port | string) }}"
+    login_host: "{{ 'localhost' if (hostvars[mongodb_shell_delegated.host].custom_mongo_port is not defined) else hostvars[mongodb_shell_delegated.host].ansible_host }}"
+    login_port: "{{ hostvars[mongodb_shell_delegated.host].custom_mongo_port | default(default_mongo_port | string) }}"
     login_user: "{{ webportal_common_config.skynet_db_user }}"
     login_password: "{{ webportal_common_config.skynet_db_pass }}"
     mongo_cmd: "docker exec mongo mongo"

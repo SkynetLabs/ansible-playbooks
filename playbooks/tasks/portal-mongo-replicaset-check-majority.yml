@@ -61,10 +61,10 @@
                   .map(m => m.name)
                   .filter(m => votingMembers.includes(m))
                 batchMembers = [{% for h in ansible_play_batch -%}
-                  '{{ hostvars[h].ansible_host + ':' + (hostvars[h].mongo_port | default(default_mongo_port) | string) }}'{{ loop.last | ternary('', ', ') }}
+                  '{{ hostvars[h].ansible_host + ':' + (hostvars[h].custom_mongo_port | default(default_mongo_port) | string) }}'{{ loop.last | ternary('', ', ') }}
                   {%- endfor -%}]
                 onlineVotingMembersAfter = onlineVotingMembers.filter(m => !batchMembers.includes(m))
-                thisMemberIsVoting = votingMembers.includes('{{ ansible_host + ':' + (mongo_port | default(default_mongo_port) | string) }}')
+                thisMemberIsVoting = votingMembers.includes('{{ ansible_host + ':' + (custom_mongo_port | default(default_mongo_port) | string) }}')
                 result = {
                   "votingMembers": votingMembers,
                   "onlineVotingMembers": onlineVotingMembers,
