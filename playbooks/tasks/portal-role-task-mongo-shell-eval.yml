@@ -5,8 +5,10 @@
 
 - name: Run mongo shell command
   community.mongodb.mongodb_shell:
-    # Use secure localhost connection unless on subcrap test cluster
-    login_host: "{{ 'localhost' if (custom_mongo_port is not defined) else ansible_host }}"
+    # Use secure localhost connection unless you e.g. need to test on a host
+    # with mongo nodes on virtual machines (localhost targets the host machine
+    # while ansible_host can target mongo in VMs under the host) 
+    login_host: "{{ 'localhost' if (not (use_custom_mongo_host | default('False'))) else ansible_host }}"
     login_port: "{{ custom_mongo_port | default(default_mongo_port | string) }}"
     login_user: "{{ webportal_common_config.skynet_db_user | default(mongodb_config.skynet_db_user) }}"
     login_password: "{{ webportal_common_config.skynet_db_pass | default(mongodb_config.skynet_db_pass) }}"
