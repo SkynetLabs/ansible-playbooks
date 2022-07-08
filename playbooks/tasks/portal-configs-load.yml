@@ -3,11 +3,8 @@
 # - Load portal configs from secrets backend (e.g. LastPass)
 # - Set default values (for unset keys)
 # - Set mongodb mgkey (if defined but empty)
-# - Set mongodb flag
+# - Set portal modules flag
 # - Set mongodb config (if mongodb is on)
-# - Set accounts flag
-# - Set blocker flag
-# - Set abuse flag
 
 - name: Include loading portal config
   include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
@@ -100,39 +97,40 @@
       {% endfor %}
   failed_when: mongodb_config_server_preference_result.failed | default(False)
 
-- name: Set Accounts flag
+# Fail if portal modules are not defined
+- name: Fail if portal modules are not defined
+  fail:
+    msg: |
+      Portal modules must be defined.
+      Please define them in your hosts.ini file.
+  failed_when:
+    - portal_modules is not defined
+    - webportal_server_config.portal_modules is not defined
+
+# If portal_modules is defined in hosts.ini, make sure any lastpass value is
+# overwritten
+- name: Update portal_modules
   set_fact:
-    portal_accounts_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'a' in webportal_server_config.portal_modules }}
+    webportal_server_config: "{{ webportal_server_config | combine({'portal_modules': 'DEPRECATED - update value in hosts.ini'}) }}"
+  when:
+    - portal_modules is defined
+    - webportal_server_config.portal_modules is defined
+
+# Set portal module flags
+- name: Set Portal Module Flags from hosts.ini
+  include_tasks: tasks/portal-set-module-flags.yml
+  vars:
+    portal_modules_string: "{{ portal_modules | default(webportal_server_config.portal_modules) }}"
 
 # Portal is anonymous if Accounts are off or if Accounts are on and
 # accounts_limit_access is set to 'false' (case insensitive).
-- name: Set portal is anonymou flag
+#
+# The default for `accounts_limit_access` is authenticated as defined in the
+# skynet-webportal repo
+# https://github.com/SkynetLabs/skynet-webportal/blob/master/docker-compose.accounts.yml
+- name: Set portal is anonymous flag
   set_fact:
     portal_is_anonymous: >-
       {{ not portal_accounts_on
       or webportal_common_config.accounts_limit_access
-      | default(False) | string | lower == 'false' }}
-
-- name: Set Blocker flag
-  set_fact:
-    portal_blocker_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'b' in webportal_server_config.portal_modules }}
-
-- name: Set Abuse Scanner flag
-  set_fact:
-    portal_abuse_scanner_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'u' in webportal_server_config.portal_modules }}
-
-- name: Set Jaeger flag
-  set_fact:
-    portal_jaeger_on: >-
-      {{ webportal_server_config.portal_modules is defined and
-      webportal_server_config.portal_modules is not none and
-      'j' in webportal_server_config.portal_modules }}
+      | default("authenticated") | string | lower == 'false' }}

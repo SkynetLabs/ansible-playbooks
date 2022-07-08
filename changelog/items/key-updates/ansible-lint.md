@@ -1,1 +1,0 @@
-- Add ansible-lint to repo
