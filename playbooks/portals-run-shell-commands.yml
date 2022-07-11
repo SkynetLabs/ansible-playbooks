@@ -16,22 +16,15 @@
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     portal_action: "portal-run-shell-commands"
 
+  vars_files:
+    - "{{ common_vars_file }}"
+    - "{{ custom_vars_file  }}"
+
   tasks:
     # Check '--limit' is used. This is to protect against taking the entire
     # fleet down
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
-
-    # Skip portals on takedown
-    - block:
-        - name: Stop play for portals in webportals_takedown group
-          debug:
-            msg: "Will not execute command on portals in webportals_takedown group"
-
-        - name: Stop play for portals in webportals_takedown group
-          meta: end_host
-
-      when: "'webportals_takedown' in group_names"
 
     # Check/install Ansible prerequisites
     - name: Include preparing portal prerequisites
@@ -40,10 +33,21 @@
     # Disable health check
     - name: Include disabling portal health check
       include_tasks: tasks/portal-health-check-disable.yml
+      when: "'webportals_takedown' not in group_names"
 
     # Execute shell command(s) from yml file
     - name: Include running shell commands
       include_tasks: tasks/shell-commands-run.yml
+
+    # Stop here for portals on takedown
+    - block:
+        - name: Stop play for portals in webportals_takedown group
+          debug:
+            msg: "Will not run integration tests, health checks or enabling portals in webportals_takedown group"
+
+        - name: Stop play for portals in webportals_takedown group
+          meta: end_host
+      when: "'webportals_takedown' in group_names"
 
     # Run portal integration tests
     - name: Include running portal integration tests
