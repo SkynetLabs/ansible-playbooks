@@ -341,7 +341,15 @@ Group hosts.ini setting example:
 deny_public_access=true
 ```
 
-Once the `deny_public_access` is changed, `DENY_PUBLIC_ACCESS` will be updated on the server during next deploy using `portals-setup-following.sh` script. It is important to note that since this change updates `.env` file, regular deploy using `portals-deploy.sh` script will not take it into account.
+Once the `deny_public_access` is changed, `DENY_PUBLIC_ACCESS` will be updated on the server during next deploy using `portals-setup-following.sh` script.
+
+:warning: Use `portals-setup-following.sh` script when deploying, regular deploy using `portals-deploy.sh` script will not update `.env` file!
+
+#### Restoring public access
+
+Once public access can be restored, portal operator should remove (or set to `false`) the `deny_public_access` variable from `inventory/hosts.ini` file and run `portals-setup-following.sh` script.
+
+:warning: Use `portals-setup-following.sh` script when deploying, regular deploy using `portals-deploy.sh` script will not update `.env` file!
 
 ### Rollback Skynet Webportal
 
