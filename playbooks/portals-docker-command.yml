@@ -19,17 +19,6 @@
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
-    # Skip portals on takedown as they are already out of the LB
-    - block:
-        - name: Stop play for portals in webportals_takedown group
-          debug:
-            msg: "Will not execute command on portals in webportals_takedown group"
-
-        - name: Stop play for portals in webportals_takedown group
-          meta: end_host
-
-      when: "'webportals_takedown' in group_names"
-
     # Check/install Ansible prerequisites
     - name: Include preparing portal prerequisites
       include_tasks: tasks/portals-prepare.yml
