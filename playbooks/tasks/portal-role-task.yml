@@ -24,14 +24,62 @@
     dest: "{{ webportal_dir }}/.env"
   register: create_env_file_result
 
-# Save JWKS file for accounts
+# Autogenerate JWKS config data (if not done)
+  # Do not run this in parallel (use throttle = 1) so that there are not
+  # created and used multiple JWKS data for a single cluster
+- block:
+    - name: Load JWKS data fresh from LastPass
+      include_tasks: tasks/lastpass-load-json-note.yml
+      loop:
+        - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
+          var_name: accounts_jwks_data
+
+    - name: Set generate JWKS data flag
+      set_fact:
+        generate_jwks: "{{ accounts_jwks_data | default({}) == {} or accounts_jwks_data == '' }}"
+
+    # Autogenerate JWKS data and save it to LastPass (if not yet done)
+    - block:
+        # Checkout accounts repo separately for each host so that we prevent
+        # overriding jwks.json file content by multiple hosts/clusters.
+
+        - name: Set accounts repository directory
+          set_fact:
+            jwks_repo_dir: "{{ local_temp_skynetlabs_git_repos_skynet_accounts }}/{{ inventory_hostname }}"
+
+        - name: Checkout skynet-accounts repo
+          local_action:
+            module: ansible.builtin.git
+            repo: "{{ accounts_repo_url }}"
+            dest: "{{ jwks_repo_dir }}"
+            version: "main"
+            update: True
+            force: True
+
+        - name: Initiate jwks count and max variables
+          set_fact:
+            # retries count can't be set in `vars:` in `include_tasks` because then
+            # incrementing doesn't work in the included task.
+            jwks_retries_count: 0
+            jwks_retries_max: 10
+
+        - name: Include generating jwks.json file
+          include_tasks: tasks/portal-accounts-generate-jwks.json.yml
+
+        - name: Include saving cluster jwks.json to LastPass
+          include_tasks: tasks/lastpass-save-cluster-jwks.json.yml
+      when: generate_jwks
+  when: portal_accounts_on
+  throttle: 1
+
+# Create JWKS file for accounts
 - block:
     - name: Ensure accounts/conf directory exists
       ansible.builtin.file:
         path: "{{ accounts_conf_dir }}"
         state: directory
 
-    - name: Save jwks.json file
+    - name: Create jwks.json file
       ansible.builtin.copy:
         dest: "{{ accounts_jwks_path }}"
         content: "{{ accounts_jwks_data }}"

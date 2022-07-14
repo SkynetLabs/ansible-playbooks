@@ -1,0 +1,18 @@
+---
+# Save cluster jwks.json config to LastPass
+
+- name: Check if LastPass jwks.json cluster record exists
+  local_action:
+    module: ansible.builtin.command
+    cmd: "lpass ls --sync now '{{ lastpass_accounts_jwks_json }}'"
+  register: lastpass_ls_result
+
+- name: Set LastPass command add or edit
+  set_fact:
+    lastpass_command: "{{ 'add' if lastpass_ls_result.stdout_lines | length == 0 else 'edit' }}"
+
+- name: Update LastPass jwks.json cluster record
+  local_action:
+    module: shell
+    cmd: printf '{{ accounts_jwks_data | to_nice_json(indent=2) }}' | lpass {{ lastpass_command }} --sync now --notes --non-interactive '{{ lastpass_accounts_jwks_json }}'
+  no_log: True
