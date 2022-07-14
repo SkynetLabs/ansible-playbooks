@@ -1,6 +1,8 @@
 ---
 # Save cluster jwks.json config to LastPass
 
+# xxxqqq rework this task/file to common & plugins
+
 - name: Check if LastPass jwks.json cluster record exists
   local_action:
     module: ansible.builtin.command

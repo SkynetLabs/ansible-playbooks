@@ -28,6 +28,7 @@
   # Do not run this in parallel (use throttle = 1) so that there are not
   # created and used multiple JWKS data for a single cluster
 - block:
+    # xxxqqq rework to plugins
     - name: Load JWKS data fresh from LastPass
       include_tasks: tasks/lastpass-load-json-note.yml
       loop:
@@ -66,6 +67,7 @@
         - name: Include generating jwks.json file
           include_tasks: tasks/portal-accounts-generate-jwks.json.yml
 
+        # xxxqqq rework to plugins
         - name: Include saving cluster jwks.json to LastPass
           include_tasks: tasks/lastpass-save-cluster-jwks.json.yml
       when: generate_jwks
