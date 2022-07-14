@@ -28,7 +28,7 @@ pushd $ans_dir > /dev/null
 
 # Configs
 # Current Ansible Control Machine image
-ansiblecm_image='skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.7.1'
+ansiblecm_image='skynetlabs/ansiblecm:ansible-3.1.0-skynetlabs-0.7.2'
 
 # To allow running 2 or more parallel ansiblecm containers running from
 # different directories (having mounted different directories) we need to

@@ -25,7 +25,7 @@
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
     secrets_storage_required: True
-    lastpass_allow_missing_user_credentials: True
+    secrets_storage_allow_missing_user_credentials: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -33,8 +33,8 @@
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
-    - name: Include creating webportal user credentials in LastPass (if missing)
-      include_tasks: tasks/lastpass-save-user-credentials.yml
+    - name: Include creating OS user credentials in secrets storage (if missing)
+      include_tasks: "tasks/secrets-storage-common-save-user-credentials.yml"
 
 # When we have root access we just run this play
 - name: Setup basic security by root

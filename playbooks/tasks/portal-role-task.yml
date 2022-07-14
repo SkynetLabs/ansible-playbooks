@@ -68,7 +68,7 @@
 
 # If we successfully set up mongo, save the cluster configs.
 - name: Include saving the cluster config
-  include_tasks: "{{ playbook_dir }}/{{ save_cluster_config_handler }}"
+  include_tasks: tasks/portal-configs-save-cluster-config.yml
 
 # Init, unlock wallet
 
@@ -217,8 +217,8 @@
         updated:
           sia_wallet_seed: "{{ new_sia_wallet_seed }}"
 
-    - name: Include saving portal config
-      include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+    - name: Include saving server config to secrets storage
+      include_tasks: tasks/portal-configs-save-server-config.yml
 
     - name: Update .env file
       ansible.builtin.template:

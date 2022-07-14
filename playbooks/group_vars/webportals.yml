@@ -1,4 +1,93 @@
 ---
+
+# =============================================================================
+# Ansible become passwords
+
+# If a playbook has set `secrets_storage_required: True` then Ansible become
+# passwords (i.e. sudo passwords) are loaded from secrets storage (HashiCorp
+# Vault/LastPass/...) based on `secrets-storage` setting before the playbook
+# starts executing its tasks.
+
+## From HashiCorp Vault
+
+### Full path for server password on HashiCorp Vault
+hashicorp_vault_pass_full_path: "{{ hashicorp_vault_storage_backend_dir }}/{{ hashicorp_vault_portal_credentials_server }}"
+
+### curl command to return status code 200 or 404 if the record doesn't exist
+server_credential_in_hashicorp_vault_exists_command: >-
+  curl -sI -o /dev/null
+  -w '%{http_code}'
+  -H 'X-Vault-Token: {{ lookup('env', 'HCV_TOKEN') }}'
+  -X GET {{ lookup('env', 'HCV_URL') }}/v1/{{ hashicorp_vault_pass_full_path }}
+
+### Flag if record exists
+server_credential_in_hashicorp_vault_exists: >-
+  {{
+    False
+    if (lookup('pipe', server_credential_in_hashicorp_vault_exists_command) == '404')
+    else True
+  }}
+
+### For security reasons Ansible lookup returns AnsibleUnsafeString, we have to
+### handle this otherwise Jinja templates refuse to process the unsafe string.
+hashicorp_vault_token: "{{ lookup('env', 'HCV_TOKEN', allow_unsafe=True) | first }}"
+
+### Get password from the HashiCorp Vault
+ansible_become_pass_from_hashicorp_vault: >-
+  {{
+    lookup('community.hashi_vault.vault_read', hashicorp_vault_pass_full_path, url=lookup('env', 'HCV_URL'), token=hashicorp_vault_token).data.data.password
+    if (
+      secrets_storage == 'hashicorp-vault'
+      and
+      secrets_storage_required|default(False)
+      and
+      not (
+        secrets_storage_allow_missing_user_credentials|default(False)
+        and
+        server_credential_in_hashicorp_vault_exists == False
+      )
+    )
+    else ''
+  }}
+
+## Get password from LastPass
+ansible_become_pass_from_lastpass: >-
+  {{
+    lookup('community.general.lastpass', lastpass_portal_credentials_server, field='password')
+    if (
+      secrets_storage == 'lastpass'
+      and
+      secrets_storage_required|default(False)
+      and
+      not (
+        secrets_storage_allow_missing_user_credentials|default(False)
+        and
+        lookup('pipe', 'lpass ls ' + lastpass_portal_credentials_server) == ''
+      )
+    )
+    else ''
+  }}
+
+## Final password (from HashiCorp Vault or Lastpass)
+ansible_become_pass: >-
+  {{
+    ansible_become_pass_from_hashicorp_vault
+    if (secrets_storage == 'hashicorp-vault')
+    else (
+      ansible_become_pass_from_lastpass
+      if(secrets_storage == 'lastpass')
+      else ''
+    )
+  }}
+
+### User password hash to be used on user creation
+user_pass_hash: >-
+  {{ 
+    ansible_become_pass
+    | password_hash('sha512', 65534 | random(seed=inventory_hostname)
+    | string)
+  }}
+
 # =============================================================================
 # Portal setup settings (from fresh server)
 
@@ -14,7 +103,7 @@ access_check_timeout_secs: 5
 initial_users:
   - username: "{{ webportal_user }}"
     uid: 1000
-    password_hash: "{{ webportal_user_pass_hash }}"
+    password_hash: "{{ user_pass_hash }}"
     authorized_keys: "{{ webportal_user_authorized_keys }}"
 
 # Security settings
@@ -109,6 +198,26 @@ lastpass_portal_config_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_
 
 lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}-jwks.json"
 
+# xxxqqq update my-vars/config-sample-do-not-edit.yml docs
+# HashiCorp Vault settings
+hashicorp_vault_storage_backend_dir: "kv/data"
+hashicorp_vault_ansible_dir: "ansible-skynet"
+hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
+hashicorp_vault_portal_credentials_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+
+hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
+hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+hashicorp_vault_portal_common_and_cluster_configs_list:
+  # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
+  - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
+hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
+hashicorp_vault_portal_config_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+
+hashicorp_vault_accounts_jwks_json: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
+
 # Portal paths settings
 #
 # NOTE: These paths are not strictly alphabetized due to top level paths needing
@@ -194,7 +303,7 @@ webportal_server_config_defaults:
 # TODO: move to role default vars
 # This variable sets default values for common/cluster settings if they are not
 # defined by portal operator in common/cluster records defined by
-# lastpass_portal_common_and_cluster_configs_list.
+# {{ secrets_storage }}_portal_common_and_cluster_configs_list.
 webportal_common_config_defaults:
   s3_backup_path: ""
   abuse_log_level: "info"

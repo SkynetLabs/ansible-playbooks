@@ -97,9 +97,8 @@
       skynet_db_user: "{{ mongodb_config.skynet_db_user }}"
       skynet_db_pass: "{{ mongodb_config.skynet_db_pass }}"
 
-# Update Skynet API key in secure storage (LastPass)
-- name: Include saving portal configs
-  include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+- name: Include saving server config (incl. Skynet API key) to secrets storage
+  include_tasks: tasks/portal-configs-save-server-config.yml
 
 - name: Update .env file
   ansible.builtin.template:

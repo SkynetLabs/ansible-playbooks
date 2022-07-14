@@ -26,7 +26,7 @@ collections:
 
   # Required for HashiCorp Vault lookups
   - name: community.hashi_vault
-    version: 2.4.0
+    version: 3.0.0
 
   # Required e.g. for adding SSH keys (ansible.posix.authorized_key)
   - name: ansible.posix

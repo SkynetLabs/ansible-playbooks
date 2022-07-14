@@ -35,18 +35,11 @@
     # downloads to finish) first before we continue with server setup, because
     # setup might disrupt them.
 
-    # TODO: Handlers should be configured later as plugins (LastPass/plaintext/
-    # Docker secrets/Hashicorp Vault/...)
-    - name: Set load/save handlers for secure storage
-      set_fact:
-        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
-        save_cluster_config_handler: "tasks/lastpass-save-cluster-config.yml"
-
-    - name: Include getting portal configs
+    - name: Include getting server and cluster configs from secrets storage
       include_tasks: tasks/portal-configs-load.yml
 
-    - name: Include saving portal configs
-      include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+    - name: Include saving server config to secrets storage
+      include_tasks: tasks/portal-configs-save-server-config.yml
 
     - name: Check docker was setup
       ansible.builtin.command: docker ps

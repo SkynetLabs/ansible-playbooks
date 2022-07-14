@@ -1,0 +1,17 @@
+---
+# Save server config to secrets storage
+
+- name: Get server config secret path
+  set_fact:
+    server_config_secret_path: "{{ lookup('vars', secrets_storage + '_portal_config_server') }}"
+
+- name: Include checking if server config record exists in secure storage
+  include_tasks: "tasks/secrets-storage-common-check-record-exists.yml"
+  vars:
+    secret_path: "{{ server_config_secret_path }}"
+
+- name: Include saving server config data to secure storage
+  include_tasks: "tasks/secrets-storage-common-save-data-to-yaml.yml"
+  vars:
+    secret_path: "{{ server_config_secret_path }}"
+    secret_data: "{{ webportal_server_config }}"
