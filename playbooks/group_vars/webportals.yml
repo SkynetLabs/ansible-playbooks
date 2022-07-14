@@ -259,6 +259,9 @@ docker_prune_timeout_secs: 1800
 # Wallet initialization
 use_existing_sia_seed_if_exists: True
 
+# MongoDB constants
+mongo_max_voting_members: 7
+
 # =============================================================================
 # Skynet webportal role settings
 

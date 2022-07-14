@@ -59,12 +59,8 @@
 # Setup MongoDB
 # NOTE: MongoDB docker service must be setup before Sia docker service, because
 # skyd depends on mongo.
-# TODO: Finish and add back
-# - name: Include ensuring MongoDB node is a member of replicaset
-#   include_tasks: tasks/portal-role-task-mongo-replicaset-ensure-non-voting-member.yml
-
-- name: Include setting MongoDB docker service
-  include_tasks: tasks/portal-role-task-mongo-setup-docker-service.yml
+- name: Include setting up MongoDB
+  include_tasks: tasks/portal-role-task-mongo-setup.yml
 
 # If we successfully set up mongo, save the cluster configs.
 - name: Include saving the cluster config
@@ -138,7 +134,14 @@
 
 - name: Set Sia wallet seed defined
   set_fact:
-    sia_wallet_seed_defined: "{{ webportal_server_config.sia_wallet_seed is defined and webportal_server_config.sia_wallet_seed != None }}"
+    sia_wallet_seed_defined: >-
+      {{
+        webportal_server_config.sia_wallet_seed is defined
+        and
+        webportal_server_config.sia_wallet_seed != None
+        and
+        webportal_server_config.sia_wallet_seed != ''
+      }}
 
 # Init a wallet with existing seed
 

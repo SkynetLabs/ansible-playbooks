@@ -3,25 +3,27 @@
 # Find primary node in the MongoDB replicaset
 # TODO: This ansible playbook task, should be moved to portal role
 
-# Get mongo cluster hosts
-- name: Get mongo cluster hosts
-  set_fact:
-    mongo_cluster_hosts: "{{ (mongo_cluster_hosts | default([])) + [item] }}"
-  when: >-
-    hostvars[item].portal_cluster_id is defined and
-    hostvars[item].portal_cluster_id == portal_cluster_id
-  loop: "{{ groups['webportals'] }}"
-  delegate_to: localhost
+# This task expects:
+# - MongoDB node where we run this task is a member of the replicaset
 
 - name: Reset mongo primary host
   set_fact:
     mongo_primary_host: ""
 
-- name: Include getting mongo replicaset primary member
-  include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary-sub-task.yml
-  loop: "{{ mongo_cluster_hosts }}"
-  loop_control:
-    loop_var: "host_item"
+- name: Get MongoDB replicaset primary member
+  include_tasks: tasks/portal-role-task-mongo-shell-eval.yml
+  vars:
+    mongodb_shell:
+      # isMaster.primary returns string in format '<subdomain>.<domain>.<tld>:
+      # <port>', we need to extract only the subdomain which is Ansible host.
+      eval: |
+        rs.isMaster().primary.split('.')[0]
+      until: True
+      retries: 0
+
+- name: Set MongoDB primary host
+  set_fact:
+    mongo_primary_host: "{{ mongo_shell_result.transformed_output }}"
 
 - name: Fail if primary node was not found
   fail:
