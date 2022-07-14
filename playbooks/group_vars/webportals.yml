@@ -82,7 +82,7 @@ ansible_become_pass: >-
 
 ### User password hash to be used on user creation
 user_pass_hash: >-
-  {{ 
+  {{
     ansible_become_pass
     | password_hash('sha512', 65534 | random(seed=inventory_hostname)
     | string)
