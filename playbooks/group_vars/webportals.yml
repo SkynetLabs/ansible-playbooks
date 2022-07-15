@@ -8,6 +8,12 @@
 # Vault/LastPass/...) based on `secrets-storage` setting before the playbook
 # starts executing its tasks.
 
+## Set secrets storage var prefix
+## `secrets_storage` var can contain value with hyphen, e.g. `hashicorp-vault`
+## to use for loading task files. For loading secrets storage specific vars we
+## need to replace `-` with `_`
+secrets_storage_var_prefix: "{{ secrets_storage | replace('-', '_') }}"
+
 ## From HashiCorp Vault
 
 ### Full path for server password on HashiCorp Vault
@@ -306,7 +312,7 @@ webportal_server_config_defaults:
 # TODO: move to role default vars
 # This variable sets default values for common/cluster settings if they are not
 # defined by portal operator in common/cluster records defined by
-# {{ secrets_storage }}_portal_common_and_cluster_configs_list.
+# {{ secrets_storage_var_prefix }}_portal_common_and_cluster_configs_list.
 webportal_common_config_defaults:
   s3_backup_path: ""
   abuse_log_level: "info"

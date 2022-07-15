@@ -7,7 +7,7 @@
   loop:
     # Set `secret_path` according to `{{secret_storage}}_portal_config_server`
     # variable
-    - secret_path: "{{ lookup('vars', secrets_storage + '_portal_config_server') }}"
+    - secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_portal_config_server') }}"
       var_name: webportal_server_config
 
 # Load common/cluster configs defined in a list
@@ -21,7 +21,7 @@
     secrets_common_cluster_configs: "{{ secrets_common_cluster_configs | default([]) + [{'secret_path': item, 'var_name': 'config_' + config_index | string}] }}"
   # Loop over list of common and cluster configs defined for the selected
   # secrets storage.
-  loop: "{{ lookup('vars', secrets_storage + '_portal_common_and_cluster_configs_list') }}"
+  loop: "{{ lookup('vars', secrets_storage_var_prefix + '_portal_common_and_cluster_configs_list') }}"
   loop_control:
     index_var: config_index
 
@@ -55,5 +55,5 @@
 - name: Load jwks.json from secrets storage
   include_tasks: "tasks/secrets-storage-common-load-yaml-or-json.yml"
   loop:
-    - secret_path: "{{ lookup('vars', secrets_storage + '_accounts_jwks_json') }}"
+    - secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_accounts_jwks_json') }}"
       var_name: accounts_jwks_data
