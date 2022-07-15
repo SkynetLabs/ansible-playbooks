@@ -6,11 +6,72 @@
     max_hosts: 1
 
   tasks:
-    - name: curl /renter
-      shell: "curl -A Sia-Agent 10.10.10.10:9980/renter"
-      register: renter_result
+    # - name: Request /renter
+    #   ansible.builtin.uri:
+    #     url: "http://10.10.10.10:9980/renter"
+    #     http_agent: "Sia-Agent"
+    #   register: renter_result
 
-    - name: Print renter result
+    # - name: Print renter result
+    #   debug:
+    #     msg: |
+    #       k:
+    #       {{ renter_result.json.keys() }}
+          
+    #       s:
+    #       {{ renter_result.json.settings | to_nice_yaml }}
+
+    #       fm:
+    #       renter_result.json.financialmetrics | to_nice_yaml
+
+    #       cp:
+    #       {{ renter_result.json.currentperiod | to_nice_yaml }}
+
+    #       np:
+    #       {{ renter_result.json.nextperiod | to_nice_yaml }}
+
+    #       ms:
+    #       {{ renter_result.json.memorystatus | to_nice_yaml }}
+
+    - name: Request /skynet/stats
+      ansible.builtin.uri:
+        url: "http://10.10.10.10:9980/skynet/stats"
+        http_agent: "Sia-Agent"
+      register: skynet_stats_result
+
+    - name: Get skynet stats data
+      set_fact:
+        # Files
+        num_files: "{{ skynet_stats_result.json.numfiles }}"
+        # xxxqqq storage?
+        storage: "{{ skynet_stats_result.json.storage }}"
+        # Downloads
+        # xxxqqq is this download?
+        streambufferread15mp99ms: "{{ skynet_stats_result.json.streambufferread15mp99ms }}"
+        streambufferread15mp999ms: "{{ skynet_stats_result.json.streambufferread15mp999ms }}"
+        streambufferread15mp9999ms: "{{ skynet_stats_result.json.streambufferread15mp9999ms }}"
+        # Uploads
+        # xxxqqq which to get base/chunk?
+        basesectorupload15mp99ms: "{{ skynet_stats_result.json.basesectorupload15mp99ms }}"
+        basesectorupload15mp999ms: "{{ skynet_stats_result.json.basesectorupload15mp999ms }}"
+        basesectorupload15mp9999ms: "{{ skynet_stats_result.json.basesectorupload15mp9999ms }}"
+        chunkupload15mp99ms: "{{ skynet_stats_result.json.chunkupload15mp99ms }}"
+        chunkupload15mp999ms: "{{ skynet_stats_result.json.chunkupload15mp999ms }}"
+        chunkupload15mp9999ms: "{{ skynet_stats_result.json.chunkupload15mp9999ms }}"
+        # Registry reads
+        registryread15mp99ms: "{{ skynet_stats_result.json.registryread15mp99ms }}"
+        registryread15mp999ms: "{{ skynet_stats_result.json.registryread15mp999ms }}"
+        registryread15mp9999ms: "{{ skynet_stats_result.json.registryread15mp9999ms }}"
+        # Registry writes
+        registrywrite15mp99ms: "{{ skynet_stats_result.json.registrywrite15mp99ms }}"
+        registrywrite15mp999ms: "{{ skynet_stats_result.json.registrywrite15mp999ms }}"
+        registrywrite15mp9999ms: "{{ skynet_stats_result.json.registrywrite15mp9999ms }}"
+
+    - name: Print files result
       debug:
         msg: |
-          {{ renter_result.stdout }}
+          xxxqqq res:
+          {{ skynet_stats_result.json | to_nice_yaml }}
+
+          nf:
+          {{ num_files }}
