@@ -168,10 +168,10 @@
     - name: Aggregate over all servers
       set_fact:
         # Medians
-        medianbasesectorupload15mp99ms: "{{ basesectorupload15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
-        medianstreambufferread15mp99ms: "{{ streambufferread15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
-        medianregistryread15mp99ms: "{{ registryread15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
-        medianregistrywrite15mp99ms: "{{ registrywrite15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
+        medianbasesectorupload15mp99ms: "{{ basesectorupload15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+        medianstreambufferread15mp99ms: "{{ streambufferread15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+        medianregistryread15mp99ms: "{{ registryread15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+        medianregistrywrite15mp99ms: "{{ registrywrite15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
         
         # Averages
         averagestoragespending: "{{ sumstoragespending | int / ansible_play_hosts | length }}"
