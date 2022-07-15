@@ -76,11 +76,18 @@
     - name: Aggregate over all servers
       set_fact:
         total_num_files: "{{ total_num_files | default(0) | int + hostvars[item].numfiles | int }}"
+        total_storage: "{{ total_storage | default(0) | int + hostvars[item].storage | int }}"
       loop: "{{ ansible_play_hosts }}"
       run_once: True
 
     - name: Print total files result
       debug:
         msg: |
-          Total number of files: {{ total_num_files }}
+          Total number of files:
+            {{ total_num_files }}
+            {{ total_num_files | int / 1000000 }} million
+          Total storage:
+            {{ total_storage }} bytes
+            {{ total_storage | int / (1024 * 1024 * 1024) }} GB
+            {{ total_storage | int / (1024 * 1024 * 1024 * 1024) }} TB
       run_once: True
