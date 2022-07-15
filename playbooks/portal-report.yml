@@ -138,13 +138,40 @@
       loop: "{{ ansible_play_hosts }}"
       run_once: True
 
+    - name: Create lists for p99 values
+      set_fact:
+        basesectorupload15mp99mslist: []
+        streambufferread15mp99mslist: []
+        registryread15mp99mslist: []
+        registrywrite15mp99mslist: []
+      loop: "{{ ansible_play_hosts }}"
+      run_once: True
+
+    - name: Add elements to p99 lists
+      set_fact:
+        basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ ansible_play_hosts }}"
+      run_once: True
+
+    - name: Sort lists of p99 values
+      set_fact:
+        basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist | sort}}"
+        streambufferread15mp99mslist: "{{ streambufferread15mp99mslist | sort}}"
+        registryread15mp99mslist: "{{ registryread15mp99mslist | sort}}"
+        registrywrite15mp99mslist: "{{ registrywrite15mp99mslist | sort}}"
+      loop: "{{ ansible_play_hosts }}"
+      run_once: True
+
     - name: Aggregate over all servers
       set_fact:
         # Medians
-       # medianbasesectorupload15mp99ms: "{{ stats_result.json.basesectorupload15mp99ms }}"
-       # medianstreambufferread15mp99ms: "{{ stats_result.json.streambufferread15mp99ms }}"
-       # medianregistryread15mp99ms: "{{ stats_result.json.registryread15mp99ms }}"
-       # medianregistrywrite15mp99ms: "{{ stats_result.json.registrywrite15mp99ms }}"
+        medianbasesectorupload15mp99ms: "{{ basesectorupload15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
+        medianstreambufferread15mp99ms: "{{ streambufferread15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
+        medianregistryread15mp99ms: "{{ registryread15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
+        medianregistrywrite15mp99ms: "{{ registrywrite15mp99mslist[ansible_play_hosts | length / 2 | int | round] }}"
         
         # Averages
         averagestoragespending: "{{ sumstoragespending | int / ansible_play_hosts | length }}"
@@ -178,10 +205,10 @@
           TotalNumFiles: {{ sumnumfiles }}
           TotalStorage:  {{ sumnumfiles }}
 
-          MedianBaseSectorUpload(p99): 0 // TODO: add
-          MedianStreamBufferRead(p99): 0 // TODO: add
-          MedianRegistryRead(p99):     0 // TODO: add
-          MedianRegistryWrite(p99):    0 // TODO: add
+          MedianBaseSectorUpload(p99): {{ medianbasesectorupload15mp99ms }}
+          MedianStreamBufferRead(p99): {{ medianstreambufferread15mp99ms }}
+          MedianRegistryRead(p99):     {{ medianregistryread15mp99ms }}
+          MedianRegistryWrite(p99):    {{ medianregistrywrite15mp99ms }}
 
           ContractSpending:
             Average Total Allocated:         {{ averagetotalallocated }}
