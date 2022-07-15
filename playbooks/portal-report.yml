@@ -109,9 +109,104 @@
               RepairUpload:    {{ repairuploadscost }} (NOTE: still using legacy uploads for repairs)
               Subscriptions:   {{ subscriptionscost }}
 
-    - name: Aggregate over all servers
+    - name: Sum over all servers
       set_fact:
-        # TODO: finish this
+        sumnumfiles: "{{ sumnumfiles | default(0) | int + hostvars[item].numfiles | int }}"
+        sumstorage: "{{ sumstorage | default(0) | int + hostvars[item].storage | int }}"
+        sumstoragespending: "{{ sumstoragespending | default(0) | int + hostvars[item].storagespending | int }}"
+        sumuploadspending: "{{ sumuploadspending | default(0) | int + hostvars[item].uploadspending | int }}"
+        sumdownloadspending: "{{ sumdownloadspending | default(0) | int + hostvars[item].downloadspending | int }}"
+        sumfundaccountspending: "{{ sumfundaccountspending | default(0) | int + hostvars[item].fundaccountspending | int }}"
+        sumcontractfees: "{{ sumcontractfees | default(0) | int + hostvars[item].contractfees | int }}"
+        sumtransactionfees: "{{ sumtransactionfees | default(0) | int + hostvars[item].transactionfees | int }}"
+        sumaccountbalancecost: "{{ sumaccountbalancecost | default(0) | int + hostvars[item].accountbalancecost | int }}"
+        sumfundaccountcost: "{{ sumfundaccountcost | default(0) | int + hostvars[item].fundaccountcost | int }}"
+        sumupdatepricetablecost: "{{ sumupdatepricetablecost | default(0) | int + hostvars[item].updatepricetablecost | int }}"
+        sumtotalallocated: "{{ sumtotalallocated | default(0) | int + hostvars[item].totalallocated | int }}"
+        sumunspent: "{{ sumunspent | default(0) | int + hostvars[item].unspent | int }}"
+        sumpreviousspending: "{{ sumpreviousspending | default(0) | int + hostvars[item].previousspending | int }}"
+        sumtotalspent: "{{ sumtotalspent | default(0) | int + hostvars[item].totalspent | int }}"
+        sumunspentallocated: "{{ sumunspentallocated | default(0) | int + hostvars[item].unspentallocated | int }}"
+        sumunspentunallocated: "{{ sumunspentunallocated | default(0) | int + hostvars[item].unspentunallocated | int }}"
+        sumdownloadscost: "{{ sumdownloadscost | default(0) | int + hostvars[item].downloadscost | int }}"
+        sumuploadscost: "{{ sumuploadscost | default(0) | int + hostvars[item].uploadscost | int }}"
+        sumregistryreadscost: "{{ sumregistryreadscost | default(0) | int + hostvars[item].registryreadscost | int }}"
+        sumregistrywritescost: "{{ sumregistrywritescost | default(0) | int + hostvars[item].registrywritescost | int }}"
+        sumrepairdownloadscost: "{{ sumrepairdownloadscost | default(0) | int + hostvars[item].repairdownloadscost | int }}"
+        sumrepairuploadscost: "{{ sumrepairuploadscost | default(0) | int + hostvars[item].repairuploadscost | int }}"
+        sumsubscriptionscost: "{{ sumsubscriptionscost | default(0) | int + hostvars[item].subscriptionscost | int }}"
       loop: "{{ ansible_play_hosts }}"
       run_once: True
-      
+
+    - name: Aggregate over all servers
+      set_fact:
+        # Medians
+       # medianbasesectorupload15mp99ms: "{{ stats_result.json.basesectorupload15mp99ms }}"
+       # medianstreambufferread15mp99ms: "{{ stats_result.json.streambufferread15mp99ms }}"
+       # medianregistryread15mp99ms: "{{ stats_result.json.registryread15mp99ms }}"
+       # medianregistrywrite15mp99ms: "{{ stats_result.json.registrywrite15mp99ms }}"
+        
+        # Averages
+        averagestoragespending: "{{ sumstoragespending | int / ansible_play_hosts | length }}"
+        averageuploadspending: "{{ sumuploadspending | int / ansible_play_hosts | length }}"
+        averagedownloadspending: "{{ sumdownloadspending | int / ansible_play_hosts | length }}"
+        averagefundaccountspending: "{{ sumfundaccountspending | int / ansible_play_hosts | length }}"
+        averagecontractfees: "{{ sumcontractfees | int / ansible_play_hosts | length }}"
+        averagetransactionfees: "{{ sumtransactionfees | int / ansible_play_hosts | length }}"
+        averageaccountbalancecost: "{{ sumaccountbalancecost | int / ansible_play_hosts | length }}"
+        averagefundaccountcost: "{{ sumfundaccountcost | int / ansible_play_hosts | length }}"
+        averageupdatepricetablecost: "{{ sumupdatepricetablecost | int / ansible_play_hosts | length }}"
+        averagetotalallocated: "{{ sumtotalallocated | int / ansible_play_hosts | length }}"
+        averageunspent: "{{ sumunspent | int / ansible_play_hosts | length }}"
+        averagepreviousspending: "{{ sumpreviousspending | int / ansible_play_hosts | length }}"
+        averagetotalspent: "{{ sumtotalspent | int / ansible_play_hosts | length }}"
+        averageunspentallocated: "{{ sumunspentallocated | int / ansible_play_hosts | length }}"
+        averageunspentunallocated: "{{ sumunspentunallocated | int / ansible_play_hosts | length }}"
+        averagedownloadscost: "{{ sumdownloadscost | int / ansible_play_hosts | length }}"
+        averageuploadscost: "{{ sumuploadscost | int / ansible_play_hosts | length }}"
+        averageregistryreadscost: "{{ sumregistryreadscost | int / ansible_play_hosts | length }}"
+        averageregistrywritescost: "{{ sumregistrywritescost | int / ansible_play_hosts | length }}"
+        averagerepairdownloadscost: "{{ sumrepairdownloadscost | int / ansible_play_hosts | length }}"
+        averagerepairuploadscost: "{{ sumrepairuploadscost | int / ansible_play_hosts | length }}"
+        averagesubscriptionscost: "{{ sumsubscriptionscost | int / ansible_play_hosts | length }}"
+      loop: "{{ ansible_play_hosts }}"
+      run_once: True
+
+    - name: Print final result
+      debug:
+        msg: |
+          TotalNumFiles: {{ sumnumfiles }}
+          TotalStorage:  {{ sumnumfiles }}
+
+          MedianBaseSectorUpload(p99): 0 // TODO: add
+          MedianStreamBufferRead(p99): 0 // TODO: add
+          MedianRegistryRead(p99):     0 // TODO: add
+          MedianRegistryWrite(p99):    0 // TODO: add
+
+          ContractSpending:
+            Average Total Allocated:         {{ averagetotalallocated }}
+            Average Total Spent:             {{ averagetotalspent }}
+              Average Storage:               {{ averagestoragespending }}
+              Average Uploads:               {{ averageuploadspending }}
+              Average Downloads:             {{ averagedownloadspending }}
+              Average FundAccount:           {{ averagefundaccountspending }}
+              Fees:
+                Average Contracts:           {{ averagecontractfees }}
+                Average Txns:                {{ averagetransactionfees }}
+                Maintenance:
+                  Average GetAccountBalance: {{ averageaccountbalancecost }}
+                  Average FundAccount:       {{ averagefundaccountcost }}
+                  Average UpdatePriceTable:  {{ averageupdatepricetablecost }}
+            Average Unspent:                 {{ averageunspent }}
+              Average Allocated:             {{ averageunspentallocated }}
+              Average Unallocated:           {{ averageunspentunallocated }}
+            Average PreviousSpending:        {{ averagepreviousspending }}
+
+          EphemeralAccountSpending:
+            Average Downloads:       {{ averagedownloadscost }}
+            Average Uploads:         {{ averageuploadscost }} (NOTE: still using legacy uploads)
+            Average RegistryRead:    {{ averageregistryreadscost }}
+            Average RegistryWrite:   {{ averageregistrywritescost }}
+            Average RepairDownload:  {{ averagerepairdownloadscost }}
+            Average RepairUpload:    {{ averagerepairuploadscost }} (NOTE: still using legacy uploads for repairs)
+            Average Subscriptions:   {{ averagesubscriptionscost }}
