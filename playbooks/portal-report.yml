@@ -6,17 +6,24 @@
     max_hosts: 1
 
   tasks:
-    # - name: Request /renter
-    #   ansible.builtin.uri:
-    #     url: "http://10.10.10.10:9980/renter"
-    #     http_agent: "Sia-Agent"
-    #   register: renter_result
+    - name: Request /renter
+      ansible.builtin.uri:
+        url: "http://10.10.10.10:9980/renter"
+        http_agent: "Sia-Agent"
+      register: renter_result
 
-    # - name: Print renter result
-    #   debug:
-    #     msg: |
-    #       k:
-    #       {{ renter_result.json.keys() }}
+    - name: Get ephemeral account spending sums
+      set_fact:
+        registry_reads_cost_sum: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='registryreadscost') | map('int') | sum }}"
+        registry_writes_cost_sum: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='registrywritescost') | map('int') | sum }}"
+
+    - name: Print renter result
+      debug:
+        msg: |
+          rcs: {{ registry_reads_cost_sum }}
+          wcs: {{ registry_writes_cost_sum }}
+
+    - meta: end_host
           
     #       s:
     #       {{ renter_result.json.settings | to_nice_yaml }}
