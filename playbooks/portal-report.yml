@@ -59,14 +59,13 @@
 
     - name: Sum up EAs
       ansible.builtin.set_fact:
-        downloadscost: "{{ downloadscost | default(0) | int + item.downloadscost | int }}"
-        uploadscost: "{{ uploadscost | default(0) | int + item.uploadscost | int }}"
-        registryreadscost: "{{ registryreadscost | default(0) | int + item.registryreadscost | int }}"
-        registrywritescost: "{{ registrywritescost | default(0) | int + item.registrywritescost | int }}"
-        repairdownloadscost: "{{ repairdownloadscost | default(0) | int + item.repairdownloadscost | int }}"
-        repairuploadscost: "{{ repairuploadscost | default(0) | int + item.repairuploadscost | int }}"
-        subscriptionscost: "{{ subscriptionscost | default(0) | int + item.subscriptionscost | int }}"
-      with_items: "{{ renter_result.json.financialmetrics.ephemeralaccountspending }}"
+        downloadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='downloadscost') | map('int') | sum }}"
+        uploadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='uploadscost') | map('int') | sum }}"
+        registryreadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='registryreadscost') | map('int') | sum }}"
+        registrywritescost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='registrywritescost') | map('int') | sum }}"
+        repairdownloadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='repairdownloadscost') | map('int') | sum }}"
+        repairuploadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='repairuploadscost') | map('int') | sum }}"
+        subscriptionscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='subscriptionscost') | map('int') | sum }}"
         
     - name: Print per-server result
       debug:
