@@ -199,37 +199,37 @@
       debug:
         msg: |
           TotalNumFiles: {{ sumnumfiles }}
-          TotalStorage:  {{ sumnumfiles }}
+          TotalStorage:  {{ sumstorage }} bytes
 
-          MedianBaseSectorUpload(p99): {{ medianbasesectorupload15mp99ms }}
-          MedianStreamBufferRead(p99): {{ medianstreambufferread15mp99ms }}
-          MedianRegistryRead(p99):     {{ medianregistryread15mp99ms }}
-          MedianRegistryWrite(p99):    {{ medianregistrywrite15mp99ms }}
+          MedianBaseSectorUpload(p99): {{ medianbasesectorupload15mp99ms }} ms
+          MedianStreamBufferRead(p99): {{ medianstreambufferread15mp99ms }} ms
+          MedianRegistryRead(p99):     {{ medianregistryread15mp99ms }} ms
+          MedianRegistryWrite(p99):    {{ medianregistrywrite15mp99ms }} ms
 
           ContractSpending:
-            Average Total Allocated:         {{ averagetotalallocated }}
-            Average Total Spent:             {{ averagetotalspent }}
-              Average Storage:               {{ averagestoragespending }}
-              Average Uploads:               {{ averageuploadspending }}
-              Average Downloads:             {{ averagedownloadspending }}
-              Average FundAccount:           {{ averagefundaccountspending }}
+            Average Total Allocated:         {{ averagetotalallocated }} H
+            Average Total Spent:             {{ averagetotalspent }} H
+              Average Storage:               {{ averagestoragespending }} H
+              Average Uploads:               {{ averageuploadspending }} H
+              Average Downloads:             {{ averagedownloadspending }} H
+              Average FundAccount:           {{ averagefundaccountspending }} H
               Fees:
-                Average Contracts:           {{ averagecontractfees }}
-                Average Txns:                {{ averagetransactionfees }}
+                Average Contracts:           {{ averagecontractfees }} H
+                Average Txns:                {{ averagetransactionfees }} H
                 Maintenance:
-                  Average GetAccountBalance: {{ averageaccountbalancecost }}
-                  Average FundAccount:       {{ averagefundaccountcost }}
-                  Average UpdatePriceTable:  {{ averageupdatepricetablecost }}
-            Average Unspent:                 {{ averageunspent }}
-              Average Allocated:             {{ averageunspentallocated }}
-              Average Unallocated:           {{ averageunspentunallocated }}
-            Average PreviousSpending:        {{ averagepreviousspending }}
+                  Average GetAccountBalance: {{ averageaccountbalancecost }} H
+                  Average FundAccount:       {{ averagefundaccountcost }} H
+                  Average UpdatePriceTable:  {{ averageupdatepricetablecost }} H
+            Average Unspent:                 {{ averageunspent }} H
+              Average Allocated:             {{ averageunspentallocated }} H
+              Average Unallocated:           {{ averageunspentunallocated }} H
+            Average PreviousSpending:        {{ averagepreviousspending }} H
 
           EphemeralAccountSpending:
-            Average Downloads:       {{ averagedownloadscost }}
-            Average Uploads:         {{ averageuploadscost }} (NOTE: still using legacy uploads)
-            Average RegistryRead:    {{ averageregistryreadscost }}
-            Average RegistryWrite:   {{ averageregistrywritescost }}
-            Average RepairDownload:  {{ averagerepairdownloadscost }}
-            Average RepairUpload:    {{ averagerepairuploadscost }} (NOTE: still using legacy uploads for repairs)
-            Average Subscriptions:   {{ averagesubscriptionscost }}
+            Average Downloads:       {{ averagedownloadscost }} H
+            Average Uploads:         {{ averageuploadscost }} H (NOTE: still using legacy uploads)
+            Average RegistryRead:    {{ averageregistryreadscost }} H
+            Average RegistryWrite:   {{ averageregistrywritescost }} H
+            Average RepairDownload:  {{ averagerepairdownloadscost }} H
+            Average RepairUpload:    {{ averagerepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
+            Average Subscriptions:   {{ averagesubscriptionscost }} H
