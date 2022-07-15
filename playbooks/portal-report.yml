@@ -42,7 +42,7 @@
     - name: Get skynet stats data
       set_fact:
         # Files
-        num_files: "{{ skynet_stats_result.json.numfiles }}"
+        numfiles: "{{ skynet_stats_result.json.numfiles }}"
         # xxxqqq storage?
         storage: "{{ skynet_stats_result.json.storage }}"
         # Downloads
@@ -70,8 +70,17 @@
     - name: Print files result
       debug:
         msg: |
-          xxxqqq res:
-          {{ skynet_stats_result.json | to_nice_yaml }}
-
           nf:
-          {{ num_files }}
+          {{ numfiles }}
+
+    - name: Aggregate over all servers
+      set_fact:
+        total_num_files: "{{ total_num_files | default(0) | int + hostvars[item].numfiles | int }}"
+      loop: "{{ ansible_play_hosts }}"
+      run_once: True
+
+    - name: Print total files result
+      debug:
+        msg: |
+          Total number of files: {{ total_num_files }}
+      run_once: True
