@@ -1,0 +1,16 @@
+- name: Create report of all servers
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+  vars:
+    max_hosts: 1
+
+  tasks:
+    - name: curl /renter
+      shell: "curl -A Sia-Agent 10.10.10.10:9980/renter"
+      register: renter_result
+
+    - name: Print renter result
+      debug:
+        msg: |
+          {{ renter_result.stdout }}
