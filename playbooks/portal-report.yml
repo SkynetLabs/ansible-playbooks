@@ -144,8 +144,6 @@
         streambufferread15mp99mslist: []
         registryread15mp99mslist: []
         registrywrite15mp99mslist: []
-      loop: "{{ ansible_play_hosts }}"
-      run_once: True
 
     - name: Add elements to p99 lists
       set_fact:
@@ -162,8 +160,6 @@
         streambufferread15mp99mslist: "{{ streambufferread15mp99mslist | sort}}"
         registryread15mp99mslist: "{{ registryread15mp99mslist | sort}}"
         registrywrite15mp99mslist: "{{ registrywrite15mp99mslist | sort}}"
-      loop: "{{ ansible_play_hosts }}"
-      run_once: True
 
     - name: Aggregate over all servers
       set_fact:
