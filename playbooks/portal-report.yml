@@ -6,11 +6,79 @@
     max_hosts: 1
 
   tasks:
-    - name: curl /renter
-      shell: "curl -A Sia-Agent 10.10.10.10:9980/renter"
+    - name: Request /renter
+      ansible.builtin.uri:
+        url: "http://10.10.10.10:9980/renter"
+        http_agent: "Sia-Agent"
       register: renter_result
 
-    - name: Print renter result
+    - name: Request /skynet/stats
+      ansible.builtin.uri:
+        url: "http://10.10.10.10:9980/skynet/stats"
+        http_agent: "Sia-Agent"
+      register: stats_result
+
+    - name: Extract variables
+      ansible.builtin.set_fact:
+        # Storage
+        numfiles: "{{ stats_result.json.numfiles }}"
+        storage: "{{ stats_result.json.storage }}"
+
+        # Metrics
+        basesectorupload15mp99ms: "{{ stats_result.json.basesectorupload15mp99ms }}"
+        streambufferread15mp99ms: "{{ stats_result.json.streambufferread15mp99ms }}"
+        registryread15mp99ms: "{{ stats_result.json.registryread15mp99ms }}"
+        registrywrite15mp99ms: "{{ stats_result.json.registrywrite15mp99ms }}"
+        
+        # Spending
+        totalallocated: "{{ renter_result.json.financialmetrics.totalallocated }}"
+        storagespending: "{{ renter_result.json.financialmetrics.storagespending }}"
+        uploadspending: "{{ renter_result.json.financialmetrics.uploadspending }}"
+        downloadspending: "{{ renter_result.json.financialmetrics.downloadspending }}"
+        fundaccountspending: "{{ renter_result.json.financialmetrics.fundaccountspending }}"
+        contractfees: "{{ renter_result.json.financialmetrics.fees.contractfees }}"
+        transactionfees: "{{ renter_result.json.financialmetrics.fees.transactionfees }}"
+        accountbalancecost: "{{ renter_result.json.financialmetrics.maintenancespending.accountbalancecost }}"
+        fundaccountcost: "{{ renter_result.json.financialmetrics.maintenancespending.fundaccountcost }}"
+        updatepricetablecost: "{{ renter_result.json.financialmetrics.maintenancespending.updatepricetablecost }}"
+        unspent: "{{ renter_result.json.financialmetrics.unspent }}"
+        previousspending: "{{ renter_result.json.financialmetrics.previousspending }}"
+
+        #TotalSpent: (TODO: sum up spending above except for unspent and previousspending)
+        #Allocated: (TODO: TotalAllocated - TotalSpent)
+        #Unallocated: (TODO: Unspent - UnspentAllocated)
+        
+    - name: Print server result
       debug:
         msg: |
-          {{ renter_result.stdout }}
+          Aggregates:
+            NumFiles: {{ numfiles }}
+            Storage: {{ storage }}
+
+          Medians:
+            BaseSectorUpload(p99): {{ basesectorupload15mp99ms }}
+            StreamBufferRead(p99): {{ streambufferread15mp99ms }}
+            RegistryRead(p99): {{ registryread15mp99ms }}
+            RegistryWrite(p99): {{ registrywrite15mp99ms }}
+
+          Averages:
+            ContractSpending:
+              Total Allocated: {{ totalallocated }}
+              Total Spent: (TODO: sum everything up)
+                Storage: {{ storagespending }}
+                Uploads: {{ uploadspending }}
+                Downloads: {{ downloadspending }}
+                FundAccount: {{ fundaccountspending }}
+                Fees:
+                  Contracts: {{ contractfees }}
+                  Txns: {{ transactionfees }}
+                  Maintenance:
+                    GetAccountBalance: {{ accountbalancecost }}
+                    FundAccount: {{ fundaccountcost }}
+                    UpdatePriceTable: {{ updatepricetablecost }}
+              Unspent: {{ unspent }}
+                Allocated: (TODO: TotalAllocated - TotalSpent)
+                Unallocated: (TODO: Unspent - UnspentAllocated)
+              PreviousSpending: {{ previousspending }}
+
+            EphemeralAccountSpending:
