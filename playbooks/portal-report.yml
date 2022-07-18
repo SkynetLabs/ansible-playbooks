@@ -196,11 +196,16 @@
         averagesubscriptionscost: "{{ sumsubscriptionscost | int / ansible_play_hosts | length }}"
       run_once: True
 
+    - name: Set H in SC, KS constants
+      set_fact:
+        hinsc: "{{ 1e+24 }}"
+        hinks: "{{ 1e+27 }}"
+
     - name: Print final result
       debug:
         msg: |
           TotalNumFiles: {{ sumnumfiles }}
-          TotalStorage:  {{ sumstorage }} bytes
+          TotalStorage:  {{ sumstorage | int / (1024 * 1024 * 1024 * 1024) }} TB
 
           MedianBaseSectorUpload(p99): {{ medianbasesectorupload15mp99ms }} ms
           MedianStreamBufferRead(p99): {{ medianstreambufferread15mp99ms }} ms
@@ -208,30 +213,29 @@
           MedianRegistryWrite(p99):    {{ medianregistrywrite15mp99ms }} ms
 
           ContractSpending:
-            Average Total Allocated:         {{ averagetotalallocated }} H
-            Average Total Spent:             {{ averagetotalspent }} H
-              Average Storage:               {{ averagestoragespending }} H
-              Average Uploads:               {{ averageuploadspending }} H
+            Average Total Allocated:         {{ averagetotalallocated | int / hinks | int }} KS
+            Average Total Spent:             {{ averagetotalspent | int / hinks | int }} KS
+              Average Storage:               {{ averagestoragespending | int / hinks | int }} KS
+              Average Uploads:               {{ averageuploadspending | int / hinks | int }} KS
               Average Downloads:             {{ averagedownloadspending }} H
-              Average FundAccount:           {{ averagefundaccountspending }} H
+              Average FundAccount:           {{ averagefundaccountspending | int / hinks | int }} KS
               Fees:
-                Average Contracts:           {{ averagecontractfees }} H
-                Average Txns:                {{ averagetransactionfees }} H
+                Average Contracts:           {{ averagecontractfees | int / hinks | int }} KS
+                Average Txns:                {{ averagetransactionfees | int / hinks | int }} KS
                 Maintenance:
                   Average GetAccountBalance: {{ averageaccountbalancecost }} H
                   Average FundAccount:       {{ averagefundaccountcost }} H
                   Average UpdatePriceTable:  {{ averageupdatepricetablecost }} H
-            Average Unspent:                 {{ averageunspent }} H
-              Average Allocated:             {{ averageunspentallocated }} H
-              Average Unallocated:           {{ averageunspentunallocated }} H
-            Average PreviousSpending:        {{ averagepreviousspending }} H
-
+            Average Unspent:                 {{ averageunspent | int / hinks | int }} KS
+              Average Allocated:             {{ averageunspentallocated | int / hinks | int }} KS
+              Average Unallocated:           {{ averageunspentunallocated | int / hinks | int }} KS
+            Average PreviousSpending:        {{ averagepreviousspending | int / hinks | int }} KS
           EphemeralAccountSpending:
-            Average Downloads:       {{ averagedownloadscost }} H
+            Average Downloads:       {{ averagedownloadscost | int / hinks | int }} KS
             Average Uploads:         {{ averageuploadscost }} H (NOTE: still using legacy uploads)
-            Average RegistryRead:    {{ averageregistryreadscost }} H
-            Average RegistryWrite:   {{ averageregistrywritescost }} H
-            Average RepairDownload:  {{ averagerepairdownloadscost }} H
+            Average RegistryRead:    {{ averageregistryreadscost | int / hinks | int }} KS
+            Average RegistryWrite:   {{ averageregistrywritescost | int / hinsc | int }} SC
+            Average RepairDownload:  {{ averagerepairdownloadscost | int / hinks | int }} KS
             Average RepairUpload:    {{ averagerepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
-            Average Subscriptions:   {{ averagesubscriptionscost }} H
+            Average Subscriptions:   {{ averagesubscriptionscost | int / hinsc | int }} SC
       run_once: True
