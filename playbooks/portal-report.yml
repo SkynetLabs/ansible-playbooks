@@ -234,4 +234,4 @@
             Average RepairDownload:  {{ averagerepairdownloadscost }} H
             Average RepairUpload:    {{ averagerepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
             Average Subscriptions:   {{ averagesubscriptionscost }} H
-        run_once: True
+      run_once: True
