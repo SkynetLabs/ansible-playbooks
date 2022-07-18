@@ -144,6 +144,7 @@
         streambufferread15mp99mslist: []
         registryread15mp99mslist: []
         registrywrite15mp99mslist: []
+      run_once: True
 
     - name: Add elements to p99 lists
       set_fact:
@@ -160,6 +161,7 @@
         streambufferread15mp99mslist: "{{ streambufferread15mp99mslist | sort}}"
         registryread15mp99mslist: "{{ registryread15mp99mslist | sort}}"
         registrywrite15mp99mslist: "{{ registrywrite15mp99mslist | sort}}"
+      run_once: True
 
     - name: Aggregate over all servers
       set_fact:
@@ -192,7 +194,6 @@
         averagerepairdownloadscost: "{{ sumrepairdownloadscost | int / ansible_play_hosts | length }}"
         averagerepairuploadscost: "{{ sumrepairuploadscost | int / ansible_play_hosts | length }}"
         averagesubscriptionscost: "{{ sumsubscriptionscost | int / ansible_play_hosts | length }}"
-      loop: "{{ ansible_play_hosts }}"
       run_once: True
 
     - name: Print final result
@@ -233,3 +234,4 @@
             Average RepairDownload:  {{ averagerepairdownloadscost }} H
             Average RepairUpload:    {{ averagerepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
             Average Subscriptions:   {{ averagesubscriptionscost }} H
+        run_once: True
