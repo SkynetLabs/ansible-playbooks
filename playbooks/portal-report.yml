@@ -163,27 +163,39 @@
         skynetpro_registrywrite15mp99mslist: []
       run_once: True
 
-    - name: Set server counter
+    - name: Initialize included servers groups
       ansible.builtin.set_fact:
-        counter: 1
+        siaskynet_group: []
+        skynetfree_group: []
+        skynetpro_group: []
 
-    - name: Count included siasky.net servers
+    - name: Set included siasky.net servers group
       ansible.builtin.set_fact:
-        siaskynet_count: "{{ siaskynet_count | default(0) | int + hostvars[item].counter | default(0) }}"
+        siaskynet_group: "{{ siaskynet_group + [item] }}"
       loop: "{{ groups.webportals_prod }}"
+      when: item in ansible_play_hosts
       run_once: True
 
-    - name: Count included skynetfree servers
+    - name: Set included skynetfree servers group
       ansible.builtin.set_fact:
-        skynetfree_count: "{{ skynetfree_count | default(0) | int + hostvars[item].counter | default(0) }}"
+        skynetfree_group: "{{ skynetfree_group + [item] }}"
       loop: "{{ groups.skynetfree }}"
+      when: item in ansible_play_hosts
       run_once: True
 
-    - name: Count included skynetpro servers
+    - name: Set included skynetpro servers group
       ansible.builtin.set_fact:
-        skynetpro_count: "{{ skynetpro_count | default(0) | int + hostvars[item].counter | default(0) }}"
+        skynetpro_group: "{{ skynetpro_group + [item] }}"
       loop: "{{ groups.skynetpro }}"
+      when: item in ansible_play_hosts
       run_once: True
+
+    - name: Set server group counts
+      ansible.builtin.set_fact:
+        all_count: "{{ ansible_play_hosts | length }}"
+        siaskynet_count: "{{ siaskynet_group | length }}"
+        skynetfree_count: "{{ skynetfree_group | length }}"
+        skynetpro_count: "{{ skynetpro_group | length }}"
 
     - name: Add elements to p99 lists
       set_fact:
@@ -196,29 +208,29 @@
 
     - name: Add elements to p99 lists (siasky.net)
       set_fact:
-        siaskynet_basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
-        siaskynet_streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
-        siaskynet_registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
-        siaskynet_registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
-      loop: "{{ groups.webportals_prod }}"
+        siaskynet_basesectorupload15mp99mslist: "{{ siaskynet_basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        siaskynet_streambufferread15mp99mslist: "{{ siaskynet_streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        siaskynet_registryread15mp99mslist: "{{ siaskynet_registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        siaskynet_registrywrite15mp99mslist: "{{ siaskynet_registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ siaskynet_group }}"
       run_once: True
 
     - name: Add elements to p99 lists (skynetfree)
       set_fact:
-        skynetfree_basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
-        skynetfree_streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
-        skynetfree_registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
-        skynetfree_registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
-      loop: "{{ groups.skynetfree }}"
+        skynetfree_basesectorupload15mp99mslist: "{{ skynetfree_basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        skynetfree_streambufferread15mp99mslist: "{{ skynetfree_streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        skynetfree_registryread15mp99mslist: "{{ skynetfree_registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        skynetfree_registrywrite15mp99mslist: "{{ skynetfree_registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ skynetfree_group }}"
       run_once: True
 
     - name: Add elements to p99 lists (skynetpro)
       set_fact:
-        skynetpro_basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
-        skynetpro_streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
-        skynetpro_registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
-        skynetpro_registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
-      loop: "{{ groups.skynetpro }}"
+        skynetpro_basesectorupload15mp99mslist: "{{ skynetpro_basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        skynetpro_streambufferread15mp99mslist: "{{ skynetpro_streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        skynetpro_registryread15mp99mslist: "{{ skynetpro_registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        skynetpro_registrywrite15mp99mslist: "{{ skynetpro_registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ skynetpro_group }}"
       run_once: True
 
     - name: Sort lists of p99 values
@@ -229,7 +241,7 @@
         registryread15mp99mslist: "{{ registryread15mp99mslist | sort}}"
         registrywrite15mp99mslist: "{{ registrywrite15mp99mslist | sort}}"
         # siasky.net
-        siaskynet_basesectorupload15mp99mslist: "{{ siaskynet_siaskynet_basesectorupload15mp99mslist | sort}}"
+        siaskynet_basesectorupload15mp99mslist: "{{ siaskynet_basesectorupload15mp99mslist | sort}}"
         siaskynet_streambufferread15mp99mslist: "{{ siaskynet_streambufferread15mp99mslist | sort}}"
         siaskynet_registryread15mp99mslist: "{{ siaskynet_registryread15mp99mslist | sort}}"
         siaskynet_registrywrite15mp99mslist: "{{ siaskynet_registrywrite15mp99mslist | sort}}"
@@ -254,22 +266,22 @@
         medianregistrywrite15mp99ms: "{{ registrywrite15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
 
         # Medians siasky.net
-        siaskynet_medianbasesectorupload15mp99ms: "{{ siaskynet_basesectorupload15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
-        siaskynet_medianstreambufferread15mp99ms: "{{ siaskynet_streambufferread15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
-        siaskynet_medianregistryread15mp99ms: "{{ siaskynet_registryread15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
-        siaskynet_medianregistrywrite15mp99ms: "{{ siaskynet_registrywrite15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
+        siaskynet_medianbasesectorupload15mp99ms: "{{ siaskynet_basesectorupload15mp99mslist[(siaskynet_count | int / 2) | int] }}"
+        siaskynet_medianstreambufferread15mp99ms: "{{ siaskynet_streambufferread15mp99mslist[(siaskynet_count | int / 2) | int] }}"
+        siaskynet_medianregistryread15mp99ms: "{{ siaskynet_registryread15mp99mslist[(siaskynet_count | int / 2) | int] }}"
+        siaskynet_medianregistrywrite15mp99ms: "{{ siaskynet_registrywrite15mp99mslist[(siaskynet_count | int / 2) | int] }}"
 
         # Medians skynetfree
-        skynetfree_medianbasesectorupload15mp99ms: "{{ skynetfree_basesectorupload15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
-        skynetfree_medianstreambufferread15mp99ms: "{{ skynetfree_streambufferread15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
-        skynetfree_medianregistryread15mp99ms: "{{ skynetfree_registryread15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
-        skynetfree_medianregistrywrite15mp99ms: "{{ skynetfree_registrywrite15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
+        skynetfree_medianbasesectorupload15mp99ms: "{{ skynetfree_basesectorupload15mp99mslist[(skynetfree_count | int / 2) | int] }}"
+        skynetfree_medianstreambufferread15mp99ms: "{{ skynetfree_streambufferread15mp99mslist[(skynetfree_count | int / 2) | int] }}"
+        skynetfree_medianregistryread15mp99ms: "{{ skynetfree_registryread15mp99mslist[(skynetfree_count | int / 2) | int] }}"
+        skynetfree_medianregistrywrite15mp99ms: "{{ skynetfree_registrywrite15mp99mslist[(skynetfree_count | int / 2) | int] }}"
 
         # Medians skynetpro
-        skynetpro_medianbasesectorupload15mp99ms: "{{ skynetpro_basesectorupload15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
-        skynetpro_medianstreambufferread15mp99ms: "{{ skynetpro_streambufferread15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
-        skynetpro_medianregistryread15mp99ms: "{{ skynetpro_registryread15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
-        skynetpro_medianregistrywrite15mp99ms: "{{ skynetpro_registrywrite15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
+        skynetpro_medianbasesectorupload15mp99ms: "{{ skynetpro_basesectorupload15mp99mslist[(skynetpro_count | int / 2) | int] }}"
+        skynetpro_medianstreambufferread15mp99ms: "{{ skynetpro_streambufferread15mp99mslist[(skynetpro_count | int / 2) | int] }}"
+        skynetpro_medianregistryread15mp99ms: "{{ skynetpro_registryread15mp99mslist[(skynetpro_count | int / 2) | int] }}"
+        skynetpro_medianregistrywrite15mp99ms: "{{ skynetpro_registrywrite15mp99mslist[(skynetpro_count | int / 2) | int] }}"
         
         # Averages
         averagestoragespending: "{{ sumstoragespending | int / ansible_play_hosts | length }}"
