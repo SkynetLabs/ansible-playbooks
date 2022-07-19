@@ -2,6 +2,7 @@
   hosts: webportals
   remote_user: "{{ webportal_user }}"
   gather_facts: False
+  any_errors_fatal: True
   vars:
     max_hosts: 1
 
@@ -140,10 +141,48 @@
 
     - name: Create lists for p99 values
       set_fact:
+        # aggregated
         basesectorupload15mp99mslist: []
         streambufferread15mp99mslist: []
         registryread15mp99mslist: []
         registrywrite15mp99mslist: []
+        # siasky.net
+        siaskynet_basesectorupload15mp99mslist: []
+        siaskynet_streambufferread15mp99mslist: []
+        siaskynet_registryread15mp99mslist: []
+        siaskynet_registrywrite15mp99mslist: []
+        # skynetfree
+        skynetfree_basesectorupload15mp99mslist: []
+        skynetfree_streambufferread15mp99mslist: []
+        skynetfree_registryread15mp99mslist: []
+        skynetfree_registrywrite15mp99mslist: []
+        # skynetpro
+        skynetpro_basesectorupload15mp99mslist: []
+        skynetpro_streambufferread15mp99mslist: []
+        skynetpro_registryread15mp99mslist: []
+        skynetpro_registrywrite15mp99mslist: []
+      run_once: True
+
+    - name: Set server counter
+      ansible.builtin.set_fact:
+        counter: 1
+
+    - name: Count included siasky.net servers
+      ansible.builtin.set_fact:
+        siaskynet_count: "{{ siaskynet_count | default(0) | int + hostvars[item].counter | default(0) }}"
+      loop: "{{ groups.webportals_prod }}"
+      run_once: True
+
+    - name: Count included skynetfree servers
+      ansible.builtin.set_fact:
+        skynetfree_count: "{{ skynetfree_count | default(0) | int + hostvars[item].counter | default(0) }}"
+      loop: "{{ groups.skynetfree }}"
+      run_once: True
+
+    - name: Count included skynetpro servers
+      ansible.builtin.set_fact:
+        skynetpro_count: "{{ skynetpro_count | default(0) | int + hostvars[item].counter | default(0) }}"
+      loop: "{{ groups.skynetpro }}"
       run_once: True
 
     - name: Add elements to p99 lists
@@ -155,21 +194,82 @@
       loop: "{{ ansible_play_hosts }}"
       run_once: True
 
+    - name: Add elements to p99 lists (siasky.net)
+      set_fact:
+        siaskynet_basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        siaskynet_streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        siaskynet_registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        siaskynet_registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ groups.webportals_prod }}"
+      run_once: True
+
+    - name: Add elements to p99 lists (skynetfree)
+      set_fact:
+        skynetfree_basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        skynetfree_streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        skynetfree_registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        skynetfree_registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ groups.skynetfree }}"
+      run_once: True
+
+    - name: Add elements to p99 lists (skynetpro)
+      set_fact:
+        skynetpro_basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        skynetpro_streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        skynetpro_registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        skynetpro_registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ groups.skynetpro }}"
+      run_once: True
+
     - name: Sort lists of p99 values
       set_fact:
+        # aggregated
         basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist | sort}}"
         streambufferread15mp99mslist: "{{ streambufferread15mp99mslist | sort}}"
         registryread15mp99mslist: "{{ registryread15mp99mslist | sort}}"
         registrywrite15mp99mslist: "{{ registrywrite15mp99mslist | sort}}"
+        # siasky.net
+        siaskynet_basesectorupload15mp99mslist: "{{ siaskynet_siaskynet_basesectorupload15mp99mslist | sort}}"
+        siaskynet_streambufferread15mp99mslist: "{{ siaskynet_streambufferread15mp99mslist | sort}}"
+        siaskynet_registryread15mp99mslist: "{{ siaskynet_registryread15mp99mslist | sort}}"
+        siaskynet_registrywrite15mp99mslist: "{{ siaskynet_registrywrite15mp99mslist | sort}}"
+        # skynetfree
+        skynetfree_basesectorupload15mp99mslist: "{{ skynetfree_basesectorupload15mp99mslist | sort}}"
+        skynetfree_streambufferread15mp99mslist: "{{ skynetfree_streambufferread15mp99mslist | sort}}"
+        skynetfree_registryread15mp99mslist: "{{ skynetfree_registryread15mp99mslist | sort}}"
+        skynetfree_registrywrite15mp99mslist: "{{ skynetfree_registrywrite15mp99mslist | sort}}"
+        # skynetpro
+        skynetpro_basesectorupload15mp99mslist: "{{ skynetpro_basesectorupload15mp99mslist | sort}}"
+        skynetpro_streambufferread15mp99mslist: "{{ skynetpro_streambufferread15mp99mslist | sort}}"
+        skynetpro_registryread15mp99mslist: "{{ skynetpro_registryread15mp99mslist | sort}}"
+        skynetpro_registrywrite15mp99mslist: "{{ skynetpro_registrywrite15mp99mslist | sort}}"
       run_once: True
 
     - name: Aggregate over all servers
       set_fact:
-        # Medians
+        # Medians aggregated
         medianbasesectorupload15mp99ms: "{{ basesectorupload15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
         medianstreambufferread15mp99ms: "{{ streambufferread15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
         medianregistryread15mp99ms: "{{ registryread15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
         medianregistrywrite15mp99ms: "{{ registrywrite15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+
+        # Medians siasky.net
+        siaskynet_medianbasesectorupload15mp99ms: "{{ siaskynet_basesectorupload15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
+        siaskynet_medianstreambufferread15mp99ms: "{{ siaskynet_streambufferread15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
+        siaskynet_medianregistryread15mp99ms: "{{ siaskynet_registryread15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
+        siaskynet_medianregistrywrite15mp99ms: "{{ siaskynet_registrywrite15mp99mslist[(siaskynet_count | int | length / 2) | int] }}"
+
+        # Medians skynetfree
+        skynetfree_medianbasesectorupload15mp99ms: "{{ skynetfree_basesectorupload15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
+        skynetfree_medianstreambufferread15mp99ms: "{{ skynetfree_streambufferread15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
+        skynetfree_medianregistryread15mp99ms: "{{ skynetfree_registryread15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
+        skynetfree_medianregistrywrite15mp99ms: "{{ skynetfree_registrywrite15mp99mslist[(skynetfree_count | int | length / 2) | int] }}"
+
+        # Medians skynetpro
+        skynetpro_medianbasesectorupload15mp99ms: "{{ skynetpro_basesectorupload15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
+        skynetpro_medianstreambufferread15mp99ms: "{{ skynetpro_streambufferread15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
+        skynetpro_medianregistryread15mp99ms: "{{ skynetpro_registryread15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
+        skynetpro_medianregistrywrite15mp99ms: "{{ skynetpro_registrywrite15mp99mslist[(skynetpro_count | int | length / 2) | int] }}"
         
         # Averages
         averagestoragespending: "{{ sumstoragespending | int / ansible_play_hosts | length }}"
@@ -208,11 +308,42 @@
           TotalStorage:  {{ sumstorage | int / (1024 * 1024 * 1024 * 1024) }} TB
 
           MedianBaseSectorUpload(p99): {{ medianbasesectorupload15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianbasesectorupload15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianbasesectorupload15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianbasesectorupload15mp99ms }} ms
           MedianStreamBufferRead(p99): {{ medianstreambufferread15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianstreambufferread15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianstreambufferread15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianstreambufferread15mp99ms }} ms
           MedianRegistryRead(p99):     {{ medianregistryread15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianregistryread15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianregistryread15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianregistryread15mp99ms }} ms
           MedianRegistryWrite(p99):    {{ medianregistrywrite15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianregistrywrite15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianregistrywrite15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianregistrywrite15mp99ms }} ms
 
-          ContractSpending:
+          ContractSpending Totals:
+            Total Allocated:         {{ sumtotalallocated | int / hinks | int }} KS
+            Total Spent:             {{ sumtotalspent | int / hinks | int }} KS
+              Storage:               {{ sumstoragespending | int / hinks | int }} KS
+              Uploads:               {{ sumuploadspending | int / hinks | int }} KS
+              Downloads:             {{ sumdownloadspending }} H
+              FundAccount:           {{ sumfundaccountspending | int / hinks | int }} KS
+              Fees:
+                Contracts:           {{ sumcontractfees | int / hinks | int }} KS
+                Txns:                {{ sumtransactionfees | int / hinks | int }} KS
+                Maintenance:
+                  GetAccountBalance: {{ sumaccountbalancecost }} H
+                  FundAccount:       {{ sumfundaccountcost }} H
+                  UpdatePriceTable:  {{ sumupdatepricetablecost }} H
+            Unspent:                 {{ sumunspent | int / hinks | int }} KS
+              Allocated:             {{ sumunspentallocated | int / hinks | int }} KS
+              Unallocated:           {{ sumunspentunallocated | int / hinks | int }} KS
+            PreviousSpending:        {{ sumpreviousspending | int / hinks | int }} KS
+
+          ContractSpending Averages:
             Average Total Allocated:         {{ averagetotalallocated | int / hinks | int }} KS
             Average Total Spent:             {{ averagetotalspent | int / hinks | int }} KS
               Average Storage:               {{ averagestoragespending | int / hinks | int }} KS
@@ -230,7 +361,17 @@
               Average Allocated:             {{ averageunspentallocated | int / hinks | int }} KS
               Average Unallocated:           {{ averageunspentunallocated | int / hinks | int }} KS
             Average PreviousSpending:        {{ averagepreviousspending | int / hinks | int }} KS
-          EphemeralAccountSpending:
+
+          EphemeralAccountSpending Totals:
+            Downloads:       {{ sumdownloadscost | int / hinks | int }} KS
+            Uploads:         {{ sumuploadscost }} H (NOTE: still using legacy uploads)
+            RegistryRead:    {{ sumregistryreadscost | int / hinks | int }} KS
+            RegistryWrite:   {{ sumregistrywritescost | int / hinsc | int }} SC
+            RepairDownload:  {{ sumrepairuploadscost | int / hinks | int }} KS
+            RepairUpload:    {{ sumrepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
+            Subscriptions:   {{ sumsubscriptionscost | int / hinsc | int }} SC
+
+          EphemeralAccountSpending Averages:
             Average Downloads:       {{ averagedownloadscost | int / hinks | int }} KS
             Average Uploads:         {{ averageuploadscost }} H (NOTE: still using legacy uploads)
             Average RegistryRead:    {{ averageregistryreadscost | int / hinks | int }} KS
