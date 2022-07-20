@@ -263,9 +263,11 @@ skynet_js_repo_url: "https://github.com/{{ skynet_js_org_and_repo }}.git"
 skynet_js_repo_api_url: "https://api.github.com/repos/{{ skynet_js_org_and_repo }}"
 skynet_js_docker_test_image: "node:14-buster-slim"
 
+# skynet-accounts vars
+oathkeeper_docker_image: "oryd/oathkeeper:v0.39"
+
 # Local git checkouts
 local_temp_skynetlabs_git_repos: "/tmp/SkynetLabs-ansible/git-repos"
-local_temp_skynetlabs_git_repos_skynet_accounts: "{{ local_temp_skynetlabs_git_repos }}/skynet-accounts"
 local_temp_skynetlabs_git_repos_skynet_js: "{{ local_temp_skynetlabs_git_repos }}/skynet-js"
 
 # Download/upload waits

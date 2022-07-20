@@ -1,47 +1,30 @@
 ---
-# Generate Accounts jwks.json config file according to skynet-accounts README.
-# Sometimes the generated jwks.json file is empty so we retry until we
-# successfully generate the content.
+# Generate Accounts jwks.json config file
 
-- name: Increment jwks retry count
-  set_fact:
-    jwks_retries_count: "{{ jwks_retries_count | int + 1 }}"
+- name: Pull oathkeeper docker image
+  community.docker.docker_image:
+    name: "{{ oathkeeper_docker_image }}"
+    source: pull
 
-- name: Generate JWKS config according to README in skynet-accounts repo
+- name: "Generate jwks.json using {{ oathkeeper_docker_image }} image"
   local_action:
     module: community.docker.docker_container
     name: jwks-config-generator
-    image: alpine:3.16.0
+    image: "{{ oathkeeper_docker_image }}"
     volumes:
-      # Following host:guest dirs must be the same because our container
-      # call golang container (docker in docker) and we need to mount the
-      # same working directory so we get generated files to the `output`
-      # directory
-      - "{{ jwks_repo_dir }}:{{ jwks_repo_dir }}"
       # We call another docker container from our container (docker in
       # docker) so we need to pass docker socket
       - /var/run/docker.sock:/var/run/docker.sock
-    command:
-      - "sh -c"
-      # String of commands is required to be enclosed in single quotes. We:
-      # - install docker
-      # - install make
-      # - cd to skynet-accounts repo
-      # - generate jwks config
-      - "'apk add docker && apk add make && cd {{ jwks_repo_dir }} && make docker-generate'"
+    command: "credentials generate --alg RS256"
     container_default_behavior: no_defaults
-    auto_remove: True
     detach: False
+  register: jwks_generation_result
+
+- name: Remove oathkeeper container
+  community.docker.docker_container:
+    name: jwks-config-generator
+    state: absent
 
 - name: Read generated jwks.json
   set_fact:
-    accounts_jwks_data: "{{ lookup('file', jwks_repo_dir + '/output/jwks.json') }}"
-
-- name: Fail if failed to generate jwks.json file several times
-  fail:
-    msg: "Ansible was not able to generate jwks.json file for {{ jwks_retries_max }} times"
-  when: accounts_jwks_data == '' and jwks_retries_count | int == jwks_retries_max
-
-- name: Retry if generated jwks.json file is empty
-  include_tasks: tasks/portal-accounts-generate-jwks.json.yml
-  when: accounts_jwks_data == ''
+    accounts_jwks_data: "{{ jwks_generation_result.container.Output }}"
