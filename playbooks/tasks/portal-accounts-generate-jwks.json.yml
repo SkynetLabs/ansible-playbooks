@@ -1,0 +1,30 @@
+---
+# Generate Accounts jwks.json config file
+
+- name: Pull oathkeeper docker image
+  community.docker.docker_image:
+    name: "{{ oathkeeper_docker_image }}"
+    source: pull
+
+- name: "Generate jwks.json using {{ oathkeeper_docker_image }} image"
+  local_action:
+    module: community.docker.docker_container
+    name: jwks-config-generator
+    image: "{{ oathkeeper_docker_image }}"
+    volumes:
+      # We call another docker container from our container (docker in
+      # docker) so we need to pass docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "credentials generate --alg RS256"
+    container_default_behavior: no_defaults
+    detach: False
+  register: jwks_generation_result
+
+- name: Remove oathkeeper container
+  community.docker.docker_container:
+    name: jwks-config-generator
+    state: absent
+
+- name: Read generated jwks.json
+  set_fact:
+    accounts_jwks_data: "{{ jwks_generation_result.container.Output }}"
