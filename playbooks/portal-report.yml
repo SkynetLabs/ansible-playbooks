@@ -316,8 +316,14 @@
     - name: Print final result
       debug:
         msg: |
-          TotalNumFiles: {{ sumnumfiles }}
-          TotalStorage:  {{ sumstorage | int / (1024 * 1024 * 1024 * 1024) }} TB
+          TotalNumFiles:              {{ sumnumfiles }}
+          TotalStorage:               {{ sumstorage | int / (1024 * 1024 * 1024 * 1024) }} TB
+          TotalStorageSpending:       {{ sumstoragespending | int / hinks | int }} KS
+          TotalUploadSpending:        {{ (sumuploadspending | int + sumuploadscost | int) / hinks | int }} KS
+          TotalDownloadSpending:      {{ (sumdownloadspending | int + sumdownloadscost | int + sumrepairdownloadscost | int) / hinks | int }} KS
+          TotalRegistryReadSpending:  {{ sumregistryreadscost | int / hinks | int }} KS
+          TotalRegistryWriteSpending: {{ sumregistrywritescost | int / hinsc | int }} SC
+          TotalSubscriptionSpending:  {{ sumsubscriptionscost | int / hinsc | int }} SC
 
           MedianBaseSectorUpload(p99): {{ medianbasesectorupload15mp99ms }} ms
             - siasky.net:                {{ siaskynet_medianbasesectorupload15mp99ms }} ms
@@ -379,7 +385,7 @@
             Uploads:         {{ sumuploadscost }} H (NOTE: still using legacy uploads)
             RegistryRead:    {{ sumregistryreadscost | int / hinks | int }} KS
             RegistryWrite:   {{ sumregistrywritescost | int / hinsc | int }} SC
-            RepairDownload:  {{ sumrepairuploadscost | int / hinks | int }} KS
+            RepairDownload:  {{ sumrepairdownloadscost | int / hinks | int }} KS
             RepairUpload:    {{ sumrepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
             Subscriptions:   {{ sumsubscriptionscost | int / hinsc | int }} SC
 
