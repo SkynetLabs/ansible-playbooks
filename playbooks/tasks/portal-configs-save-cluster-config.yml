@@ -91,8 +91,8 @@
             prefix: "  "
           set_fact:
             # Add prefix to each mgkey line (indent each mgkey line).
-            # NOTE: the weird use of the `join()`` statement is for formatting.
-            # The newline character `\n`` isn't recognized in this type of
+            # NOTE: the weird use of the `join()` statement is for formatting.
+            # The newline character `\n` isn't recognized in this type of
             # multiline string
             indented_mgkey: >-
               {{
@@ -100,7 +100,7 @@
                 | product(webportal_common_config_last.mongo_db_mgkey.splitlines())
                 | map('join')
                 | list
-                | join('\n')
+                | join(newline_char)
               }}
 
         - name: Update last config with a dummy mongo mgkey value
@@ -125,10 +125,10 @@
               }}
       when: webportal_common_config_last.mongo_db_mgkey is defined
 
-    - name: Include saving cluster config to secure storage
+    - name: Include saving cluster config to secrets storage
       include_tasks: "tasks/secrets-storage-common-save-string-to-yaml-or-json.yml"
       vars:
-        secret_path: "{{ last_cluster_config_secret_path }}"
+        save_string_secret_path: "{{ last_cluster_config_secret_path }}"
         secret_string: "{{ last_cluster_config_yaml_string }}"
   when: >-
     (secrets_storage_record_exists and different_dict)

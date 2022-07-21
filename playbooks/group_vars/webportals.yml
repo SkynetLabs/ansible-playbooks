@@ -30,7 +30,11 @@ server_credential_in_hashicorp_vault_exists_command: >-
 server_credential_in_hashicorp_vault_exists: >-
   {{
     False
-    if (lookup('pipe', server_credential_in_hashicorp_vault_exists_command) == '404')
+    if (
+      secrets_storage == 'hashicorp-vault'
+      and
+      lookup('pipe', server_credential_in_hashicorp_vault_exists_command) == '404'
+    )
     else True
   }}
 
@@ -41,7 +45,7 @@ hashicorp_vault_token: "{{ lookup('env', 'HCV_TOKEN', allow_unsafe=True) | first
 ### Get password from the HashiCorp Vault
 ansible_become_pass_from_hashicorp_vault: >-
   {{
-    lookup('community.hashi_vault.vault_read', hashicorp_vault_pass_full_path, url=lookup('env', 'HCV_URL'), token=hashicorp_vault_token).data.data.password
+    lookup('community.hashi_vault.vault_read', hashicorp_vault_pass_full_path, url=lookup('env', 'HCV_URL'), token=hashicorp_vault_token, token_validate=True).data.data.password
     if (
       secrets_storage == 'hashicorp-vault'
       and
