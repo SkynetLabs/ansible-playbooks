@@ -4,7 +4,7 @@
 - name: Handle recent git security update
   local_action:
     module: ansible.builtin.command
-    cmd: git config --add safe.directory /tmp/playbook
+    cmd: git config --global --add safe.directory /tmp/playbook
   run_once: True
 
 - name: Get Ansible repo branch
