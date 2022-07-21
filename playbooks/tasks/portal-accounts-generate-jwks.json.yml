@@ -8,10 +8,10 @@
 
 - name: "Generate jwks.json using {{ oathkeeper_docker_image }} image"
   local_action:
-    # We use ansible.builtin.shell instead of community.docker.docker_container
-    # because docker_container doesn't generates jwks.json correctly, it
-    # outputs 7 json strings instead of 1.
-    module: ansible.builtin.shell
+    # We use ansible.builtin.command instead of community.docker
+    # .docker_container because docker_container doesn't generates jwks.json
+    # correctly, it outputs 7 json strings instead of 1.
+    module: ansible.builtin.command
     cmd: "docker run --rm {{ oathkeeper_docker_image }} credentials generate --alg RS256"
   register: jwks_generation_result
 
