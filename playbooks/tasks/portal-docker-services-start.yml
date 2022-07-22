@@ -50,16 +50,6 @@
   debug:
     msg: "{{ inventory_hostname + ' docker services start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
 
-# Set takedown flag
-- name: Set takedown flag
-  set_fact:
-    takedown: "{{ 'webportals_takedown' in group_names }}"
-
-# Set takedown docker compose services
-- name: Set takedown docker compose services
-  set_fact:
-    docker_compose_services_limit: "{{ ['mongo', 'sia'] if takedown else [] }}"
-
 # Start the docker services (on deploy also build images)
 - name: Start the docker services (on deploy also build images)
   community.docker.docker_compose:
@@ -69,7 +59,6 @@
     remove_orphans: True
     nocache: True
     pull: True
-    services: "{{ docker_compose_services_limit }}"
     state: present
     # TODO: Build in parallel, when Ansible support is added
   become: True
@@ -79,11 +68,7 @@
 # Set list of started docker compose services
 - name: Set list of started docker compose services
   set_fact:
-    docker_compose_services: >-
-      {{
-        docker_compose_services_limit if takedown
-        else docker_compose_start_result.services.keys() | list
-      }}
+    docker_compose_services: "{{ docker_compose_start_result.services.keys() | list }}"
 
 # Log docker compose services
 - name: Log docker compose services
@@ -142,13 +127,8 @@
   include_tasks: tasks/portal-logs-update-status.yml
   vars:
     tag_from: "starting"
-    tag_to: "{{ 'started-takedown' if takedown else 'started' }}"
+    tag_to: "started"
 
 # Include running any commands post startup
 - name: Include running any commands post startup
   include_tasks: tasks/portal-execute-commands.yml
-
-# Stop the playbook if on takedown
-- name: Stop the playbook if on takedown
-  meta: end_host
-  when: takedown

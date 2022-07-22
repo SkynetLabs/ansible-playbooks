@@ -87,12 +87,11 @@
 - name: Include updating Accounts test user to the highest paid tier in MongoDB
   include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
   vars:
-    tier: "{{ hostvars[inventory_hostname].accounts_test_user_tier | default(1) }}"
     mongodb_shell_delegated:
       host: "{{ hostvars[inventory_hostname].mongo_primary_host }}"
       db: "skynet"
       eval: |
-        db.getCollection('users').updateOne({'email':'{{ hostvars[inventory_hostname].accounts_test_user_email }}'},{'$set':{'tier':{{ hostvars[inventory_hostname].tier }} }})
+        db.getCollection('users').updateOne({'email':'{{ hostvars[inventory_hostname].accounts_test_user_email }}'},{'$set':{'tier':{{ hostvars[inventory_hostname].accounts_test_user_tier | default(1) }} }})
     webportal_common_config:
       skynet_db_user: "{{ mongodb_config.skynet_db_user }}"
       skynet_db_pass: "{{ mongodb_config.skynet_db_pass }}"

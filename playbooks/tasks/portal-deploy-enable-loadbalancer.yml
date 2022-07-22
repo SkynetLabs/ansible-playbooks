@@ -1,8 +1,5 @@
 ---
 # Deploy Portal to Server Part 2: Run Tests and Enable Loadbalancer
-- name: Sleep for 10min to give server time to level out before running tests
-  ansible.builtin.command: sleep 600
-
 - name: Include running portal integration tests
   include_tasks: tasks/portal-integration-tests-run.yml
 

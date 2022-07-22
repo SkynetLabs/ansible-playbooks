@@ -52,3 +52,7 @@
 
       Mongo shell result: {{ mongo_shell_result }}
   when: "mongo_shell_result.transformed_output | default('none output') != '{ \"ok\" : 1 }'"
+
+- name: Set MongoDB initialized flag
+  ansible.builtin.set_fact:
+    mongo_replicaset_initialized: True
