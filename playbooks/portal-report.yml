@@ -30,7 +30,7 @@
         streambufferread15mp99ms: "{{ stats_result.json.streambufferread15mp99ms }}"
         registryread15mp99ms: "{{ stats_result.json.registryread15mp99ms }}"
         registrywrite15mp99ms: "{{ stats_result.json.registrywrite15mp99ms }}"
-        
+
         # Spending
         storagespending: "{{ renter_result.json.financialmetrics.storagespending }}"
         uploadspending: "{{ renter_result.json.financialmetrics.uploadspending }}"
@@ -45,7 +45,7 @@
         totalallocated: "{{ renter_result.json.financialmetrics.totalallocated }}"
         unspent: "{{ renter_result.json.financialmetrics.unspent }}"
         previousspending: "{{ renter_result.json.financialmetrics.previousspending }}"
-      
+
     - name: Sum up TotalSpent
       ansible.builtin.set_fact:
         totalspent: "{{ storagespending | int + uploadspending | int + downloadspending | int + fundaccountspending | int + contractfees | int + transactionfees | int + accountbalancecost | int + fundaccountcost | int + updatepricetablecost | int }}"
@@ -67,7 +67,7 @@
         repairdownloadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='repairdownloadscost') | map('int') | sum }}"
         repairuploadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='repairuploadscost') | map('int') | sum }}"
         subscriptionscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='subscriptionscost') | map('int') | sum }}"
-        
+
     - name: Print per-server result
       debug:
         msg: |
@@ -282,7 +282,7 @@
         skynetpro_medianstreambufferread15mp99ms: "{{ skynetpro_streambufferread15mp99mslist[(skynetpro_count | int / 2) | int] }}"
         skynetpro_medianregistryread15mp99ms: "{{ skynetpro_registryread15mp99mslist[(skynetpro_count | int / 2) | int] }}"
         skynetpro_medianregistrywrite15mp99ms: "{{ skynetpro_registrywrite15mp99mslist[(skynetpro_count | int / 2) | int] }}"
-        
+
         # Averages
         averagestoragespending: "{{ sumstoragespending | int / ansible_play_hosts | length }}"
         averageuploadspending: "{{ sumuploadspending | int / ansible_play_hosts | length }}"
