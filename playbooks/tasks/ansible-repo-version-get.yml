@@ -1,6 +1,13 @@
 ---
 # Get local Ansible repo branch and commit
 
+# Related git release https://lore.kernel.org/git/xmqqv8veb5i6.fsf@gitster.g/
+- name: Handle git v2.35.2 security update
+  local_action:
+    module: ansible.builtin.command
+    cmd: git config --global --add safe.directory /tmp/playbook
+  run_once: True
+
 - name: Get Ansible repo branch
   local_action:
     module: ansible.builtin.command
