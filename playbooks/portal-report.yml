@@ -308,11 +308,6 @@
         averagesubscriptionscost: "{{ sumsubscriptionscost | int / ansible_play_hosts | length }}"
       run_once: True
 
-    - name: Set H in SC, KS constants
-      set_fact:
-        hinsc: "{{ 1e+24 }}"
-        hinks: "{{ 1e+27 }}"
-
     - name: Print final result
       debug:
         msg: |
