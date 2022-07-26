@@ -22,7 +22,6 @@
           - git commit {{ portal_repo_commit }}
 
           - portal_repo_version: {{ portal_repo_version }}
-          - portal_skyd_version: {{ portal_skyd_version_used }}
           - portal_accounts_version: {{ portal_accounts_version_used }}
 
           {{ "No files modified after last Ansible docker services re-/start" if portal_modified_files.stdout == "" else "Following files were edited after last Ansible docker services re-/start:\n" + portal_modified_files.stdout }}

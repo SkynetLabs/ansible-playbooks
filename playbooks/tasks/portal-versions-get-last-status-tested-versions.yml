@@ -1,11 +1,9 @@
 ---
-
 # Get skynet-webportal versions from last status.tested logs
 
 - name: Get last status.tested file prefix
   shell: "ls {{ logs_dir }} | grep status.tested | tail -n1 | awk -F'.status' '{print $1}'"
-  register:
-    last_tested_prefix
+  register: last_tested_prefix
 
 - name: Set last log filename prefix
   set_fact:
@@ -27,6 +25,7 @@
 - name: Get skyd version
   set_fact:
     portal_skyd_version: "{{ last_tested_portal_versions.portal_skyd_version }}"
+  when: last_tested_portal_versions.portal_skyd_version is defined
 
 - name: Get accounts version
   set_fact:

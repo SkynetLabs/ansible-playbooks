@@ -14,7 +14,6 @@
             - portal_repo_version: **{{ host_vars.portal_repo_version if host_vars.portal_repo_version is defined else '-- failed to get the value --' }}**{{ '\\n' -}}
             {{ '\\n' -}}
             Versions from docker-compose.override.yml:{{ '\\n' -}}
-            - portal_skyd_version: **{{ host_vars.portal_skyd_version_used if host_vars.portal_skyd_version_used is defined else '-- failed to get the value --' }}**{{ '\\n' -}}
             - portal_accounts_version: **{{ host_vars.portal_accounts_version_used if host_vars.portal_accounts_version_used is defined else '-- failed to get the value --' }}**{{ '\\n' -}}
             {{ '\\n' -}}
             {{ 'No files modified after last Ansible docker services re-/start'
