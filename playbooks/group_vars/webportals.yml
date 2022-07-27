@@ -311,3 +311,6 @@ renter_log_lines:
 
 # Host migrations, sync
 rsync_docker_image: "instrumentisto/rsync-ssh:alpine3.15-r0"
+
+# Abuse Scanner vars
+cypress_docker_image: "cypress/included:10.3.0"
