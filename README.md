@@ -122,7 +122,6 @@ script yet to initialize the user, you should include the `-u root` option. Or,
 if your server was initialized with a non root user, use that username, i.e.
 `-u debian`.
 
-
 #### Execution
 
 `scripts/portals-ping.sh --limit eu-ger-1`  
