@@ -1,0 +1,1 @@
+- Added portal-report playbook which allows for creating a metrics and spending report of a set of servers
