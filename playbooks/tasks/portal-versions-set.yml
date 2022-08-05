@@ -1,6 +1,15 @@
 ---
 # Set portal versions (portal, skyd, accounts)
 
+- name: Read docker-compose.yml
+  slurp:
+    path: "{{ webportal_dir }}/docker-compose.yml"
+  register: docker_compose_slurped
+
+- name: Parse docker-compose.yml
+  set_fact:
+    docker_compose_data: "{{ docker_compose_slurped['content'] | b64decode | from_yaml }}"
+
 - name: Fail if portal versions (portal, skyd, accounts) are not set correctly
   ansible.builtin.fail:
     msg: |
@@ -9,8 +18,14 @@
       - portal_repo_version must be defined
         current value: {{ portal_repo_version | default('- not set -') }}
 
-      - portal_skyd_version must be defined
-        current value: {{ portal_skyd_version | default('- not set -') }}
+      - optionally one of (but not both)
+          - portal_skyd_version
+            current value: {{ portal_skyd_version | default('- not set -') }}
+
+          - docker_image_overrides sia image override
+            note: cannot be used on older codebase where 'sia' docker service defines 'build' property
+            current value: {{ (docker_image_overrides is defined and (docker_image_overrides | selectattr('service', '==', 'sia') | first ).image) | default('- not set -') }}
+        can be defined or both can be omitted.
 
       - optionally one of (but not both)
           - portal_accounts_version
@@ -22,7 +37,11 @@
   when: >-
     portal_repo_version | default('') == ''
     or
-    portal_skyd_version | default('') == ''
+    (
+      (portal_skyd_version | default('') != '' or docker_compose_data.services.sia.build is defined)
+      and
+      (docker_image_overrides is defined and docker_image_overrides | selectattr('service', '==', 'sia') | length)
+    )
     or
     (
       portal_accounts_version | default('') != ''
@@ -63,7 +82,7 @@
 
 - name: Set empty docker compose override data
   set_fact:
-    docker_compose_override_data: {}
+    docker_compose_override_data: { "version": "3.8" } # yamllint disable-line rule:braces
 
 # Handle setting an docker image overrides
 #
@@ -81,17 +100,20 @@
   # Do not set website docker image when website custom build/context/
   # dockerfile is defined
   when: >-
-    item.service != 'website'
-    or
+    docker_image_overrides is defined and
     (
-      item.service == 'website'
-      and not
+      item.service != 'website'
+      or
       (
-        website_custom_build is defined
-        or
-        website_custom_build_context is defined
-        or
-        website_custom_build_dockerfile is defined
+        item.service == 'website'
+        and not
+        (
+          website_custom_build is defined
+          or
+          website_custom_build_context is defined
+          or
+          website_custom_build_dockerfile is defined
+        )
       )
     )
 
@@ -113,6 +135,15 @@
   when:
     - website_custom_build_context is defined
     - website_custom_build_dockerfile is defined
+
+# Handle skyd. Skyd version can be set via skyd docker image in
+# docker-compose.yml otherwise via branch in config.yml variable.
+
+- name: >-
+    Update skyd version in data variable (if branch variable is defined)
+  set_fact:
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {'sia': {'build': {'context': docker_skyd_repo_url + '#main', 'dockerfile': 'scratch/Dockerfile', 'args': {'branch': portal_skyd_version} } }}}, recursive=True) }}" # noqa var-spacing
+  when: portal_skyd_version | default('') != ''
 
 # Handle accounts. Account version can be set via accounts docker image in
 # docker-compose.accounts.yml otherwise via branch in config.yml variable.

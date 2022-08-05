@@ -1,6 +1,15 @@
 ---
 # Get skyd and accounts versions
 
+- name: Read docker-compose.yml
+  slurp:
+    path: "{{ webportal_dir }}/docker-compose.yml"
+  register: docker_compose_slurped
+
+- name: Parse docker-compose.yml
+  set_fact:
+    docker_compose_data: "{{ docker_compose_slurped['content'] | b64decode | from_yaml }}"
+
 - name: Read docker-compose.override.yml
   slurp:
     path: "{{ webportal_dir }}/docker-compose.override.yml"
@@ -10,9 +19,34 @@
   set_fact:
     docker_compose_override_data: "{{ docker_compose_override_slurped['content'] | b64decode | from_yaml }}"
 
-- name: Get skyd version from docker-compose.override.yml
+- name: >-
+    Get skyd version from docker-compose.override.yml if it is defined,
+    otherwise get it from docker-compose.yml
   set_fact:
-    portal_skyd_version_used: "{{ docker_compose_override_data.services.sia.build.args.branch }}"
+    portal_skyd_version_used: >-
+      {{
+        'branch: ' + docker_compose_override_data.services.sia.build.args.branch
+        if (
+          'services' in docker_compose_override_data and
+          'sia' in docker_compose_override_data.services and
+          'build' in docker_compose_override_data.services.sia and
+          'args' in docker_compose_override_data.services.sia.build and
+          'branch' in docker_compose_override_data.services.sia.build.args
+        )
+        else 'image: ' + docker_compose_override_data.services.sia.image
+        if (
+          'services' in docker_compose_override_data and
+          'sia' in docker_compose_override_data.services and
+          'image' in docker_compose_override_data.services.sia
+        )
+        else 'branch: ' + docker_compose_data.services.sia.build.args.branch
+        if (
+          'build' in docker_compose_data.services.sia and
+          'args' in docker_compose_data.services.sia.build and
+          'branch' in docker_compose_data.services.sia.build.args
+        )
+        else 'image: ' + docker_compose_data.services.sia.image
+      }}
 
 - name: Include checking if accounts use docker image
   include_tasks: tasks/portal-docker-compose-accounts-check-image-is-used.yml

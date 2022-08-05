@@ -157,6 +157,7 @@ mongo_max_voting_members: 7
 # Skynet webportal role settings
 
 webportal_repo_url: "https://github.com/SkynetLabs/skynet-webportal.git"
+docker_skyd_repo_url: "https://github.com/SkynetLabs/docker-skyd.git"
 accounts_repo_url: "https://github.com/SkynetLabs/skynet-accounts.git"
 dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
 
