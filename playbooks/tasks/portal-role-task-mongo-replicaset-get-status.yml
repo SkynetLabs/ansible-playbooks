@@ -60,9 +60,10 @@
       There are {{ mongo_not_ok_host_list | length }} host(s) or mongo container(s) offline or they do not run MongoDB replicaset correctly:
       {% for h in mongo_not_ok_host_list %}
       - {{ h }}
+      {% endfor %}
+      
       Possible reasons:
       - Host(s) is unreachable.
       - Mongo container(s) is not running.
       - Mongo replicaset is not configured correctly on the host(s).
-      {% endfor %}
       {% endif %}

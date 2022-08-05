@@ -11,6 +11,16 @@
 
 # Search for MongoDB primary host until you find it
 
+# ignore_unreachable, ignore_errors, failed_when flags don't work with
+# delegated_to below, so we check unreachable hosts with wait_for_connection.
+
+- name: Check delegated host is reachable
+  ansible.builtin.wait_for_connection:
+    timeout: 10
+  delegate_to: "{{ host_item }}"
+  ignore_errors: True
+  register: reachable_result
+
 - name: Check that mongo container is running
   community.docker.docker_container_info:
     name: mongo
@@ -19,12 +29,12 @@
     # Set SSH port for Ansible if default port 22 is not used.
     ansible_port: "{{ hostvars[host_item].ansible_port | default(default_ssh_port) }}"
   register: mongo_container_result
-  ignore_unreachable: True
+  when: reachable_result.failed | default(False) != True
 
 - name: Set mongo container running correctly flag
   set_fact:
     mongo_container_ok: >-
-      {{ not mongo_container_result.unreachable | default(False) and
+      {{ not reachable_result.failed | default(False) and
       mongo_container_result.exists | default(False) and
       mongo_container_result.container.State.Running and
       not mongo_container_result.container.State.Restarting }}

@@ -85,15 +85,14 @@
 
     - name: Keep better yaml formatting for mongo_db_mgkey
       block:
-        - name: Store mongo mgkey to temporary variable and indent it
+        - name: Store indented mongo mgkey to temporary variable
           vars:
-            # Prefix that will be rendered in final secure storage record yaml
             prefix: "  "
           set_fact:
-            # Add prefix to each mgkey line (indent each mgkey line).
-            # NOTE: the weird use of the `join()` statement is for formatting.
-            # The newline character `\n` isn't recognized in this type of
-            # multiline string
+             # Add prefix to each mgkey line (indent each mgkey line).
+             # NOTE: the weird use of the `join()` statement is for formatting.
+             # The newline character `\n` isn't recognized in this type of
+             # multiline string
             indented_mgkey: >-
               {{
                 [prefix]

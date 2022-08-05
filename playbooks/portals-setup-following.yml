@@ -35,11 +35,21 @@
     # downloads to finish) first before we continue with server setup, because
     # setup might disrupt them.
 
+    # Load server and cluster configs and set default values if missing.
     - name: Include getting server and cluster configs from secrets storage
       include_tasks: tasks/portal-configs-load.yml
 
     - name: Include saving server config to secrets storage
       include_tasks: tasks/portal-configs-save-server-config.yml
+
+    # Save cluster configs especially indented mongo mgkey so that we can load
+    # it back formatted.
+    - name: Include saving the cluster config
+      include_tasks: tasks/portal-configs-save-cluster-config.yml
+
+    # Load configs especially indented/reformatted mongo mgkey
+    - name: Include getting server and cluster configs from secrets storage
+      include_tasks: tasks/portal-configs-load.yml
 
     - name: Check docker was setup
       ansible.builtin.command: docker ps
