@@ -1,0 +1,25 @@
+---
+# Generate Accounts jwks.json config file
+
+- name: Pull oathkeeper docker image
+  community.docker.docker_image:
+    name: "{{ oathkeeper_docker_image }}"
+    source: pull
+
+- name: "Generate jwks.json using {{ oathkeeper_docker_image }} image"
+  local_action:
+    # We use ansible.builtin.command instead of community.docker
+    # .docker_container because docker_container doesn't generates jwks.json
+    # correctly, it outputs 7 json strings instead of 1.
+    module: ansible.builtin.command
+    cmd: "docker run --rm {{ oathkeeper_docker_image }} credentials generate --alg RS256"
+  register: jwks_generation_result
+
+- name: Remove oathkeeper container
+  community.docker.docker_container:
+    name: jwks-config-generator
+    state: absent
+
+- name: Read generated jwks.json
+  set_fact:
+    accounts_jwks_data: "{{ jwks_generation_result.stdout }}"

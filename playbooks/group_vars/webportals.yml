@@ -150,10 +150,14 @@ docker_prune_timeout_secs: 1800
 # Wallet initialization
 use_existing_sia_seed_if_exists: True
 
+# MongoDB constants
+mongo_max_voting_members: 7
+
 # =============================================================================
 # Skynet webportal role settings
 
 webportal_repo_url: "https://github.com/SkynetLabs/skynet-webportal.git"
+docker_skyd_repo_url: "https://github.com/SkynetLabs/docker-skyd.git"
 accounts_repo_url: "https://github.com/SkynetLabs/skynet-accounts.git"
 dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
 
@@ -259,6 +263,9 @@ skynet_js_org_and_repo: "SkynetLabs/skynet-js"
 skynet_js_repo_url: "https://github.com/{{ skynet_js_org_and_repo }}.git"
 skynet_js_repo_api_url: "https://api.github.com/repos/{{ skynet_js_org_and_repo }}"
 skynet_js_docker_test_image: "node:14-buster-slim"
+
+# skynet-accounts vars
+oathkeeper_docker_image: "oryd/oathkeeper:v0.39"
 
 # Local git checkouts
 local_temp_skynetlabs_git_repos: "/tmp/SkynetLabs-ansible/git-repos"

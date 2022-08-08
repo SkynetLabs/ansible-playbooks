@@ -23,9 +23,9 @@
   set_fact:
     mongo_primary_host: ""
 
-- name: Set mongo not running correctly count
+- name: Reset mongo not ok list
   set_fact:
-    mongo_not_ok_count: 0
+    mongo_not_ok_host_list: []
 
 - name: Include adding the mongo node to the replicaset by primary member
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-status-subtask.yml
@@ -48,9 +48,21 @@
     msg: "MongoDB replicaset exists on online containers: {{ mongo_replicaset_online }}"
   when: mongo_primary_host | default('') == ''
 
-- name: Log some MongoDB hosts or containers are offline or they do not run correctly
+- name: Log MongoDB replicaset status
   debug:
-    msg: "There are some MongoDB hosts or containers offline or do not run correctly"
-  when: >-
-    mongo_primary_host | default('') == '' and
-    mongo_not_ok_count | int > 0
+    msg: |
+      MongoDB replicaset status:
+
+      MongoDB replicaset is online: {{ mongo_replicaset_online }}
+      MongoDB primary host: {{ mongo_primary_host if (mongo_primary_host != '') else '- not found -' }}
+      {% if mongo_not_ok_host_list | length > 0 %}
+
+      There are {{ mongo_not_ok_host_list | length }} host(s) or mongo container(s) offline or they do not run MongoDB replicaset correctly:
+      {% for h in mongo_not_ok_host_list %}
+      - {{ h }}
+      Possible reasons:
+      - Host(s) is unreachable.
+      - Mongo container(s) is not running.
+      - Mongo replicaset is not configured correctly on the host(s).
+      {% endfor %}
+      {% endif %}
