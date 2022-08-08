@@ -13,7 +13,7 @@
 - name: Ensure requirements are installed
   apt:
     update_cache: true
-    cache_valid_time: 1800 # 30 minutes
+    cache_valid_time: 3600 # 60 minutes
     state: latest
     name:
       - iptables
