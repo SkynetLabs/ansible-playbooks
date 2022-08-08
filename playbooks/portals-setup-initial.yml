@@ -24,8 +24,6 @@
   any_errors_fatal: True
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    secrets_storage_required: True
-    secrets_storage_allow_missing_user_credentials: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -43,8 +41,6 @@
   gather_facts: False
   serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
-  vars:
-    secrets_storage_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -52,6 +48,9 @@
     - name: Skip if initial root like user is defined
       meta: end_host
       when: initial_root_like_user is defined
+
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
 
     - name: Install python3 for Ansible
       ansible.builtin.raw: test -e /usr/bin/python3 || (apt -qqy update && apt install -qqy python3)
@@ -77,9 +76,6 @@
   gather_facts: False
   serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
-  vars:
-    # Secrets required to set webportal_temp_user password to webportal_user password
-    secrets_storage_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -87,6 +83,9 @@
     - name: Skip if initial root like user is not defined
       meta: end_host
       when: initial_root_like_user is not defined
+
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
 
     - name: Check SSH access (initial root like user might be already disabled)
       block:
@@ -162,10 +161,6 @@
   gather_facts: False
   serial: 1 # Limit concurrency
   any_errors_fatal: True # Stop on first error, do not execute on the next host
-  vars:
-    # Secrets required to read password for 'become: True' and for setting
-    # webportal_user password from LastPass
-    secrets_storage_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -173,6 +168,9 @@
     - name: Skip if initial root like user is not defined
       meta: end_host
       when: initial_root_like_user is not defined
+
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
 
     - name: Remove initial root like user
       ansible.builtin.user:

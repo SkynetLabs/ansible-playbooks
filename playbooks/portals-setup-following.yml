@@ -9,7 +9,6 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    secrets_storage_required: True
     portal_action: "{{ 'portal-setup-and-deploy' if (deploy_after_setup | default(False)) else 'portal-setup' }}"
 
     # Deploy specific
@@ -24,6 +23,9 @@
   tasks:
     - name: Check '--limit' is used
       include_tasks: tasks/host-limit-check.yml
+
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
 
     - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
