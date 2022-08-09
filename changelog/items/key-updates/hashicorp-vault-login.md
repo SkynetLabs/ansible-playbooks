@@ -1,0 +1,1 @@
+- Add support for login to HashiCorp Vault.

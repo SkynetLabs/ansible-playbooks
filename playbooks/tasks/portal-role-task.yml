@@ -28,10 +28,12 @@
   # Do not run this in parallel (use throttle = 1) so that there are not
   # created and used multiple JWKS data for a single cluster
 - block:
-    - name: Load JWKS data fresh from LastPass
-      include_tasks: tasks/lastpass-load-json-note.yml
+    - name: Include loading JWKS data fresh from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-yaml-or-json.yml
       loop:
-        - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
+        # Set `secret_path` according to `{{secret_storage}}_accounts_jwks_json`
+        # variable
+        - secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_accounts_jwks_json') }}"
           var_name: accounts_jwks_data
 
     - name: Set generate JWKS data flag
@@ -43,8 +45,11 @@
         - name: Include generating jwks.json file
           include_tasks: tasks/portal-accounts-generate-jwks.json.yml
 
-        - name: Include saving cluster jwks.json to LastPass
-          include_tasks: tasks/lastpass-save-cluster-jwks.json.yml
+        - name: Include saving cluster jwks.json to secure storage
+          include_tasks: "tasks/secrets-storage-common-save-data-to-yaml-or-json.yml"
+          vars:
+            secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_accounts_jwks_json') }}"
+            secret_data: "{{ accounts_jwks_data }}"
       when: generate_jwks
   when: portal_accounts_on
   throttle: 1
@@ -86,10 +91,6 @@
 # skyd depends on mongo.
 - name: Include setting up MongoDB
   include_tasks: tasks/portal-role-task-mongo-setup.yml
-
-# If we successfully set up mongo, save the cluster configs.
-- name: Include saving the cluster config
-  include_tasks: "{{ playbook_dir }}/{{ save_cluster_config_handler }}"
 
 # Init, unlock wallet
 
@@ -245,8 +246,8 @@
         updated:
           sia_wallet_seed: "{{ new_sia_wallet_seed }}"
 
-    - name: Include saving portal config
-      include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+    - name: Include saving server config to secrets storage
+      include_tasks: tasks/portal-configs-save-server-config.yml
 
     - name: Update .env file
       ansible.builtin.template:

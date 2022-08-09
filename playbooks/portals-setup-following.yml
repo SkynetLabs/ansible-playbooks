@@ -9,7 +9,6 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
     portal_action: "{{ 'portal-setup-and-deploy' if (deploy_after_setup | default(False)) else 'portal-setup' }}"
 
     # Deploy specific
@@ -25,6 +24,9 @@
     - name: Check '--limit' is used
       include_tasks: tasks/host-limit-check.yml
 
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
+
     - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
@@ -35,19 +37,21 @@
     # downloads to finish) first before we continue with server setup, because
     # setup might disrupt them.
 
-    # TODO: Handlers should be configured later as plugins (LastPass/plaintext/
-    # Docker secrets/Hashicorp Vault/...)
-    - name: Set load/save handlers for secure storage
-      set_fact:
-        load_portal_config_handler: "tasks/lastpass-load-webportal-config.yml"
-        save_portal_config_handler: "tasks/lastpass-save-webportal-config.yml"
-        save_cluster_config_handler: "tasks/lastpass-save-cluster-config.yml"
-
-    - name: Include getting portal configs
+    # Load server and cluster configs and set default values if missing.
+    - name: Include getting server and cluster configs from secrets storage
       include_tasks: tasks/portal-configs-load.yml
 
-    - name: Include saving portal configs
-      include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+    - name: Include saving server config to secrets storage
+      include_tasks: tasks/portal-configs-save-server-config.yml
+
+    # Save cluster configs especially indented mongo mgkey so that we can load
+    # it back formatted.
+    - name: Include saving the cluster config
+      include_tasks: tasks/portal-configs-save-cluster-config.yml
+
+    # Load configs especially indented/reformatted mongo mgkey
+    - name: Include getting server and cluster configs from secrets storage
+      include_tasks: tasks/portal-configs-load.yml
 
     - name: Check docker was setup
       ansible.builtin.command: docker ps

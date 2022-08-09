@@ -15,7 +15,6 @@
     docker_compose_build: False
     set_portal_versions: False
     portal_action: "portal-ensure-latest-docker"
-    lastpass_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -23,6 +22,9 @@
   tasks:
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
+
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
 
     - name: Include preparing portal prerequisities
       include_tasks: tasks/portals-prepare.yml

@@ -1,13 +1,13 @@
 ---
 # Get portal configs
-# - Load portal configs from secrets backend (e.g. LastPass)
+# - Load portal configs from secrets backend (e.g. LastPass or HashiCorp Vault)
 # - Set default values (for unset keys)
 # - Set mongodb mgkey (if defined but empty)
 # - Set portal modules flag
 # - Set mongodb config (if mongodb is on)
 
 - name: Include loading portal config
-  include_tasks: "{{ playbook_dir }}/{{ load_portal_config_handler }}"
+  include_tasks: tasks/portal-configs-load-subtask.yml
 
 # If the server config hasn't been yet saved to secrets backend, it is loaded
 # as undefined now and we set it to empty dictionary.
@@ -107,8 +107,8 @@
     - portal_modules is not defined
     - webportal_server_config.portal_modules is not defined
 
-# If portal_modules is defined in hosts.ini, make sure any lastpass value is
-# overwritten
+# If portal_modules is defined in hosts.ini, make sure any secrets storage
+# value is overwritten
 - name: Update portal_modules
   set_fact:
     webportal_server_config: "{{ webportal_server_config | combine({'portal_modules': 'DEPRECATED - update value in hosts.ini'}) }}"

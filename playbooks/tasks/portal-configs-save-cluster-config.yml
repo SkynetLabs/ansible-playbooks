@@ -1,0 +1,135 @@
+---
+# Save server config to secrets storage (if something has changed)
+
+- name: Get last cluster config secret path
+  set_fact:
+    last_cluster_config_secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_portal_common_and_cluster_configs_list') | last }}"
+
+- name: Include checking if server config record exists in secure storage
+  include_tasks: "tasks/secrets-storage-common-check-record-exists.yml"
+  vars:
+    secret_path: "{{ last_cluster_config_secret_path }}"
+
+# Check if there is a difference between the old common config and the current
+# common config.
+- name: Check for a difference in the cluster config file
+  vars:
+    original_dict: "{{ webportal_common_config_last_old }}"
+    new_dict: "{{ webportal_common_config_last }}"
+  include_tasks: tasks/dictionary-diff.yml
+
+- block:
+    # This prompt/fail block shouldn't be run in parallel, so that user is not
+    # confused and knows which prompt belongs to which server. So we throttle
+    # the next block.
+    - block:
+        - name: Ask user if it is ok to save/update cluster config to secrets storage
+          pause:
+            prompt: |-
+              It looks like we need to {{ secret_add_or_edit_command }} your cluster config
+              in secrets storage which is:
+              {{ secrets_storage }}
+
+              Here are the fields that appear to need to be {{ secret_add_or_edit_command }}ed:
+              {{ diff_string }}
+
+              If this doesn't appear to be correct, check:
+              - Your secrets storage account you are logged in.
+              - Your config files to make sure the playbook is targeting the right files.
+
+              Do you want to {{ secret_add_or_edit_command }} your cluster config in secret storage (y/n)?
+          register: update_secrets_storage_result
+          delegate_to: localhost
+
+        - name: Stop the playbook if the user doesn't want to update cluster config in secret storage
+          fail:
+            msg: |
+              Your cluster config was not updated in secrets storage,
+              please check your secrets storage account you are logged in
+              and your config files and then rerun this playbook.
+          when: update_secrets_storage_result.user_input[:1] not in 'yY'
+      throttle: 1
+
+    - name: Create last config yaml string (if mongo_db_mgkey is not defined)
+      set_fact:
+        last_cluster_config_yaml_string: >-
+          {{ webportal_common_config_last | to_nice_yaml(width=2048) }}
+      when: webportal_common_config_last.mongo_db_mgkey is not defined
+
+    # In case default yaml formatting is used for mongo_db_mgkey, yaml record
+    # in secrets storage becomes hard to read like:
+    #
+    # some_key: some_value
+    # mongo_db_mgkey: very...long...string...
+    # spread...over...jhgjgjhgjhgjhgjhgjhgjhg
+    # multiple...jgfgdfdytrytoiuyiuuytuytuyty
+    # lines...uytuytuytuytuytuytuytuytuytuiyt
+    # in...yaml...record...uyrhvnjfsrewkhljhk
+    # some_other_key: some_other_value
+    #
+    # The following block formats (i.e. indents) mongo_db_mgkey the following
+    # way:
+    #
+    # some_key: some_value
+    # mongo_db_mgkey: |
+    #   very...long...string...
+    #   spread...over...jhgjgjhgjhgjhgjhgjhgjhg
+    #   multiple...jgfgdfdytrytoiuyiuuytuytuyty
+    #   lines...uytuytuytuytuytuytuytuytuytuiyt
+    #   in...yaml...record...uyrhvnjfsrewkhljhk
+    # some_other_key: some_other_value
+    #
+    # In order to do it this way, we generate yaml string with a dummy
+    # mongo_db_mgkey using default formatting and then we replace
+    # dummy mongo_db_mgkey value with a correct value using an indented string.
+
+    - name: Keep better yaml formatting for mongo_db_mgkey
+      block:
+        - name: Store indented mongo mgkey to temporary variable
+          vars:
+            prefix: "  "
+          set_fact:
+             # Add prefix to each mgkey line (indent each mgkey line).
+             # NOTE: the weird use of the `join()` statement is for formatting.
+             # The newline character `\n` isn't recognized in this type of
+             # multiline string
+            indented_mgkey: >-
+              {{
+                [prefix]
+                | product(webportal_common_config_last.mongo_db_mgkey.splitlines())
+                | map('join')
+                | list
+                | join(newline_char)
+              }}
+
+        - name: Update last config with a dummy mongo mgkey value
+          set_fact:
+            webportal_common_config_last: >-
+              {{ webportal_common_config_last
+              | combine({'mongo_db_mgkey': 'dummy'}) }}
+
+        # Create last config yaml string with a dummy mgkey value using default
+        # yaml formatting and then replace mgkey with an actual value using
+        # indented string.
+        - name: Create last config yaml string
+          set_fact:
+            last_cluster_config_yaml_string: >-
+              {{
+                webportal_common_config_last
+                | to_nice_yaml(width=2048)
+                | replace(
+                    'mongo_db_mgkey: dummy',
+                    'mongo_db_mgkey: |' + newline_char + indented_mgkey
+                  )
+              }}
+      when: webportal_common_config_last.mongo_db_mgkey is defined
+
+    - name: Include saving cluster config to secrets storage
+      include_tasks: "tasks/secrets-storage-common-save-string-to-yaml-or-json.yml"
+      vars:
+        save_string_secret_path: "{{ last_cluster_config_secret_path }}"
+        secret_string: "{{ last_cluster_config_yaml_string }}"
+  when: >-
+    (secrets_storage_record_exists and different_dict)
+    or
+    not secrets_storage_record_exists

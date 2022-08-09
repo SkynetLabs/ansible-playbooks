@@ -12,13 +12,15 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
     vm_max_map_count: 262144
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
 
   tasks:
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
+
     # Set vm.max_map_count directly
     - name: Set vm.max_map_count directly
       command: "sysctl -w vm.max_map_count={{ vm_max_map_count }}"
