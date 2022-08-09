@@ -32,7 +32,7 @@
       include_tasks: tasks/host-limit-check.yml
 
     - name: Include creating OS user credentials in secrets storage (if missing)
-      include_tasks: "tasks/secrets-storage-common-save-user-credentials.yml"
+      include_tasks: tasks/secrets-storage-common-save-user-credentials.yml
 
 # When we have root access we just run this play
 - name: Setup basic security by root
