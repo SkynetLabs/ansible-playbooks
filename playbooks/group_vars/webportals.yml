@@ -91,6 +91,62 @@ block_tor_exit_nodes_lists:
   # performed only after the last download is older then the below interval.
   do_not_redownload_within_secs: 2000
 
+# Plaintext secrets storage settings
+
+# xxxqqq update sample config
+
+# xxxqqq docs
+# `ansible-private` repository path inside Ansible Control Machine container
+plaintext_owner: "{{ lookup('pipe', 'echo $UID') }}"
+plaintext_group: "{{ lookup('pipe', 'echo $GID') }}"
+plaintext_permissions: "0700"
+plaintext_base_dir: "/tmp"
+plaintext_repository_dir: "ansible-private"
+plaintext_secrets_dir: "secrets"
+plaintext_ansible_dir: "{{ plaintext_repository_dir }}/{{ plaintext_secrets_dir }}"
+
+plaintext_portal_credentials_server_subfolder: "portal-server-credentials"
+plaintext_portal_credentials_server: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+
+plaintext_portal_config_common_subfolder: "portal-common-configs"
+plaintext_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+plaintext_portal_common_and_cluster_configs_list:
+  # - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_common_subfolder }}/common.yml"
+  - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
+plaintext_portal_config_server_subfolder: "portal-server-configs"
+plaintext_portal_config_server: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+
+plaintext_accounts_jwks_json: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
+
+# HashiCorp Vault settings
+
+# For security reasons Ansible lookup returns AnsibleUnsafeString, we have to
+# handle this otherwise Jinja templates refuse to process the unsafe string.
+hashicorp_vault_url: "{{ lookup('env', 'HCV_URL', allow_unsafe=True) | first }}"
+hashicorp_vault_token: "{{ lookup('env', 'HCV_TOKEN', allow_unsafe=True) | first }}"
+
+hashicorp_vault_storage_backend_dir: "kv/data"
+hashicorp_vault_ansible_dir: "ansible-skynet"
+hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
+hashicorp_vault_portal_credentials_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+hashicorp_vault_portal_credentials_server_incl_backend_dir: "{{ hashicorp_vault_storage_backend_dir }}/{{ hashicorp_vault_portal_credentials_server }}"
+
+hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
+hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+hashicorp_vault_portal_common_and_cluster_configs_list:
+  # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
+  - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
+hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
+hashicorp_vault_portal_config_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+
+hashicorp_vault_accounts_jwks_json: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
+
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
 
@@ -126,32 +182,6 @@ lastpass_portal_config_server_subfolder: "portal-server-configs"
 lastpass_portal_config_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_server_subfolder }}{{ lastpass_file_separator }}{{ inventory_hostname }}.yml"
 
 lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}-jwks.json"
-
-# HashiCorp Vault settings
-
-# For security reasons Ansible lookup returns AnsibleUnsafeString, we have to
-# handle this otherwise Jinja templates refuse to process the unsafe string.
-hashicorp_vault_url: "{{ lookup('env', 'HCV_URL', allow_unsafe=True) | first }}"
-hashicorp_vault_token: "{{ lookup('env', 'HCV_TOKEN', allow_unsafe=True) | first }}"
-
-hashicorp_vault_storage_backend_dir: "kv/data"
-hashicorp_vault_ansible_dir: "ansible-skynet"
-hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
-hashicorp_vault_portal_credentials_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
-hashicorp_vault_portal_credentials_server_incl_backend_dir: "{{ hashicorp_vault_storage_backend_dir }}/{{ hashicorp_vault_portal_credentials_server }}"
-
-hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
-hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
-
-# See my-vars/config-sample-do-not-edit.yml file for documentation.
-hashicorp_vault_portal_common_and_cluster_configs_list:
-  # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
-  - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
-
-hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
-hashicorp_vault_portal_config_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
-
-hashicorp_vault_accounts_jwks_json: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
 
 # Portal paths settings
 #
