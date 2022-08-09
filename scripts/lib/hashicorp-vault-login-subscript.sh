@@ -37,7 +37,7 @@ if [[ "$login_result" == *"errors"* ]]; then
   fi
 
   popd > /dev/null
-  exit 111
+  exit 1
 fi
 
 # Extract HashiCorp Vault client token from response data:
