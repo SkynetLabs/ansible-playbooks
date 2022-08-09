@@ -21,7 +21,7 @@ login_result=$(docker run --rm --network host dwdraju/alpine-curl-jq \
 # Exit if there was a docker run or curl error:
 ec=$?
 if [[ $ec -ne 0 ]]; then
-  echo "There was a docker run curl error."
+  echo "There was a docker run curl error when authenticating with Vault."
   popd > /dev/null
   exit $ec
 fi
