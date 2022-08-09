@@ -127,7 +127,6 @@ lastpass_portal_config_server: "{{ lastpass_ansible_dir }}{{ lastpass_directory_
 
 lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}-jwks.json"
 
-# xxxqqq update my-vars/config-sample-do-not-edit.yml docs
 # HashiCorp Vault settings
 
 # For security reasons Ansible lookup returns AnsibleUnsafeString, we have to

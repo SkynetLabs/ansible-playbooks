@@ -65,9 +65,42 @@
 # block_tor_exit_nodes: True
 
 ###############################################################################
+# HashiCorp Vault
+#
+# HashiCorp Vault can be used for managing secrets with Ansible, such as
+# server config files and login information.
+#
+# When you install HashiCorp Vault you can create one or more storage backends
+# within where your secrets will be stored. Following variable should be set to
+# your storage backend directory:
+hashicorp_vault_storage_backend_dir: "kv/data"
+# Folder inside your storage backend that will contain subfolders:
+hashicorp_vault_ansible_dir: "ansible-skynet"
+# Subfolders inside the above folder:
+hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
+hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
+hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
+# Common config is optional. It is useful if you run several clusters and want
+# to extract some common values from multiple cluster configs to a common
+# config. Otherwise you can use just one or several cluster configs.
+# Operators with a single cluster will use just one cluster-{...}.yaml in the
+# list. Operators with multiple clusters (e.g. dev and prod clusters or e.g.
+# paid-only prod1 and allow-anonymous access prod2 clusters) will have several
+# cluster-{...}.yml which is still covered with the default configs list. They
+# have however option to extract common, shared values for all clusters from
+# multiple cluster-{...}.yml configs to a common.yml. If a setting is present
+# in several levels (both common and cluster) the setting in earlier config in
+# the list (common.yml) is overriden with later config in the list
+# (cluster-{...}.yml).
+hashicorp_vault_portal_common_and_cluster_configs_list:
+  # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
+  - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
+
+###############################################################################
 # LastPass
 #
-# LastPass is used for managing secrets with ansible, such as server config
+# LastPass can be used for managing secrets with Ansible, such as server config
 # files and login information.
 #
 # lastpass_ansible_dir is the folder name in lastpass that contains server login
@@ -95,7 +128,7 @@ lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 # Operators with a single cluster will use just one cluster-{...}.yaml in the
 # list. Operators with multiple clusters (e.g. dev and prod clusters or e.g.
 # paid-only prod1 and allow-anonymous access prod2 clusters) will have several
-# cluster-{...}.yml which is still covered with the dafault configs list. They
+# cluster-{...}.yml which is still covered with the default configs list. They
 # have however option to extract common, shared values for all clusters from
 # multiple cluster-{...}.yml configs to a common.yml. If a setting is present
 # in several levels (both common and cluster) the setting in earlier config in
