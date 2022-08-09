@@ -135,6 +135,7 @@ hashicorp_vault_url: "{{ lookup('env', 'HCV_URL', allow_unsafe=True) | first }}"
 hashicorp_vault_token: "{{ lookup('env', 'HCV_TOKEN', allow_unsafe=True) | first }}"
 
 hashicorp_vault_storage_backend_dir: "kv/data"
+
 hashicorp_vault_ansible_dir: "ansible-skynet"
 hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
 hashicorp_vault_portal_credentials_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
