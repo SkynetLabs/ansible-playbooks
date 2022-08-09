@@ -4,9 +4,9 @@
 # Ansible become passwords
 
 # Set secrets storage var prefix
-# `secrets_storage` var can contain value with hyphen, e.g. `hashicorp-vault`
-# to use for loading task files. For loading secrets storage specific vars we
-# need to replace `-` with `_`
+# `secrets_storage` var (defined in ansible-private repository) can contain
+# value with hyphen, e.g. `hashicorp-vault` to use for loading task files. For
+# loading secrets storage specific vars we need to replace `-` with `_`
 secrets_storage_var_prefix: "{{ secrets_storage | replace('-', '_') }}"
 
 # User password hash to be used on user creation
