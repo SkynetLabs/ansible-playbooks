@@ -61,7 +61,7 @@
       {% for h in mongo_not_ok_host_list %}
       - {{ h }}
       {% endfor %}
-      
+
       Possible reasons:
       - Host(s) is unreachable.
       - Mongo container(s) is not running.
