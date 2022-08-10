@@ -97,12 +97,9 @@ block_tor_exit_nodes_lists:
 
 # xxxqqq docs
 # `ansible-private` repository path inside Ansible Control Machine container
-plaintext_owner: "{{ lookup('pipe', 'echo $UID') }}"
-plaintext_group: "{{ lookup('pipe', 'echo $GID') }}"
-plaintext_permissions: "0700"
 plaintext_base_dir: "/tmp"
 plaintext_repository_dir: "ansible-private"
-plaintext_secrets_dir: "secrets"
+plaintext_secrets_dir: "plaintext-secrets"
 plaintext_ansible_dir: "{{ plaintext_repository_dir }}/{{ plaintext_secrets_dir }}"
 
 plaintext_portal_credentials_server_subfolder: "portal-server-credentials"
