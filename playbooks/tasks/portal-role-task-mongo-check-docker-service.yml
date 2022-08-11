@@ -16,20 +16,14 @@
   set_fact:
     mongodb_start_timestamp: "{{ ansible_date_time.iso8601_micro[:-1] }}"
 
-- name: Start mongo service
-  community.docker.docker_compose:
-    project_src: "{{ webportal_dir }}"
-    # Use intersection of wanted files and present files. E.g. wanted
-    # docker-compose.override.yml is wanted, but might not yet be created.
-    files: "{{ webportal_docker_compose_files_wanted | intersect(webportal_docker_compose_files_present) }}"
-    services: mongo
-    state: present
-  register: docker_mongo_result
-  ignore_errors: True
+- name: Start docker mongo service
+  ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach mongo"
+  become: True
+  become_user: "user"
 
 - name: Set mongo service ok flag
   set_fact:
-    mongo_service_ok: "{{ not (docker_mongo_result.failed | default(False)) }}"
+    mongo_service_ok: True
 
 - name: Log docker compose result on error
   debug:
@@ -40,7 +34,7 @@
   when: not mongo_service_ok
 
 - name: Wait for mongo container initialization before checking status
-  ansible.builtin.shell: "docker logs mongo | grep '\"Waiting for connections\"'"
+  ansible.builtin.shell: 'docker logs mongo | grep ''"Waiting for connections"'''
   vars:
     fmt: "%Y-%m-%dT%H:%M:%S.%f"
   register: mongo_ready_result
@@ -80,7 +74,7 @@
   vars:
     mongodb_shell:
       eval: "db.serverStatus()"
-      until: "'\"ok\" : 1' in mongo_shell_result.transformed_output"
+      until: '''"ok" : 1'' in mongo_shell_result.transformed_output'
       retries: 20
       ignore_errors: True
   when: mongo_service_ok

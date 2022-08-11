@@ -25,8 +25,8 @@
   register: create_env_file_result
 
 # Autogenerate JWKS config data (if not done)
-  # Do not run this in parallel (use throttle = 1) so that there are not
-  # created and used multiple JWKS data for a single cluster
+# Do not run this in parallel (use throttle = 1) so that there are not
+# created and used multiple JWKS data for a single cluster
 - block:
     - name: Load JWKS data fresh from LastPass
       include_tasks: tasks/lastpass-load-json-note.yml
@@ -121,15 +121,10 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
-    - name: Start Sia docker container
-      community.docker.docker_compose:
-        project_src: "{{ webportal_dir }}"
-        files: docker-compose.yml
-        services: sia
-        build: True
-        nocache: True
-        pull: True
-        state: present
+    - name: Start docker sia service
+      ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach sia"
+      become: True
+      become_user: "user"
 
     - name: Wait for sia API to become available
       ansible.builtin.command: docker logs sia
