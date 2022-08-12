@@ -94,16 +94,30 @@ plaintext_accounts_jwks_json: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_c
 # HashiCorp Vault can be used for managing secrets with Ansible, such as
 # server config files and login information.
 #
+# HashiCorp storage backend directory
+# You need to set this if you are using HashiCorp Vault.
 # When you install HashiCorp Vault you can create one or more storage backends
 # within where your secrets will be stored. Following variable should be set to
 # your storage backend directory:
-hashicorp_vault_storage_backend_dir: "kv/data"
-# Folder inside your storage backend that will contain subfolders:
-hashicorp_vault_ansible_dir: "ansible-skynet"
+# Example (key/value storage backend v2):
+# hashicorp_vault_storage_backend_dir: "kv/data"
+#
+hashicorp_vault_storage_backend_dir: ""
+
+# You can uncomment and edit following settings if you do not want to use
+# defaults from playbooks/group_vars/webportals.yml:
+
+# Folder inside your storage backend that will contain subfolders.
+# Default: "ansible-skynet"
+#
+# hashicorp_vault_ansible_dir: "ansible-skynet"
+
 # Subfolders inside the above folder:
-hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
-hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
-hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
+#
+# hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
+# hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
+# hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
+
 # Common config is optional. It is useful if you run several clusters and want
 # to extract some common values from multiple cluster configs to a common
 # config. Otherwise you can use just one or several cluster configs.
@@ -116,10 +130,11 @@ hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
 # in several levels (both common and cluster) the setting in earlier config in
 # the list (common.yml) is overriden with later config in the list
 # (cluster-{...}.yml).
-hashicorp_vault_portal_common_and_cluster_configs_list:
-  # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
-  - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
-hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
+#
+# hashicorp_vault_portal_common_and_cluster_configs_list:
+#   # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
+#   - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+# hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
 
 ###############################################################################
 # LastPass secrets storage
@@ -127,25 +142,26 @@ hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
 # LastPass can be used for managing secrets with Ansible, such as server config
 # files and login information.
 #
+# You can uncomment and edit following settings if you do not want to use
+# defaults from playbooks/group_vars/webportals.yml:
+#
 # lastpass_ansible_dir is the folder name in lastpass that contains server login
 # information. The default is `Shared-Ansible`. You can either create this
 # folder in LastPass or rename this variable to the folder name you desired.
 #
-# NOTE: If you rename this variable, you should keep this variable defined in
-# this config file for any ansible playbook you use. Otherwise, if you keep the
-# defaults you can safely remove these from the config file.
-lastpass_ansible_dir: "Shared-Ansible"
+# Default: "Shared-Ansible"
+#
+# lastpass_ansible_dir: "Shared-Ansible"
+
 # The Following are the subfolder names of the lastpass_ansible_dir folder in
 # lastpass. The contents of these folders are controlled by ansible. Below are
 # the default values. You can either create these folders in LastPass or rename
 # these variable to the folder name you desired.
 #
-# NOTE: If you rename these variables, you should keep these variables defined
-# in this config file for any ansible playbook you use. Otherwise, if you keep
-# the defaults you can safely remove these from the config file.
-lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
-lastpass_portal_config_common_subfolder: "portal-common-configs"
-lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+# lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
+# lastpass_portal_config_common_subfolder: "portal-common-configs"
+# lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+
 # Common config is optional. It is useful if you run several clusters and want
 # to extract some common values from multiple cluster configs to a common
 # config. Otherwise you can use just one or several cluster configs.
@@ -162,10 +178,11 @@ lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
 # Variables lastpass_directory_separator and lastpass_file_separator are used
 # to automatically handle LastPass directory inconsistency between shared and
 # non-shared folders, they should be kept and should not be changed.
-lastpass_portal_common_and_cluster_configs_list:
-  # - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_common_subfolder }}{{ lastpass_file_separator }}common.yml"
-  - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
-lastpass_portal_config_server_subfolder: "portal-server-configs"
+#
+# lastpass_portal_common_and_cluster_configs_list:
+#   # - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_common_subfolder }}{{ lastpass_file_separator }}common.yml"
+#   - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
+# lastpass_portal_config_server_subfolder: "portal-server-configs"
 
 ###############################################################################
 # SSH Access

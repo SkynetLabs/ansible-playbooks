@@ -29,7 +29,7 @@
   # created and used multiple JWKS data for a single cluster
 - block:
     - name: Include loading JWKS data fresh from secrets storage
-      include_tasks: "tasks/secrets-storage-common-load-yaml-or-json.yml"
+      include_tasks: tasks/secrets-storage-common-load-yaml-or-json.yml
       loop:
         # Set `secret_path` according to `{{secret_storage}}_accounts_jwks_json`
         # variable
