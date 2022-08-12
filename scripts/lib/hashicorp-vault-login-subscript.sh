@@ -56,7 +56,7 @@ fi
 if [[ "$token_result" == "null" ]]; then
   echo "Token couldn't be found using jq."
   popd > /dev/null
-  exit 111
+  exit 1
 fi
 
 # Return result (client token):

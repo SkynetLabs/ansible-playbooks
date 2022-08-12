@@ -119,6 +119,7 @@ it_flags="-it"
 if ! [ -z ${github_action+x} ]; then it_flags=""; fi
 
 # Execute the playbook in the docker container
+# - Set environment variables for HashiCorp Vault secrets storage
 docker exec $it_flags \
   -e HCV_URL="$HCV_URL" \
   -e HCV_TOKEN="$HCV_TOKEN" \

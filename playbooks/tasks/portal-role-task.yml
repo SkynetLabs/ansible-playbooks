@@ -40,7 +40,7 @@
       set_fact:
         generate_jwks: "{{ accounts_jwks_data | default({}) == {} or accounts_jwks_data == '' }}"
 
-    # Autogenerate JWKS data and save it to LastPass (if not yet done)
+    # Autogenerate JWKS data and save it to secrets storage (if not yet done)
     - block:
         - name: Include generating jwks.json file
           include_tasks: tasks/portal-accounts-generate-jwks.json.yml

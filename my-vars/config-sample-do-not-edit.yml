@@ -65,7 +65,31 @@
 # block_tor_exit_nodes: True
 
 ###############################################################################
-# HashiCorp Vault
+# Plantext secrets storage
+#
+# Plaintext secrets storage can be used for managing secrets with Ansible, such
+# as server config files and login information.
+plaintext_secrets_dir: "plaintext-secrets"
+plaintext_ansible_dir: "{{ plaintext_repository_dir }}/{{ plaintext_secrets_dir }}"
+
+plaintext_portal_credentials_server_subfolder: "portal-server-credentials"
+plaintext_portal_credentials_server: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+
+plaintext_portal_config_common_subfolder: "portal-common-configs"
+plaintext_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+plaintext_portal_common_and_cluster_configs_list:
+  # - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_common_subfolder }}/common.yml"
+  - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
+plaintext_portal_config_server_subfolder: "portal-server-configs"
+plaintext_portal_config_server: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+
+plaintext_accounts_jwks_json: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
+
+###############################################################################
+# HashiCorp Vault secrets storage
 #
 # HashiCorp Vault can be used for managing secrets with Ansible, such as
 # server config files and login information.
@@ -98,7 +122,7 @@ hashicorp_vault_portal_common_and_cluster_configs_list:
 hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
 
 ###############################################################################
-# LastPass
+# LastPass secrets storage
 #
 # LastPass can be used for managing secrets with Ansible, such as server config
 # files and login information.

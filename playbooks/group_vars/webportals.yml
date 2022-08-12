@@ -93,12 +93,10 @@ block_tor_exit_nodes_lists:
 
 # Plaintext secrets storage settings
 
-# xxxqqq update sample config
-
-# xxxqqq docs
 # `ansible-private` repository path inside Ansible Control Machine container
 plaintext_base_dir: "/tmp"
 plaintext_repository_dir: "ansible-private"
+
 plaintext_secrets_dir: "plaintext-secrets"
 plaintext_ansible_dir: "{{ plaintext_repository_dir }}/{{ plaintext_secrets_dir }}"
 
