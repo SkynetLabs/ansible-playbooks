@@ -27,29 +27,24 @@
     # Tmux config (from dotfiles repo) should already be set by
     # portals-setup-following playbook.
 
-    - name: Run apt-get update
-      apt:
-        update_cache: yes
-        cache_valid_time: 900
-      become: True
-
     - name: Install dev tools
       apt:
-        name: "{{ item }}"
+        update_cache: true
+        cache_valid_time: 3600 # 60 minutes
         state: latest
-      loop:
-        - tmux
-        - screen
-        - ranger
-        - htop
-        - nload
-        - gcc
-        - g++
-        - make
-        - vim
-        - unzip
-        - curl
-        - awscli
+        name:
+          - tmux
+          - screen
+          - ranger
+          - htop
+          - nload
+          - gcc
+          - g++
+          - make
+          - vim
+          - unzip
+          - curl
+          - awscli
       become: True
 
     # Setup terminfo for alacritty terminal via ssh
