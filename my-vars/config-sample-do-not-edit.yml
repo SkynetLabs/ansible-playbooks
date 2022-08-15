@@ -65,7 +65,47 @@
 # block_tor_exit_nodes: True
 
 ###############################################################################
-# HashiCorp Vault
+# Plantext secrets storage
+#
+# Plaintext secrets storage can be used for managing secrets with Ansible, such
+# as server config files and login information.
+
+# You can uncomment and edit following settings if you do not want to use
+# defaults from playbooks/group_vars/webportals.yml:
+
+# Subdirectory inside `ansible-private` repository where Skynet secrets are
+# stored. The default subdirectory content is gitignored, so secrets are not
+# commited and can't leak from remore git repository. Portal operator should
+# backup plaintext secrets in this subdirectory using his preffered way.
+# Default: "plaintext-secrets"
+# plaintext_secrets_dir: "plaintext-secrets"
+
+# Subfolders inside the above folder:
+#
+# plaintext_portal_credentials_server_subfolder: "portal-server-credentials"
+# plaintext_portal_config_common_subfolder: "portal-common-configs"
+# plaintext_portal_config_cluster_subfolder: "portal-cluster-configs"
+# plaintext_portal_config_server_subfolder: "portal-server-configs"
+
+# Common config is optional. It is useful if you run several clusters and want
+# to extract some common values from multiple cluster configs to a common
+# config. Otherwise you can use just one or several cluster configs.
+# Operators with a single cluster will use just one cluster-{...}.yaml in the
+# list. Operators with multiple clusters (e.g. dev and prod clusters or e.g.
+# paid-only prod1 and allow-anonymous access prod2 clusters) will have several
+# cluster-{...}.yml which is still covered with the default configs list. They
+# have however option to extract common, shared values for all clusters from
+# multiple cluster-{...}.yml configs to a common.yml. If a setting is present
+# in several levels (both common and cluster) the setting in earlier config in
+# the list (common.yml) is overriden with later config in the list
+# (cluster-{...}.yml).
+#
+# plaintext_portal_common_and_cluster_configs_list:
+#  # - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_common_subfolder }}/common.yml"
+#  - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
+###############################################################################
+# HashiCorp Vault secrets storage
 #
 # HashiCorp Vault can be used for managing secrets with Ansible, such as
 # server config files and login information.
@@ -93,6 +133,7 @@ hashicorp_vault_storage_backend_dir: ""
 # hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
 # hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
 # hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
+# hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
 
 # Common config is optional. It is useful if you run several clusters and want
 # to extract some common values from multiple cluster configs to a common
@@ -110,10 +151,9 @@ hashicorp_vault_storage_backend_dir: ""
 # hashicorp_vault_portal_common_and_cluster_configs_list:
 #   # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
 #   - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
-# hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
 
 ###############################################################################
-# LastPass
+# LastPass secrets storage
 #
 # LastPass can be used for managing secrets with Ansible, such as server config
 # files and login information.
@@ -137,6 +177,7 @@ hashicorp_vault_storage_backend_dir: ""
 # lastpass_portal_credentials_server_subfolder: "portal-server-credentials"
 # lastpass_portal_config_common_subfolder: "portal-common-configs"
 # lastpass_portal_config_cluster_subfolder: "portal-cluster-configs"
+# lastpass_portal_config_server_subfolder: "portal-server-configs"
 
 # Common config is optional. It is useful if you run several clusters and want
 # to extract some common values from multiple cluster configs to a common
@@ -158,7 +199,6 @@ hashicorp_vault_storage_backend_dir: ""
 # lastpass_portal_common_and_cluster_configs_list:
 #   # - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_common_subfolder }}{{ lastpass_file_separator }}common.yml"
 #   - "{{ lastpass_ansible_dir }}{{ lastpass_directory_separator }}{{ lastpass_portal_config_cluster_subfolder }}{{ lastpass_file_separator }}cluster-{{ portal_cluster_id }}.yml"
-# lastpass_portal_config_server_subfolder: "portal-server-configs"
 
 ###############################################################################
 # SSH Access
