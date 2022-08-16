@@ -25,12 +25,6 @@
     - name: Include checking server OS compatibility
       include_tasks: tasks/check-server-os-compatibility.yml
 
-    # Update apt
-    - name: Run "apt-get update"
-      apt:
-        update_cache: yes
-        cache_valid_time: 900
-
     # Ensure docker group
     - name: Ensure group "docker" exists
       ansible.builtin.group:
