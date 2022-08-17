@@ -5,7 +5,7 @@
   set_fact:
     last_cluster_config_secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_portal_common_and_cluster_configs_list') | last }}"
 
-- name: Include checking if server config record exists in secure storage
+- name: Include checking if server config record exists in secrets storage
   include_tasks: "tasks/secrets-storage-common-check-record-exists.yml"
   vars:
     secret_path: "{{ last_cluster_config_secret_path }}"
