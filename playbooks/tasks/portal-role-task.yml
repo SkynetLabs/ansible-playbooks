@@ -96,7 +96,7 @@
 # When the AWS keys are not set, check for other DNS configs for certbot.
 - name: Custom Certbot DNS
   include_tasks: tasks/portal-role-task-certbot-custom-dns.yml
-  when: webportal_common_config.aws_access_key is not defined and webportal_common_config.aws_access_key is not defined
+  when: webportal_common_config.aws_access_key is not defined and webportal_common_config.aws_secret_access_key is not defined
 
 # Init, unlock wallet
 
