@@ -25,8 +25,8 @@
   register: create_env_file_result
 
 # Autogenerate JWKS config data (if not done)
-  # Do not run this in parallel (use throttle = 1) so that there are not
-  # created and used multiple JWKS data for a single cluster
+# Do not run this in parallel (use throttle = 1) so that there are not
+# created and used multiple JWKS data for a single cluster
 - block:
     - name: Include loading JWKS data fresh from secrets storage
       include_tasks: tasks/secrets-storage-common-load-yaml-or-json.yml
@@ -91,6 +91,12 @@
 # skyd depends on mongo.
 - name: Include setting up MongoDB
   include_tasks: tasks/portal-role-task-mongo-setup.yml
+
+# Custom DNS Handling for Certbot
+# When the AWS keys are not set, check for other DNS configs for certbot.
+- name: Custom Certbot DNS
+  include_tasks: tasks/portal-role-task-certbot-custom-dns.yml
+  when: webportal_common_config.aws_access_key is not defined and webportal_common_config.aws_access_key is not defined
 
 # Init, unlock wallet
 

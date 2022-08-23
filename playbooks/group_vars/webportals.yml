@@ -1,5 +1,4 @@
 ---
-
 # =============================================================================
 # Ansible become passwords
 
@@ -188,15 +187,17 @@ lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_se
 # Webportal Paths
 webportal_user_home_dir: "/home/{{ webportal_user }}"
 webportal_dir: "{{ webportal_user_home_dir }}/skynet-webportal"
+webportal_docker_dir: "{{ webportal_dir }}/docker"
+webportal_docker_data_dir: "{{ webportal_docker_dir }}/data"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
-elasticsearch_data_data_dir: "{{ webportal_dir }}/docker/data/elasticsearch/data"
+elasticsearch_data_data_dir: "{{ webportal_docker_data_dir }}/elasticsearch/data"
 
 # Accounts Paths
-accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
+accounts_conf_dir: "{{ webportal_docker_dir }}/accounts/conf"
 accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
 
 # Mongo Paths
-mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
+mongo_data_dir: "{{ webportal_docker_data_dir }}/mongo"
 mongo_backups_dir: "{{ mongo_data_dir }}/backups"
 mongo_db_dir: "{{ mongo_data_dir }}/db"
 mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
@@ -208,6 +209,10 @@ block_tor_exit_nodes_script_file: "{{ devops_scripts_dir }}/tor-blocklists-updat
 logs_dir: "{{ devops_dir }}/logs"
 setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
+
+# Certbot paths
+certbot_docker_data_dir: "{{ webportal_docker_data_dir }}/certbot"
+cloudflare_ini_file: "{{ certbot_docker_data_dir }}/cloudflare.ini"
 
 # Default service ports
 default_mongo_port: 27017
