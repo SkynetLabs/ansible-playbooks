@@ -7,4 +7,4 @@
 
 - name: Setup Cloudflare DNS for Certbot
   include_tasks: tasks/portal-role-task-certbot-setup-cloudflare.yml
-  when: dns_cloudflare_api_token is defined
+  when: webportal_common_config.dns_cloudflare_api_token is defined

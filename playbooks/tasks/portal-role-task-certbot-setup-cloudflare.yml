@@ -12,7 +12,7 @@
 - name: Create cloudflare.ini file
   ansible.builtin.copy:
     dest: "{{ cloudflare_ini_file }}"
-    content: "dns_cloudflare_api_token = {{ dns_cloudflare_api_token }}"
+    content: "dns_cloudflare_api_token = {{ webportal_common_config.dns_cloudflare_api_token }}"
     owner: "999"
     group: "999"
     mode: "0400"
