@@ -8,3 +8,11 @@
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc down --remove-orphans"
   become: True
   become_user: "{{ webportal_user }}"
+  # Ignore errors e.g. when portal repo (docker compose files) is present, but
+  # .env file was not yet generated (some values in docker compose files are
+  # not valid)
+  ignore_errors: True # noqa ignore-errors
+  # In come cases this task is expected to fail (see above comment) and it
+  # displays red ignored error in Ansible log. Adding below failed_when removes
+  # red error from the log.
+  failed_when: False
