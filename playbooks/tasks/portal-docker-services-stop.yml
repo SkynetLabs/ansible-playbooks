@@ -7,4 +7,4 @@
 - name: Stop docker services
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc down --remove-orphans"
   become: True
-  become_user: "user"
+  become_user: "{{ webportal_user }}"

@@ -53,22 +53,22 @@
 - name: Pull docker images
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc pull"
   become: True
-  become_user: "user"
+  become_user: "{{ webportal_user }}"
 
 - name: Build docker images
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc build --no-cache"
   become: True
-  become_user: "user"
+  become_user: "{{ webportal_user }}"
 
 - name: Start docker services
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach"
   become: True
-  become_user: "user"
+  become_user: "{{ webportal_user }}"
 
 - name: Get current docker compose config
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc config"
   become: True
-  become_user: "user"
+  become_user: "{{ webportal_user }}"
   register: docker_compose_config_result
 
 - name: Parse docker compose config output as yaml object
