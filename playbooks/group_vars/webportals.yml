@@ -8,6 +8,10 @@
 # loading secrets storage specific vars we need to replace `-` with `_`
 secrets_storage_var_prefix: "{{ secrets_storage | replace('-', '_') }}"
 
+# User password candidate (will be used if not set otherwise, e.g. during
+# secrets storage migrations)
+ansible_become_pass_candidate: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=32') }}"
+
 # User password hash to be used on user creation
 user_pass_hash: >-
   {{
