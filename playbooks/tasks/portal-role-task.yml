@@ -9,12 +9,12 @@
     update: True
     force: True
 
-- name: Configure git
-  community.general.git_config:
-    name: "{{ item.name }}"
-    scope: global
-    value: "{{ item.value }}"
-  loop: "{{ webportal_git_config }}"
+# - name: Configure git
+#   community.general.git_config:
+#     name: "{{ item.name }}"
+#     scope: global
+#     value: "{{ item.value }}"
+#   loop: "{{ webportal_git_config }}"
 
 # TODO: add subdomain check (only install portal to subdomain for now)
 
