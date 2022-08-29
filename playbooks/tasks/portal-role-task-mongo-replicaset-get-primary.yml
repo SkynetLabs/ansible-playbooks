@@ -30,7 +30,7 @@
       {{
         mongo_shell_result.transformed_output | split('.') | first
         if ansible_host != portal_domain | default(webportal_common_config.portal_cluster_domain)
-        else ansible_host
+        else inventory_hostname
       }}
 
 - name: Fail if primary node was not found
