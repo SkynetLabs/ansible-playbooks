@@ -25,12 +25,12 @@
 - name: Set MongoDB primary host
   set_fact:
     # See the comment in the above task for transformed output contents and the
-    # way we parse it. 
+    # way we parse it.
     mongo_primary_host: >-
       {{
-        mongo_shell_result.transformed_output | split('.') | first
-        if ansible_host != portal_domain | default(webportal_common_config.portal_cluster_domain)
-        else inventory_hostname
+        inventory_hostname
+        if ansible_host == portal_domain | default(webportal_common_config.portal_cluster_domain)
+        else mongo_shell_result.transformed_output | split('.') | first
       }}
 
 - name: Fail if primary node was not found
