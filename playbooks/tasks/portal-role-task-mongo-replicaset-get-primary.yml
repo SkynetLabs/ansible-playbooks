@@ -15,15 +15,23 @@
   vars:
     mongodb_shell:
       # isMaster.primary returns string in format '<subdomain>.<domain>.<tld>:
-      # <port>', we need to extract only the subdomain which is Ansible host.
+      # <port>', we need to extract only the subdomain which is Ansible host or
+      # '<domain>.<tld>:<port>' for a single node clusters without subdomain.
       eval: |
-        rs.isMaster().primary.split('.')[0]
+        rs.isMaster().primary
       until: True
       retries: 0
 
 - name: Set MongoDB primary host
   set_fact:
-    mongo_primary_host: "{{ mongo_shell_result.transformed_output }}"
+    # See the comment in the above task for transformed output contents and the
+    # way we parse it. 
+    mongo_primary_host: >-
+      {{
+        mongo_shell_result.transformed_output | split('.') | first
+        if ansible_host != portal_domain | default(webportal_common_config.portal_cluster_domain)
+        else ansible_host
+      }}
 
 - name: Fail if primary node was not found
   fail:
