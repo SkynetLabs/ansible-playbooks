@@ -49,6 +49,9 @@
       meta: end_host
       when: initial_root_like_user is defined
 
+    - name: Include checking hosts.ini compatibility with playbooks v2
+      include_tasks: tasks/secrets-storage-check-hosts-ini-update.yml
+
     - name: Include loading user credentials from secrets storage
       include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
 
@@ -83,6 +86,9 @@
     - name: Skip if initial root like user is not defined
       meta: end_host
       when: initial_root_like_user is not defined
+
+    - name: Include checking hosts.ini compatibility with playbooks v2
+      include_tasks: tasks/secrets-storage-check-hosts-ini-update.yml
 
     - name: Include loading user credentials from secrets storage
       include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
