@@ -365,3 +365,10 @@
       command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
 
   when: webportal_setup_health_checks
+
+# Pull cypress image to avoid lazily pulling it on the fly when the abuse
+# scanner needs it
+- name: Pull cypress docker image
+  community.docker.docker_image:
+    name: "{{ cypress_docker_image }}"
+    source: pull
