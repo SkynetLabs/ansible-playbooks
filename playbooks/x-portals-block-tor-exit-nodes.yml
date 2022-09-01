@@ -18,7 +18,6 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
   vars_files:
     - "{{ common_vars_file }}"
     - "{{ custom_vars_file  }}"
@@ -26,6 +25,12 @@
   tasks:
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
+
+    - name: Include checking hosts.ini compatibility with playbooks v2
+      include_tasks: tasks/secrets-storage-check-hosts-ini-update.yml
+
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
 
     - name: Include blocking Tor exit nodes traffic
       include_tasks: tasks/portal-firewall-iptables-block-tor-exit-nodes.yml

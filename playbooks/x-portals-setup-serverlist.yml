@@ -12,7 +12,6 @@
   # Playbook specific vars
   vars:
     max_hosts: "{{ groups['webportals'] | length - 1 }}"
-    lastpass_required: True
 
     serverlist_marker: "ANSIBLE MANAGED - serverlist script vars"
     serverlist_version: "v0.0.4"
@@ -26,9 +25,15 @@
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
+    - name: Include checking hosts.ini compatibility with playbooks v2
+      include_tasks: tasks/secrets-storage-check-hosts-ini-update.yml
+
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
+
     # Load vars from LastPass
     - name: Include loading LastPass portal common config
-      include_tasks: tasks/lastpass-load-webportal-config.yml
+      include_tasks: tasks/portal-configs-load.yml
 
     # Insert/update env vars
 

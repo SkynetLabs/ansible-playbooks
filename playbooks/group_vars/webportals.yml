@@ -1,5 +1,26 @@
 ---
 # =============================================================================
+# Ansible become passwords
+
+# Set secrets storage var prefix
+# `secrets_storage` var (defined in ansible-private repository) can contain
+# value with hyphen, e.g. `hashicorp-vault` to use for loading task files. For
+# loading secrets storage specific vars we need to replace `-` with `_`
+secrets_storage_var_prefix: "{{ secrets_storage | replace('-', '_') }}"
+
+# User password candidate (will be used if not set otherwise, e.g. during
+# secrets storage migrations)
+ansible_become_pass_candidate: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=32') }}"
+
+# User password hash to be used on user creation
+user_pass_hash: >-
+  {{
+    ansible_become_pass
+    | password_hash('sha512', 65534 | random(seed=inventory_hostname)
+    | string)
+  }}
+
+# =============================================================================
 # Portal setup settings (from fresh server)
 
 # Setup basic security
@@ -14,7 +35,7 @@ access_check_timeout_secs: 5
 initial_users:
   - username: "{{ webportal_user }}"
     uid: 1000
-    password_hash: "{{ webportal_user_pass_hash }}"
+    password_hash: "{{ user_pass_hash }}"
     authorized_keys: "{{ webportal_user_authorized_keys }}"
 
 # Security settings
@@ -73,6 +94,57 @@ block_tor_exit_nodes_lists:
   # performed only after the last download is older then the below interval.
   do_not_redownload_within_secs: 2000
 
+# Plaintext secrets storage settings
+
+# `ansible-private` repository path inside Ansible Control Machine container
+plaintext_base_dir: "/tmp"
+plaintext_repository_dir: "ansible-private"
+
+plaintext_secrets_dir: "plaintext-secrets"
+plaintext_ansible_dir: "{{ plaintext_repository_dir }}/{{ plaintext_secrets_dir }}"
+
+plaintext_portal_credentials_server_subfolder: "portal-server-credentials"
+plaintext_portal_credentials_server: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+
+plaintext_portal_config_common_subfolder: "portal-common-configs"
+plaintext_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+plaintext_portal_common_and_cluster_configs_list:
+  # - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_common_subfolder }}/common.yml"
+  - "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
+plaintext_portal_config_server_subfolder: "portal-server-configs"
+plaintext_portal_config_server: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+
+plaintext_accounts_jwks_json: "{{ plaintext_ansible_dir }}/{{ plaintext_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
+
+# HashiCorp Vault settings
+
+# For security reasons Ansible lookup returns AnsibleUnsafeString, we have to
+# handle this otherwise Jinja templates refuse to process the unsafe string.
+hashicorp_vault_url: "{{ lookup('env', 'HCV_URL', allow_unsafe=True) | first }}"
+hashicorp_vault_token: "{{ lookup('env', 'HCV_TOKEN', allow_unsafe=True) | first }}"
+
+hashicorp_vault_storage_backend_dir: "kv/data"
+hashicorp_vault_ansible_dir: "ansible-skynet"
+hashicorp_vault_portal_credentials_server_subfolder: "portal-server-credentials"
+hashicorp_vault_portal_credentials_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_credentials_server_subfolder }}/{{ webportal_user + '@' + ansible_host }}"
+hashicorp_vault_portal_credentials_server_incl_backend_dir: "{{ hashicorp_vault_storage_backend_dir }}/{{ hashicorp_vault_portal_credentials_server }}"
+
+hashicorp_vault_portal_config_common_subfolder: "portal-common-configs"
+hashicorp_vault_portal_config_cluster_subfolder: "portal-cluster-configs"
+
+# See my-vars/config-sample-do-not-edit.yml file for documentation.
+hashicorp_vault_portal_common_and_cluster_configs_list:
+  # - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_common_subfolder }}/common.yml"
+  - "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}.yml"
+
+hashicorp_vault_portal_config_server_subfolder: "portal-server-configs"
+hashicorp_vault_portal_config_server: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_server_subfolder }}/{{ inventory_hostname }}.yml"
+
+hashicorp_vault_accounts_jwks_json: "{{ hashicorp_vault_ansible_dir }}/{{ hashicorp_vault_portal_config_cluster_subfolder }}/cluster-{{ portal_cluster_id }}-jwks.json"
+
 # LastPass settings
 lastpass_ansible_dir: "Shared-Ansible"
 
@@ -119,15 +191,17 @@ lastpass_accounts_jwks_json: "{{ lastpass_ansible_dir }}{{ lastpass_directory_se
 # Webportal Paths
 webportal_user_home_dir: "/home/{{ webportal_user }}"
 webportal_dir: "{{ webportal_user_home_dir }}/skynet-webportal"
+webportal_docker_dir: "{{ webportal_dir }}/docker"
+webportal_docker_data_dir: "{{ webportal_docker_dir }}/data"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
-elasticsearch_data_data_dir: "{{ webportal_dir }}/docker/data/elasticsearch/data"
+elasticsearch_data_data_dir: "{{ webportal_docker_data_dir }}/elasticsearch/data"
 
 # Accounts Paths
-accounts_conf_dir: "{{ webportal_dir }}/docker/accounts/conf"
+accounts_conf_dir: "{{ webportal_docker_dir }}/accounts/conf"
 accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
 
 # Mongo Paths
-mongo_data_dir: "{{ webportal_dir }}/docker/data/mongo"
+mongo_data_dir: "{{ webportal_docker_data_dir }}/mongo"
 mongo_backups_dir: "{{ mongo_data_dir }}/backups"
 mongo_db_dir: "{{ mongo_data_dir }}/db"
 mongo_mgkey_file: "{{ mongo_data_dir }}/mgkey"
@@ -139,6 +213,10 @@ block_tor_exit_nodes_script_file: "{{ devops_scripts_dir }}/tor-blocklists-updat
 logs_dir: "{{ devops_dir }}/logs"
 setup_status_dir: "{{ devops_dir }}/setup"
 setup_status_file: "{{ setup_status_dir }}/status"
+
+# Certbot paths
+certbot_docker_data_dir: "{{ webportal_docker_data_dir }}/certbot"
+cloudflare_ini_file: "{{ certbot_docker_data_dir }}/cloudflare.ini"
 
 # Default service ports
 default_mongo_port: 27017
@@ -160,13 +238,6 @@ webportal_repo_url: "https://github.com/SkynetLabs/skynet-webportal.git"
 docker_skyd_repo_url: "https://github.com/SkynetLabs/docker-skyd.git"
 accounts_repo_url: "https://github.com/SkynetLabs/skynet-accounts.git"
 dotfiles_repo_url: "https://gitlab.com/NebulousLabs/dotfiles.git"
-
-# TODO: make optional, general
-webportal_git_config:
-  - name: user.name
-    value: "SkynetLabs Devs"
-  - name: user.email
-    value: "{{ git_checkout_email }}"
 
 # TODO: default in role: False
 webportal_setup_dotfiles_and_dev_tools: True
@@ -198,7 +269,7 @@ webportal_server_config_defaults:
 # TODO: move to role default vars
 # This variable sets default values for common/cluster settings if they are not
 # defined by portal operator in common/cluster records defined by
-# lastpass_portal_common_and_cluster_configs_list.
+# {{ secrets_storage_var_prefix }}_portal_common_and_cluster_configs_list.
 webportal_common_config_defaults:
   s3_backup_path: ""
   abuse_log_level: "info"

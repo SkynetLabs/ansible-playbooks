@@ -738,6 +738,36 @@ To run:
 
 In this example, `eu-pol-4` will send 100KS to `eu-fin-1`.
 
+### Migrate Data Between Secrets Storages
+
+This playbook can migrate secrets records between any of supported secrets
+storages (LastPass <=> plaintext files <=> HashiCorp Vault) for one or all
+portal cluster(s).
+
+Playbook:
+
+- Gets user input which portal cluster to migrate
+  (prompt is skipped if only one cluster is defined in hosts.ini).
+- Gets user input on source and destination secrets storage.
+- Performs the following checks and fails if not ok (manual fix is needed)
+  - Destination config paths must be defined
+  - Configured cluster configs lists (their lengths) must match between source
+    and destination
+  - If the destination record already exists, it must be synced with source
+    (otherwise the playbook can't determine which record is valid/obsolete).
+- Migrates the following records
+  - Cluster configs
+  - Cluster Accounts JWKS json configs (if they exist)
+  - Server configs
+  - Server credentials
+
+To run:
+
+- Login to all secrets storages you want to migrate from or to.
+- Execute `scripts/x-secrets-storage-migration-wizzard.sh`
+  - DO NOT USE `--limit`.
+  - Follow instructions/prompts from Ansible playbook.
+
 ## Playbook Live Demos
 
 - Deploy portal on xyz:  

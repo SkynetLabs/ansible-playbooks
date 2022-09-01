@@ -1,0 +1,10 @@
+---
+# Check for custom DNS and setup accordingly
+#
+# NOTE: currently the only custom setup that is handled is Cloudflare. Logic in
+# this file should be updated to only allow 1 custom config when others are
+# added.
+
+- name: Setup Cloudflare DNS for Certbot
+  include_tasks: tasks/portal-role-task-certbot-setup-cloudflare.yml
+  when: webportal_common_config.dns_cloudflare_api_token is defined

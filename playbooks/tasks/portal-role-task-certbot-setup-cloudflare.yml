@@ -1,0 +1,19 @@
+---
+# Setup certbot to use cloudflare
+
+- name: Create certbot data directory
+  ansible.builtin.file:
+    path: "{{ certbot_docker_data_dir }}"
+    state: directory
+    owner: "999"
+    group: "999"
+  become: True
+
+- name: Create cloudflare.ini file
+  ansible.builtin.copy:
+    dest: "{{ cloudflare_ini_file }}"
+    content: "dns_cloudflare_api_token = {{ webportal_common_config.dns_cloudflare_api_token }}"
+    owner: "999"
+    group: "999"
+    mode: "0400"
+  become: True
