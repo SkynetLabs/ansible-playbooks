@@ -14,11 +14,32 @@
     cmd: git symbolic-ref --short HEAD
   run_once: True
   register: ans_git_branch
+  # Ignore errors here because if ansible-playbooks is on a tag this command
+  # will fail. In that case the block below will determine the tag.
+  ignore_errors: True
 
 - name: Set Ansible repo branch
   set_fact:
     local_ansible_repo_branch: "{{ ans_git_branch.stdout }}"
   run_once: True
+  when: ans_git_branch is defined
+
+- block:
+    # Do not ignore errors here, because we should be able to determine a tag in
+    # the even a branch is not used.
+    - name: Get Ansible repo tag
+      local_action:
+        module: ansible.builtin.command
+        cmd: git describe --tags
+      run_once: True
+      register: ans_git_tag
+
+    - name: Set Ansible repo branch
+      set_fact:
+        local_ansible_repo_branch: "{{ ans_git_tag.stdout }}"
+      run_once: True
+
+  when: ans_git_branch is not defined and local_ansible_repo_branch is not defined
 
 - name: Get Ansible repo commit
   local_action:
