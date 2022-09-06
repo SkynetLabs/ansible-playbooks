@@ -98,7 +98,7 @@
     - name: Handle lazy evaluation of variables on mongo primary host
       set_fact:
         accounts_test_user_email: "{{ accounts_test_user_email }}"
-        accounts_test_user_tier: "{{ accounts_test_user_tier }}"
+        accounts_test_user_tier: "{{ accounts_test_user_tier | default(1) }}"
       delegate_to: "{{ mongo_primary_host }}"
       delegate_facts: True
 
