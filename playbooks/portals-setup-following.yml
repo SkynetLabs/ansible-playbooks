@@ -218,16 +218,6 @@
     - name: Include deploying portal - start services
       include_tasks: tasks/portal-deploy-start-services.yml
 
-    # Prepare test user and API key when portal is not anonymous and Skynet API
-    # key was not yet set.
-    - name: Include preparing Accounts test user
-      include_tasks: tasks/portal-accounts-test-user-prepare.yml
-      vars:
-        api_key: "{{ webportal_server_config.accounts_test_user_api_key | default('') }}"
-      when:
-        - not portal_is_anonymous
-        - mongo_replicaset_initialized or api_key is none or api_key == ''
-
     - name: Include deploying portal - run tests and enable loadbalancer
       include_tasks: tasks/portal-deploy-enable-loadbalancer.yml
       when: deploy_after_setup | default(False)
