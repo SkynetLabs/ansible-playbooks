@@ -1,0 +1,39 @@
+- name: Install HashiCorp Vault
+  hosts: deploy_machines
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  tasks:
+    # xxxqqq
+
+    - name: Ensure HashiCorp Vault dir and subdirs exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ hashicorp_vault.dir }}"
+        - "{{ hashicorp_vault.dir }}/letsencrypt"
+        - "{{ hashicorp_vault.dir }}/vault/config"
+        - "{{ hashicorp_vault.dir }}/vault/file"
+        - "{{ hashicorp_vault.dir }}/vault/logs"
+        - "{{ hashicorp_vault.dir }}/vault/raft"
+
+    - name: Ensure Traefik config is present
+      ansible.builtin.template:
+        src: "templates/hashicorp-vault/traefik.yml.j2"
+        dest: "{{ hashicorp_vault.dir }}/traefik.yml"
+
+    - name: Ensure HashiCorp Vault config is present
+      ansible.builtin.copy:
+        src: "hashicorp-vault/local.json"
+        dest: "{{ hashicorp_vault.dir }}/vault/config/local.json"
+
+    - name: Ensure docker compose file is present
+      ansible.builtin.template:
+        src: "templates/hashicorp-vault/docker-compose.yml.j2"
+        dest: "{{ hashicorp_vault.dir }}/docker-compose.yml"
