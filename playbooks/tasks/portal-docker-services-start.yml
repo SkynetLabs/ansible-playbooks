@@ -58,22 +58,6 @@
     api_key_defined: "{{ webportal_server_config.accounts_test_user_api_key | default('not-defined') != 'not-defined' }}"
 
 - block:
-    - debug:
-        msg: |
-          api key:
-          {{ api_key | default('idk') }}
-
-          api_key is none:
-          {{ api_key is none }}
-          
-          api_key == '':
-          {{ api_key | default('idk') == '' }}
-      vars:
-        api_key: "{{ webportal_server_config.accounts_test_user_api_key | default('') }}"
-
-    - pause:
-        prompt: ok?
-
     - name: Start accounts and nginx docker services (so we can prepare test user)
       community.docker.docker_compose:
         project_src: "{{ webportal_dir }}"
