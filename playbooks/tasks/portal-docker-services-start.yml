@@ -50,13 +50,6 @@
   debug:
     msg: "{{ inventory_hostname + ' docker services start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
 
-# Prepare test user and its Skynet API key (if needed) otherwise health-check
-# container keeps restarting.
-
-- name: Get API key is defined flag
-  ansible.builtin.set_fact:
-    api_key_defined: "{{ webportal_server_config.accounts_test_user_api_key | default('not-defined') != 'not-defined' }}"
-
 - name: Pull docker images
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc pull"
   become: True
@@ -66,27 +59,6 @@
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc build --no-cache"
   become: True
   become_user: "{{ webportal_user }}"
-
-- block:
-    - name: Start docker services (only nginx)
-      ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach nginx"
-      become: True
-      become_user: "{{ webportal_user }}"
-
-    - name: Start docker services (only accounts)
-      ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach accounts"
-      become: True
-      become_user: "{{ webportal_user }}"
-
-    # Prepare test user and API key when portal is not anonymous and Skynet API
-    # key was not yet set.
-    - name: Include preparing Accounts test user
-      include_tasks: tasks/portal-accounts-test-user-prepare.yml
-  when:
-    - portal_action in ['portal-setup-and-deploy', 'portal-setup']
-    - portal_accounts_on
-    - not portal_is_anonymous
-    - mongo_replicaset_initialized | default(False) or not api_key_defined
 
 - name: Start docker services
   ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach"
@@ -102,6 +74,18 @@
 - name: Parse docker compose config output as yaml object
   set_fact:
     docker_compose_config: "{{ docker_compose_config_result.stdout | from_yaml }}"
+
+# Prepare test user and its API key when portal is not anonymous and Skynet API
+# key was not yet set otherwise health-check container keeps restarting.
+- name: Include preparing Accounts test user
+  vars:
+    api_key_defined: "{{ webportal_server_config.accounts_test_user_api_key | default('not-defined') != 'not-defined' }}"
+  include_tasks: tasks/portal-accounts-test-user-prepare.yml
+  when:
+    - portal_action in ['portal-setup-and-deploy', 'portal-setup']
+    - portal_accounts_on
+    - not portal_is_anonymous
+    - mongo_replicaset_initialized | default(False) or not api_key_defined
 
 # Set list of started docker compose services
 - name: Set list of started docker compose services

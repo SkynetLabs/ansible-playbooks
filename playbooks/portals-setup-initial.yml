@@ -31,6 +31,9 @@
     - name: Fail if you are targeting all dev and prod webportals
       include_tasks: tasks/host-limit-check.yml
 
+    - name: Include checking hosts.ini compatibility with playbooks v2
+      include_tasks: tasks/secrets-storage-check-hosts-ini-update.yml
+
     - name: Include creating OS user credentials in secrets storage (if missing)
       include_tasks: tasks/secrets-storage-common-save-user-credentials.yml
 
@@ -48,9 +51,6 @@
     - name: Skip if initial root like user is defined
       meta: end_host
       when: initial_root_like_user is defined
-
-    - name: Include checking hosts.ini compatibility with playbooks v2
-      include_tasks: tasks/secrets-storage-check-hosts-ini-update.yml
 
     - name: Include loading user credentials from secrets storage
       include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
