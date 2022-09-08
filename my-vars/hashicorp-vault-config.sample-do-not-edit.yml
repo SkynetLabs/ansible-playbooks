@@ -2,7 +2,7 @@
 
 hashicorp_vault:
   dir: "/home/{{ ansible_user }}/hashicorp-vault"
-  domain: "vault.siasky.dev" # xxxqqq Set your domain here
+  domain: "vault.siasky.dev" # Set your domain here
 
 # Traefik settings
 traefik:
@@ -10,4 +10,4 @@ traefik:
     dashboard: false # default: false
     insecure: false # default: false
   ssl:
-    email: "devs@skynetlabs.com" # xxxqqq Set your email here
+    email: "devs@skynetlabs.com" # Set your email here
