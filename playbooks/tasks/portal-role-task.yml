@@ -9,13 +9,6 @@
     update: True
     force: True
 
-- name: Configure git
-  community.general.git_config:
-    name: "{{ item.name }}"
-    scope: global
-    value: "{{ item.value }}"
-  loop: "{{ webportal_git_config }}"
-
 # TODO: add subdomain check (only install portal to subdomain for now)
 
 - name: Create .env file
@@ -28,23 +21,28 @@
 # Do not run this in parallel (use throttle = 1) so that there are not
 # created and used multiple JWKS data for a single cluster
 - block:
-    - name: Load JWKS data fresh from LastPass
-      include_tasks: tasks/lastpass-load-json-note.yml
+    - name: Include loading JWKS data fresh from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-yaml-or-json.yml
       loop:
-        - lastpass_path: "{{ lastpass_accounts_jwks_json }}"
+        # Set `secret_path` according to `{{secret_storage}}_accounts_jwks_json`
+        # variable
+        - secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_accounts_jwks_json') }}"
           var_name: accounts_jwks_data
 
     - name: Set generate JWKS data flag
       set_fact:
         generate_jwks: "{{ accounts_jwks_data | default({}) == {} or accounts_jwks_data == '' }}"
 
-    # Autogenerate JWKS data and save it to LastPass (if not yet done)
+    # Autogenerate JWKS data and save it to secrets storage (if not yet done)
     - block:
         - name: Include generating jwks.json file
           include_tasks: tasks/portal-accounts-generate-jwks.json.yml
 
-        - name: Include saving cluster jwks.json to LastPass
-          include_tasks: tasks/lastpass-save-cluster-jwks.json.yml
+        - name: Include saving cluster jwks.json to secure storage
+          include_tasks: "tasks/secrets-storage-common-save-data-to-yaml-or-json.yml"
+          vars:
+            secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_accounts_jwks_json') }}"
+            secret_data: "{{ accounts_jwks_data }}"
       when: generate_jwks
   when: portal_accounts_on
   throttle: 1
@@ -87,9 +85,11 @@
 - name: Include setting up MongoDB
   include_tasks: tasks/portal-role-task-mongo-setup.yml
 
-# If we successfully set up mongo, save the cluster configs.
-- name: Include saving the cluster config
-  include_tasks: "{{ playbook_dir }}/{{ save_cluster_config_handler }}"
+# Custom DNS Handling for Certbot
+# When the AWS keys are not set, check for other DNS configs for certbot.
+- name: Custom Certbot DNS
+  include_tasks: tasks/portal-role-task-certbot-custom-dns.yml
+  when: webportal_common_config.aws_access_key is not defined and webportal_common_config.aws_secret_access_key is not defined
 
 # Init, unlock wallet
 
@@ -240,8 +240,8 @@
         updated:
           sia_wallet_seed: "{{ new_sia_wallet_seed }}"
 
-    - name: Include saving portal config
-      include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+    - name: Include saving server config to secrets storage
+      include_tasks: tasks/portal-configs-save-server-config.yml
 
     - name: Update .env file
       ansible.builtin.template:
@@ -360,3 +360,10 @@
       command: crontab -u {{ webportal_user }} {{ webportal_cron_file }}
 
   when: webportal_setup_health_checks
+
+# Pull cypress image to avoid lazily pulling it on the fly when the abuse
+# scanner needs it
+- name: Pull cypress docker image
+  community.docker.docker_image:
+    name: "{{ cypress_docker_image }}"
+    source: pull

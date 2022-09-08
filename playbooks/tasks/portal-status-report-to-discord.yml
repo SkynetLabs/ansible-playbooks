@@ -16,3 +16,4 @@
       }
     status_code: 204
   register: discord_post_result
+  when: discord_ansible_logs_webhook is defined

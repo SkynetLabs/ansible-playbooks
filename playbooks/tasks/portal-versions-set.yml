@@ -95,7 +95,7 @@
   set_fact:
     # ignoring ansible-lint var-spacing here because it is a false failure
     # caused by the }}}}} in the combine statement
-    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {item.service: {'image': item.image}}}, recursive=True) }}" # noqa var-spacing
+    docker_compose_override_data: "{{ docker_compose_override_data | combine({'services': {item.service: {'image': item.image, 'environment': item.environment | default([])}}}, recursive=True) }}" # noqa var-spacing
   loop: "{{ docker_image_overrides }}"
   # Do not set website docker image when website custom build/context/
   # dockerfile is defined

@@ -43,6 +43,14 @@
       and
       create_user_result.skynet_token | length < 1000
     )
+    or
+    (
+      create_user_result.status not in [200, 400]
+    )
+  # Wait a bit till nginx is ready
+  until: create_user_result.status | default(-1) in [200, 400]
+  delay: 1
+  retries: 60
 
 # If the user was created above, we already have skynet JWT token, if the
 # user already existed and was not created, we need to login to get token.
@@ -84,21 +92,31 @@
 - name: Include getting MongoDB replicaset primary member
   include_tasks: tasks/portal-role-task-mongo-replicaset-get-primary.yml
 
-- name: Include updating Accounts test user to the highest paid tier in MongoDB
-  include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
-  vars:
-    mongodb_shell_delegated:
-      host: "{{ hostvars[inventory_hostname].mongo_primary_host }}"
-      db: "skynet"
-      eval: |
-        db.getCollection('users').updateOne({'email':'{{ hostvars[inventory_hostname].accounts_test_user_email }}'},{'$set':{'tier':{{ hostvars[inventory_hostname].accounts_test_user_tier | default(1) }} }})
-    webportal_common_config:
-      skynet_db_user: "{{ mongodb_config.skynet_db_user }}"
-      skynet_db_pass: "{{ mongodb_config.skynet_db_pass }}"
+# Handle lazy evaluation of Accounts test user variables, throttle so that
+# variables do not clash during parallel execution.
+- block:
+    - name: Handle lazy evaluation of variables on mongo primary host
+      set_fact:
+        accounts_test_user_email: "{{ accounts_test_user_email }}"
+        accounts_test_user_tier: "{{ accounts_test_user_tier | default(1) }}"
+      delegate_to: "{{ mongo_primary_host }}"
+      delegate_facts: True
 
-# Update Skynet API key in secure storage (LastPass)
-- name: Include saving portal configs
-  include_tasks: "{{ playbook_dir }}/{{ save_portal_config_handler }}"
+    - name: Include updating Accounts test user to the highest paid tier in MongoDB
+      include_tasks: tasks/portal-role-task-mongo-shell-eval-on-delegated-host.yml
+      vars:
+        mongodb_shell_delegated:
+          host: "{{ hostvars[inventory_hostname].mongo_primary_host }}"
+          db: "skynet"
+          eval: |
+            db.getCollection('users').updateOne({'email':'{{ accounts_test_user_email }}'},{'$set':{'tier':{{ accounts_test_user_tier | default(1) }} }})
+        webportal_common_config:
+          skynet_db_user: "{{ mongodb_config.skynet_db_user }}"
+          skynet_db_pass: "{{ mongodb_config.skynet_db_pass }}"
+  throttle: 1
+
+- name: Include saving server config (incl. Skynet API key) to secrets storage
+  include_tasks: tasks/portal-configs-save-server-config.yml
 
 - name: Update .env file
   ansible.builtin.template:

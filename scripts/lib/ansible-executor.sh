@@ -73,13 +73,14 @@ else
     --entrypoint sleep \
     -e ANSIBLE_STDOUT_CALLBACK=debug \
     -e LPASS_AGENT_TIMEOUT=$lpass_timeout \
+    -e SSH_AUTH_SOCK=/ssh-agent \
     -v ~/.ssh:/root/.ssh:ro \
     -v $SSH_AUTH_SOCK:/ssh-agent \
     -v $(pwd):/tmp/playbook:Z \
     -v $(pwd)/../ansible-private:/tmp/ansible-private \
     -v /tmp/SkynetLabs-ansible:/tmp/SkynetLabs-ansible \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    --env SSH_AUTH_SOCK=/ssh-agent \
+    --network host \
     --detach \
     --name $ansiblecm_container \
     $ansiblecm_image \
@@ -118,4 +119,9 @@ it_flags="-it"
 if ! [ -z ${github_action+x} ]; then it_flags=""; fi
 
 # Execute the playbook in the docker container
-docker exec $it_flags $ansiblecm_container $cmd $args
+# - Set environment variables for HashiCorp Vault secrets storage
+docker exec $it_flags \
+  -e HCV_URL="$HCV_URL" \
+  -e HCV_TOKEN="$HCV_TOKEN" \
+  $ansiblecm_container \
+  $cmd $args

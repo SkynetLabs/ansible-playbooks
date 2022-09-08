@@ -1,0 +1,61 @@
+---
+# Save server config to secrets storage (if something has changed)
+
+- name: Get last cluster config secret path
+  set_fact:
+    last_cluster_config_secret_path: "{{ lookup('vars', secrets_storage_var_prefix + '_portal_common_and_cluster_configs_list') | last }}"
+
+- name: Include checking if server config record exists in secrets storage
+  include_tasks: "tasks/secrets-storage-common-check-record-exists.yml"
+  vars:
+    secret_path: "{{ last_cluster_config_secret_path }}"
+
+# Check if there is a difference between the old common config and the current
+# common config.
+- name: Check for a difference in the cluster config file
+  vars:
+    original_dict: "{{ webportal_common_config_last_old }}"
+    new_dict: "{{ webportal_common_config_last }}"
+  include_tasks: tasks/dictionary-diff.yml
+
+- block:
+    # This prompt/fail block shouldn't be run in parallel, so that user is not
+    # confused and knows which prompt belongs to which server. So we throttle
+    # the next block.
+    - block:
+        - name: Ask user if it is ok to save/update cluster config to secrets storage
+          pause:
+            prompt: |-
+              It looks like we need to {{ secret_add_or_edit_command }} your cluster config
+              in secrets storage which is:
+              {{ secrets_storage }}
+
+              Here are the fields that appear to need to be {{ secret_add_or_edit_command }}ed:
+              {{ diff_string }}
+
+              If this doesn't appear to be correct, check:
+              - Your secrets storage account you are logged in.
+              - Your config files to make sure the playbook is targeting the right files.
+
+              Do you want to {{ secret_add_or_edit_command }} your cluster config in secret storage (y/n)?
+          register: update_secrets_storage_result
+          delegate_to: localhost
+
+        - name: Stop the playbook if the user doesn't want to update cluster config in secret storage
+          fail:
+            msg: |
+              Your cluster config was not updated in secrets storage,
+              please check your secrets storage account you are logged in
+              and your config files and then rerun this playbook.
+          when: update_secrets_storage_result.user_input[:1] not in 'yY'
+      throttle: 1
+
+    - name: Include saving cluster config data to secrets storage
+      include_tasks: "tasks/secrets-storage-common-save-data-to-yaml-or-json.yml"
+      vars:
+        secret_path: "{{ last_cluster_config_secret_path }}"
+        secret_data: "{{ webportal_common_config_last }}"
+  when: >-
+    (secrets_storage_record_exists and different_dict)
+    or
+    not secrets_storage_record_exists
