@@ -50,20 +50,30 @@
   debug:
     msg: "{{ inventory_hostname + ' docker services start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
 
-# Start the docker services (on deploy also build images)
-- name: Start the docker services (on deploy also build images)
-  community.docker.docker_compose:
-    project_src: "{{ webportal_dir }}"
-    files: "{{ webportal_docker_compose_files_wanted }}"
-    build: "{{ docker_compose_build }}"
-    remove_orphans: True
-    nocache: True
-    pull: True
-    state: present
-    # TODO: Build in parallel, when Ansible support is added
+- name: Pull docker images
+  ansible.builtin.command: "chdir={{ webportal_dir }} ./dc pull"
   become: True
-  become_user: "user"
-  register: docker_compose_start_result
+  become_user: "{{ webportal_user }}"
+
+- name: Build docker images
+  ansible.builtin.command: "chdir={{ webportal_dir }} ./dc build --no-cache"
+  become: True
+  become_user: "{{ webportal_user }}"
+
+- name: Start docker services
+  ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach"
+  become: True
+  become_user: "{{ webportal_user }}"
+
+- name: Get current docker compose config
+  ansible.builtin.command: "chdir={{ webportal_dir }} ./dc config"
+  become: True
+  become_user: "{{ webportal_user }}"
+  register: docker_compose_config_result
+
+- name: Parse docker compose config output as yaml object
+  set_fact:
+    docker_compose_config: "{{ docker_compose_config_result.stdout | from_yaml }}"
 
 # Prepare test user and its API key when portal is not anonymous and Skynet API
 # key was not yet set otherwise health-check container keeps restarting.
@@ -80,7 +90,7 @@
 # Set list of started docker compose services
 - name: Set list of started docker compose services
   set_fact:
-    docker_compose_services: "{{ docker_compose_start_result.services.keys() | list }}"
+    docker_compose_services: "{{ docker_compose_config.services.keys() | list }}"
 
 # Log docker compose services
 - name: Log docker compose services

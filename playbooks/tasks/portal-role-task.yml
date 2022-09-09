@@ -121,15 +121,10 @@
     setup_status: "{{ setup_status_slurped.content | b64decode }}"
 
 - block:
-    - name: Start Sia docker container
-      community.docker.docker_compose:
-        project_src: "{{ webportal_dir }}"
-        files: docker-compose.yml
-        services: sia
-        build: True
-        nocache: True
-        pull: True
-        state: present
+    - name: Start docker sia service
+      ansible.builtin.command: "chdir={{ webportal_dir }} ./dc up --remove-orphans --detach sia"
+      become: True
+      become_user: "{{ webportal_user }}"
 
     - name: Wait for sia API to become available
       ansible.builtin.command: docker logs sia
