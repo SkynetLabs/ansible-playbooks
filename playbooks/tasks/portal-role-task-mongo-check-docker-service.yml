@@ -30,7 +30,7 @@
   when: not mongo_service_ok
 
 - name: Wait for mongo container initialization before checking status
-  ansible.builtin.shell: 'docker logs mongo | grep ''"Waiting for connections"'''
+  ansible.builtin.shell: "docker logs mongo | grep '\"Waiting for connections\"'"
   vars:
     fmt: "%Y-%m-%dT%H:%M:%S.%f"
   register: mongo_ready_result
@@ -70,7 +70,7 @@
   vars:
     mongodb_shell:
       eval: "db.serverStatus()"
-      until: '''"ok" : 1'' in mongo_shell_result.transformed_output'
+      until: "'\"ok\" : 1' in mongo_shell_result.transformed_output"
       retries: 20
       ignore_errors: True
   when: mongo_service_ok
