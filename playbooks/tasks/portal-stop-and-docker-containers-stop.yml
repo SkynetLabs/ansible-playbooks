@@ -9,8 +9,14 @@
 - block:
     # Stop possible portal services
 
+    - name: Check skynet-webportal/docker-compose.yml file exists
+      ansible.builtin.stat:
+        path: "{{ webportal_dir }}/docker-compose.yml"
+      register: docker_compose_stat_result
+
     - name: Include disabling health check and stopping portal docker services
       include_tasks: tasks/portal-stop.yml
+      when: docker_compose_stat_result.stat.exists
 
     # Stop all other possible docker containers
 
