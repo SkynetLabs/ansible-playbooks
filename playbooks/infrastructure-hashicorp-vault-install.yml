@@ -95,8 +95,7 @@
       become: True
       loop:
         - "rustc"
-        - "cargo" 
-      
+        - "cargo"
 
     - name: Ensure docker-compose SDK for Python is installed (for Ansible)
       ansible.builtin.pip:
@@ -138,7 +137,7 @@
         prompt: |-
           In your browser navigate to https://{{ hashicorp_vault.domain }}
           and unseal the Vault with any 3 out of 5 unseal keys.
-          
+
           (Unsealing needs to be done after every Vault service restart.)
 
           Then press enter.
