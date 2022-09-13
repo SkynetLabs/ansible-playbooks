@@ -156,9 +156,20 @@
 # portal_accounts_on flag is set during portal setup via loading portal config
 # from LastPass
 
+# Get PORTAL_MODULES from .env file
+# If PORTAL_MODULES is not defined in .env, this task returns empty string,
+# which is our default value same as if PORTAL_MODULES=''.
+- name: Get PORTAL_MODULES from .env file
+  ansible.builtin.shell: ". {{ webportal_dir }}/.env && echo $PORTAL_MODULES"
+  register: portal_modules_result
+
+- name: Set portal modules var
+  set_fact:
+    env_portal_modules: "{{ portal_modules_result.stdout }}"
+
 - name: Set accounts on flag for non-LastPass tasks
   set_fact:
-    accounts_on: "{{ accounts_on | default(portal_accounts_on)}}"
+    accounts_on: "{{ 'a' in env_portal_modules | default(portal_accounts_on)}}"
 
 - name: >-
     Update accounts version in data variable (if accounts are on and branch
