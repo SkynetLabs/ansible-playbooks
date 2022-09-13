@@ -26,14 +26,14 @@
 - name: Include logging portal, Sia, accounts versions
   include_tasks: tasks/portal-logs-log-versions.yml
 
-# Log portal config files (.env)
-- name: Log portal config files (.env)
+# Log portal config files (docker-compose.override.yml, .env)
+- name: Log portal config files (docker-compose.override.yml, .env)
   ansible.builtin.copy:
     src: "{{ webportal_dir }}/{{ item }}"
     dest: "{{ logs_dir }}/{{ log_filename_prefix }}.{{ item }}"
     remote_src: True
     mode: preserve
-  loop: "{{ webportal_other_config_files }}"
+  loop: "{{ webportal_config_files }}"
 
 # Log status as 'starting'
 - name: Log status as 'starting'

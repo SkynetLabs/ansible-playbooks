@@ -292,7 +292,8 @@ webportal_setup_health_checks: True
 # =============================================================================
 # Portal deploy settings (on running server)
 
-webportal_other_config_files:
+webportal_config_files:
+  - "docker-compose.override.yml"
   - ".env"
 
 # skynet-js vars
