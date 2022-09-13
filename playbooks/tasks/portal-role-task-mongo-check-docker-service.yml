@@ -6,12 +6,6 @@
 # Outcome:
 # - mongo_service_ok: boolean flag whether mongo service runs as expected
 
-- name: Include getting wanted docker compose files
-  include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
-
-- name: Include getting present docker compose files
-  include_tasks: tasks/portal-docker-compose-files-get-present.yml
-
 - name: Set MongoDB start timestamp
   set_fact:
     mongodb_start_timestamp: "{{ ansible_date_time.iso8601_micro[:-1] }}"

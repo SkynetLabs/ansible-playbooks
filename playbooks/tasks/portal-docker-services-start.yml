@@ -1,10 +1,6 @@
 ---
 # Start portal docker services
 
-# Include getting wanted docker-compose files
-- name: Include getting wanted docker-compose files
-  include_tasks: tasks/portal-docker-compose-files-get-wanted.yml
-
 # Create timestamped log filename prefix
 - name: Include getting log filename prefix
   include_tasks: tasks/portal-get-log-filename-prefix.yml
@@ -30,14 +26,14 @@
 - name: Include logging portal, Sia, accounts versions
   include_tasks: tasks/portal-logs-log-versions.yml
 
-# Log portal config files (docker-compose.*, .env)
-- name: Log portal config files (docker-compose.*, .env)
+# Log portal config files (docker-compose.override.yml, .env)
+- name: Log portal config files (docker-compose.override.yml, .env)
   ansible.builtin.copy:
     src: "{{ webportal_dir }}/{{ item }}"
     dest: "{{ logs_dir }}/{{ log_filename_prefix }}.{{ item }}"
     remote_src: True
     mode: preserve
-  loop: "{{ webportal_docker_compose_files_wanted + webportal_other_config_files }}"
+  loop: "{{ webportal_config_files }}"
 
 # Log status as 'starting'
 - name: Log status as 'starting'
