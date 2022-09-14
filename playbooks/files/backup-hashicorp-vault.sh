@@ -139,5 +139,5 @@ echo Uploading to AWS S3 finished.
 # Save the latest backup time to file
 echo Creating the last backup timestamp...
 docker exec vault chown -R $(id -u):$(id -g) /$backup_dir
-echo "$backup_start_time" > $last_backup_time_file
+echo "$backup_start_time" > "$last_backup_time_file"
 echo Finished.
