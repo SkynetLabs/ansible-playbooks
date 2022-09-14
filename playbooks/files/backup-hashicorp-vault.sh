@@ -25,6 +25,13 @@ if [[ $? -ne 0 ]]; then
     echo Exiting...
     exit 1
 fi
+if [[ "$token" == "" ]]; then
+    echo "Vault didn't return a valid token."
+    echo "Maybe the Vault is sealed and you need to unseal it"
+    echo "via its CLI or via its web UI."
+    echo Exiting...
+    exit 1
+fi
 
 # Scan kv storage for all records
 function get_kv_records {
