@@ -45,7 +45,7 @@
         dest: "{{ hashicorp_vault.dir }}/vault/config/local.json"
         owner: "100"
         group: "100"
-        mode: "0744"
+        mode: "0644"
       become: True
 
     - name: Ensure docker compose file is present
