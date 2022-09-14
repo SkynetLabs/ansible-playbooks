@@ -88,7 +88,7 @@ backup_dir=vault/backups
 last_backup_time_file=$(dirname "$0")/vault/backups/last-backup-timestamp
 
 if [[ -f "$last_backup_time_file" ]]; then
-    last_backup_time=$(<$last_backup_time_file)
+    last_backup_time=$(<"$last_backup_time_file")
     echo Found the latest backup from $last_backup_time
 else
     echo No backup timestamp was found
