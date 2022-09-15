@@ -62,7 +62,6 @@
 
   # Do not wait if sia container is not running or is restarting
   when:
-    - renter_busy_check_wait_secs > 0
     - sia_docker_container_result.exists
     - sia_docker_container_result.container is defined
     - sia_docker_container_result.container.State.Running

@@ -28,3 +28,4 @@
 
 - name: Wait until renter is idle
   include_tasks: tasks/portal-renter-wait-until-idle.yml
+  when: renter_busy_check_wait_secs > 0
