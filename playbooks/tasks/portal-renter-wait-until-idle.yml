@@ -20,7 +20,7 @@
         renter_wait_start_time: "{{ (lookup('pipe', 'date +%s') | int) if renter_wait_start_time is not defined else renter_wait_start_time }}"
 
     - name: Get skyd /renter endpoint result
-      command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
+      command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" --silent --show-error -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
       register: renter_get_result
 
     - name: Calculate renter memory to check for active registry access, downloads and uploads
