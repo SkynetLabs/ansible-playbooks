@@ -59,6 +59,7 @@
         renter_in_use_upload: "{{ userupload_base != userupload_available or userupload_prioritybase != userupload_priorityavailable }}"
       set_fact:
         # register renter busy status
+        memorystatus: "{{ memorystatus }}"
         renter_requested_registry: "{{ renter_requested_registry }}"
         renter_requested_download: "{{ renter_requested_download }}"
         renter_requested_upload: "{{ renter_requested_upload }}"
@@ -115,6 +116,10 @@
     - name: renter_busy
       ansible.builtin.debug:
         var: renter_busy
+
+    - name: memorystatus
+      ansible.builtin.debug:
+        var: memorystatus
 
   rescue:
     - name: "Retry renter check"
