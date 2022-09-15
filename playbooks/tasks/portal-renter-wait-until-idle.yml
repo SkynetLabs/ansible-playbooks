@@ -49,16 +49,14 @@
         # userupload_requested: "{{ output.memorystatus.userupload.requested }}"
         # userupload_priorityrequested: "{{ output.memorystatus.userupload.priorityrequested }}"
         # check if any memory is being requested for registry, download and uploads
-        renter_requested_registry: "{{ (output.memorystatus.registry.requested | int + output.memorystatus.registry.priorityrequested | int) > 0 }}"
-        renter_requested_download: "{{ (output.memorystatus.userdownload.requested | int + output.memorystatus.userdownload.priorityrequested | int) > 0 }}"
-        renter_requested_upload: "{{ (output.memorystatus.userupload.requested | int + output.memorystatus.userupload.priorityrequested | int) > 0 }}"
+        renter_requested_registry: "{{ output.memorystatus.registry.requested != 0 or output.memorystatus.registry.priorityrequested != 0 }}"
+        renter_requested_download: "{{ output.memorystatus.userdownload.requested != 0 or output.memorystatus.userdownload.priorityrequested != 0 }}"
+        renter_requested_upload: "{{ output.memorystatus.userupload.requested != 0 or output.memorystatus.userupload.priorityrequested != 0 }}"
         # check if any memory is being used for registry, download and uploads
         renter_in_use_registry: "{{ output.memorystatus.registry.base != output.memorystatus.registry.available or output.memorystatus.registry.prioritybase != output.memorystatus.registry.priorityavailable }}"
         renter_in_use_download: "{{ output.memorystatus.userdownload.base != output.memorystatus.userdownload.available or output.memorystatus.userdownload.prioritybase != output.memorystatus.userdownload.priorityavailable }}"
         renter_in_use_upload: "{{ output.memorystatus.userupload.base != output.memorystatus.userupload.available or output.memorystatus.userupload.prioritybase != output.memorystatus.userupload.priorityavailable }}"
       set_fact:
-        aaaaaa: "{{ output.memorystatus.registry.requested == 0 }}"
-        bbbbbb: "{{ output.memorystatus.registry.requested == '0' }}"
         # register renter busy status
         memorystatus: "{{ output.memorystatus }}"
         # renter_requested_registry: "{{ renter_requested_registry }}"
