@@ -4,4 +4,4 @@
 # How long to wait for active registry access, downloads and uploads to finish (in seconds)
 # before shutting down the docker services after disabling the health checks.
 # Note: on dev servers we don't wait for active registry access, downloads and uploads to finish.
-renter_busy_check_wait_secs: 0
+renter_busy_check_wait_secs: 1
