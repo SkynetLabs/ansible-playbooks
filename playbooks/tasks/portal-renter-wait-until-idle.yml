@@ -57,6 +57,8 @@
         renter_in_use_download: "{{ output.memorystatus.userdownload.base != output.memorystatus.userdownload.available or output.memorystatus.userdownload.prioritybase != output.memorystatus.userdownload.priorityavailable }}"
         renter_in_use_upload: "{{ output.memorystatus.userupload.base != output.memorystatus.userupload.available or output.memorystatus.userupload.prioritybase != output.memorystatus.userupload.priorityavailable }}"
       set_fact:
+        aaaaaa: "{{ output.memorystatus.registry.requested == 0 }}"
+        bbbbbb: "{{ output.memorystatus.registry.requested == '0' }}"
         # register renter busy status
         memorystatus: "{{ output.memorystatus }}"
         # renter_requested_registry: "{{ renter_requested_registry }}"
@@ -111,6 +113,14 @@
     # - name: renter_in_use_upload
     #   ansible.builtin.debug:
     #     var: renter_in_use_upload
+
+    - name: aaaaaa
+      ansible.builtin.debug:
+        var: aaaaaa
+
+    - name: bbbbbb
+      ansible.builtin.debug:
+        var: bbbbbb
 
     - name: renter_busy
       ansible.builtin.debug:
