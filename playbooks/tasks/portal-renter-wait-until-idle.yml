@@ -28,20 +28,44 @@
         # get renter output, convert to json, and get the memorystatus field
         output: "{{ renter_get_result.stdout | from_json }}"
         memorystatus: "{{ output.memorystatus }}"
-        # get requested memory amount for registry, download and uploads
+        # assign registry variables
+        registry_available: "{{ memorystatus.registry.available }}"
+        registry_priorityavailable: "{{ memorystatus.registry.priorityavailable }}"
+        registry_base: "{{ memorystatus.registry.base }}"
+        registry_prioritybase: "{{ memorystatus.registry.prioritybase }}"
         registry_requested: "{{ memorystatus.registry.requested }}"
+        registry_priorityrequested: "{{ memorystatus.registry.priorityrequested }}"
+        # assign download variables
+        userdownload_available: "{{ memorystatus.userdownload.available }}"
+        userdownload_priorityavailable: "{{ memorystatus.userdownload.priorityavailable }}"
+        userdownload_base: "{{ memorystatus.userdownload.base }}"
+        userdownload_prioritybase: "{{ memorystatus.userdownload.prioritybase }}"
         userdownload_requested: "{{ memorystatus.userdownload.requested }}"
+        userdownload_priorityrequested: "{{ memorystatus.userdownload.priorityrequested }}"
+        # assign upload variables
+        userupload_available: "{{ memorystatus.userupload.available }}"
+        userupload_priorityavailable: "{{ memorystatus.userupload.priorityavailable }}"
+        userupload_base: "{{ memorystatus.userupload.base }}"
+        userupload_prioritybase: "{{ memorystatus.userupload.prioritybase }}"
         userupload_requested: "{{ memorystatus.userupload.requested }}"
+        userupload_priorityrequested: "{{ memorystatus.userupload.priorityrequested }}"
+        # check if any memory is being requested for registry, download and uploads
+        renter_requested_registry: "{{ (registry_requested | int + registry_priorityrequested | int) > 0 }}"
+        renter_requested_download: "{{ (userdownload_requested | int + userdownload_priorityrequested | int) > 0 }}"
+        renter_requested_upload: "{{ (userupload_requested | int + userupload_priorityrequested | int) > 0 }}"
         # check if any memory is being used for registry, download and uploads
-        renter_busy_registry: "{{ registry_requested | int > 0 }}"
-        renter_busy_downloads: "{{ userdownload_requested | int > 0 }}"
-        renter_busy_uploads: "{{ userupload_requested | int > 0 }}"
+        renter_in_use_registry: "{{ (registry_base | int + registry_prioritybase | int - registry_available | int - registry_priorityavailable | int > 0) }}"
+        renter_in_use_download: "{{ (userdownload_base | int + userdownload_prioritybase | int - userdownload_available | int - userdownload_priorityavailable | int > 0) }}"
+        renter_in_use_upload: "{{ (userupload_base | int + userupload_prioritybase | int - userupload_available | int - userupload_priorityavailable | int > 0) }}"
       set_fact:
         # register renter busy status
-        registry_requested: "{{ memorystatus.registry.requested }}"
-        userdownload_requested: "{{ memorystatus.userdownload.requested }}"
-        userupload_requested: "{{ memorystatus.userupload.requested }}"
-        renter_busy: "{{ renter_busy_registry or renter_busy_downloads or renter_busy_uploads }}"
+        renter_requested_registry: "{{ renter_requested_registry }}"
+        renter_requested_download: "{{ renter_requested_download }}"
+        renter_requested_upload: "{{ renter_requested_upload }}"
+        renter_in_use_registry: "{{ renter_in_use_registry }}"
+        renter_in_use_download: "{{ renter_in_use_download }}"
+        renter_in_use_upload: "{{ renter_in_use_upload }}"
+        renter_busy: "{{ renter_requested_registry or renter_requested_download or renter_requested_upload or renter_in_use_registry or renter_in_use_download or renter_in_use_upload }}"
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
 
@@ -64,25 +88,33 @@
       ansible.builtin.debug:
         var: renter_get_result.stderr
 
-    - name: renter_idle
+    - name: renter_requested_registry
       ansible.builtin.debug:
-        var: renter_idle
+        var: renter_requested_registry
+
+    - name: renter_requested_download
+      ansible.builtin.debug:
+        var: renter_requested_download
+
+    - name: renter_requested_upload
+      ansible.builtin.debug:
+        var: renter_requested_upload
+
+    - name: renter_in_use_registry
+      ansible.builtin.debug:
+        var: renter_in_use_registry
+
+    - name: renter_in_use_download
+      ansible.builtin.debug:
+        var: renter_in_use_download
+
+    - name: renter_in_use_upload
+      ansible.builtin.debug:
+        var: renter_in_use_upload
 
     - name: renter_busy
       ansible.builtin.debug:
         var: renter_busy
-
-    - name: registry_requested
-      ansible.builtin.debug:
-        var: registry_requested
-
-    - name: userdownload_requested
-      ansible.builtin.debug:
-        var: userdownload_requested
-
-    - name: userupload_requested
-      ansible.builtin.debug:
-        var: userupload_requested
 
   rescue:
     - name: "Retry renter check"
