@@ -50,6 +50,14 @@
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
         - renter_busy
 
+    - name: renter_idle
+      ansible.builtin.debug:
+        var: renter_idle
+
+    - name: renter_busy
+      ansible.builtin.debug:
+        var: renter_busy
+
   rescue:
     - name: "Retry renter check"
       include_tasks: tasks/portal-renter-wait-until-idle.yml
