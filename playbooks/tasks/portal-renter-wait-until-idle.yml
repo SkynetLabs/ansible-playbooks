@@ -51,7 +51,8 @@
         - renter_busy
 
   rescue:
-    - include_task: tasks/portal-renter-wait-until-idle.yml
+    - name: "Retry renter check"
+      include_tasks: tasks/portal-renter-wait-until-idle.yml
       when:
         - (lookup('pipe', 'date +%s') | int) - renter_wait_start_time < renter_busy_check_wait_secs
 
