@@ -59,12 +59,12 @@
       set_fact:
         # register renter busy status
         memorystatus: "{{ output.memorystatus }}"
-        renter_requested_registry: "{{ renter_requested_registry }}"
-        renter_requested_download: "{{ renter_requested_download }}"
-        renter_requested_upload: "{{ renter_requested_upload }}"
-        renter_in_use_registry: "{{ renter_in_use_registry }}"
-        renter_in_use_download: "{{ renter_in_use_download }}"
-        renter_in_use_upload: "{{ renter_in_use_upload }}"
+        # renter_requested_registry: "{{ renter_requested_registry }}"
+        # renter_requested_download: "{{ renter_requested_download }}"
+        # renter_requested_upload: "{{ renter_requested_upload }}"
+        # renter_in_use_registry: "{{ renter_in_use_registry }}"
+        # renter_in_use_download: "{{ renter_in_use_download }}"
+        # renter_in_use_upload: "{{ renter_in_use_upload }}"
         renter_busy: "{{ renter_requested_registry or renter_requested_download or renter_requested_upload or renter_in_use_registry or renter_in_use_download or renter_in_use_upload }}"
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
@@ -88,29 +88,29 @@
       ansible.builtin.debug:
         var: renter_get_result.stderr
 
-    - name: renter_requested_registry
-      ansible.builtin.debug:
-        var: renter_requested_registry
+    # - name: renter_requested_registry
+    #   ansible.builtin.debug:
+    #     var: renter_requested_registry
 
-    - name: renter_requested_download
-      ansible.builtin.debug:
-        var: renter_requested_download
+    # - name: renter_requested_download
+    #   ansible.builtin.debug:
+    #     var: renter_requested_download
 
-    - name: renter_requested_upload
-      ansible.builtin.debug:
-        var: renter_requested_upload
+    # - name: renter_requested_upload
+    #   ansible.builtin.debug:
+    #     var: renter_requested_upload
 
-    - name: renter_in_use_registry
-      ansible.builtin.debug:
-        var: renter_in_use_registry
+    # - name: renter_in_use_registry
+    #   ansible.builtin.debug:
+    #     var: renter_in_use_registry
 
-    - name: renter_in_use_download
-      ansible.builtin.debug:
-        var: renter_in_use_download
+    # - name: renter_in_use_download
+    #   ansible.builtin.debug:
+    #     var: renter_in_use_download
 
-    - name: renter_in_use_upload
-      ansible.builtin.debug:
-        var: renter_in_use_upload
+    # - name: renter_in_use_upload
+    #   ansible.builtin.debug:
+    #     var: renter_in_use_upload
 
     - name: renter_busy
       ansible.builtin.debug:
