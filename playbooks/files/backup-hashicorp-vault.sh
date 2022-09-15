@@ -128,7 +128,7 @@ echo Creating a snapshot finished successfully.
 # Upload Vault raft snapshot to AWS S3
 echo Uploading to AWS S3...
 pushd $(dirname "$0") > /dev/null
-docker run --rm -it \
+docker run --rm \
     -v "$PWD/$backup_dir:/$backup_dir" \
     -e "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
     -e "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
