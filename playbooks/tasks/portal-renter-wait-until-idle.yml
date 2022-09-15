@@ -23,10 +23,16 @@
       command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" --silent --show-error -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
       register: renter_get_result
 
+    - name: Parse skyd /renter endpoint result as json
+      set_fact:
+        output: "{{ renter_get_result.stdout | from_json }}"
+      when:
+        - renter_get_result.rc == 0 and renter_get_result.stderr == ""
+
     - name: Calculate renter memory to check for active registry access, downloads and uploads
       vars:
         # get renter output, convert to json, and get the memorystatus field
-        output: "{{ renter_get_result.stdout | from_json }}"
+        # output: "{{ renter_get_result.stdout | from_json }}"
         # assign registry variables
         # registry_available: "{{ output.memorystatus.registry.available }}"
         # registry_priorityavailable: "{{ output.memorystatus.registry.priorityavailable }}"
