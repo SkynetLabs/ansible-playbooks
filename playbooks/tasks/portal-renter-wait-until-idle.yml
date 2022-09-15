@@ -45,11 +45,6 @@
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
 
-    - name: output.memorystatus
-      ansible.builtin.debug:
-        var: output.memorystatus
-      when: renter_busy
-
     - name: "Wait if renter is busy"
       fail:
         msg: Renter still busy with registry, downloads or uploads.
@@ -57,25 +52,9 @@
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
         - renter_busy
   rescue:
-    - name: "Set current time delta"
-      set_fact:
-        renter_busy_delta: "{{ (lookup('pipe', 'date +%s') | int) - (renter_wait_start_time | int) }}"
-
-    - name: renter_busy_delta
-      ansible.builtin.debug:
-        var: renter_busy_delta
-
-    - name: renter_busy_check_wait_secs
-      ansible.builtin.debug:
-        var: renter_busy_check_wait_secs
-
-    - name: "Set current time"
+    - name: "Check if ansible should still wait for renter to get idle"
       set_fact:
         renter_busy_should_retry: "{{ (lookup('pipe', 'date +%s') | int) - (renter_wait_start_time | int) < renter_busy_check_wait_secs }}"
-
-    - name: renter_busy_should_retry
-      ansible.builtin.debug:
-        var: renter_busy_should_retry
 
     - name: "Retry renter busy check"
       include_tasks: tasks/portal-renter-wait-until-idle.yml
