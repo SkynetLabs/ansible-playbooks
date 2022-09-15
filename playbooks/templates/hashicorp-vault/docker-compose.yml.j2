@@ -35,6 +35,7 @@ services:
       - ./vault/file:/vault/file
       - ./vault/logs:/vault/logs
       - ./vault/raft:/vault/raft
+      - ./vault/backups:/vault/backups
     command: server
     labels:
       - "traefik.enable=true"

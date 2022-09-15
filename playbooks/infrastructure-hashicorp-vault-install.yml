@@ -20,6 +20,7 @@
         - "{{ hashicorp_vault.dir }}"
         - "{{ hashicorp_vault.dir }}/letsencrypt"
         - "{{ hashicorp_vault.dir }}/vault"
+        - "{{ hashicorp_vault.dir }}/vault/backups"
 
     - name: Ensure vault subdirs exist
       ansible.builtin.file:
