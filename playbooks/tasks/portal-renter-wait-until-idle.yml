@@ -59,7 +59,7 @@
   rescue:
     - name: "Set current time"
       set_fact:
-        renter_busy_should_retry: "{{ (lookup('pipe', 'date +%s') | int) - renter_wait_start_time < renter_busy_check_wait_secs }}"
+        renter_busy_should_retry: "{{ (lookup('pipe', 'date +%s') | int) - (renter_wait_start_time | int) < renter_busy_check_wait_secs }}"
 
     - name: "Retry renter busy check"
       include_tasks: tasks/portal-renter-wait-until-idle.yml
