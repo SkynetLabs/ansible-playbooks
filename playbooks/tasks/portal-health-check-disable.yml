@@ -26,63 +26,56 @@
     - health_check_docker_container_result.container is defined
     - health_check_docker_container_result.container.State.Running
 
+# Wait 5 minutes for any small uploads and downloads to finish. After 5 minutes,
+# it is likely that it is a large upload in which case it is safe to take the
+# server down as the large upload will continue on another server. Or it is a
+# large download which can also be resumed on another server.
+
 # Check if sia container is running.
 - name: Check sia container is running
   community.docker.docker_container_info:
     name: sia
   register: sia_docker_container_result
 
-# Wait 5 minutes for any small uploads and downloads to finish. After 5 minutes,
-# it is likely that it is a large upload in which case it is safe to take the
-# server down as the large upload will continue on another server. Or it is a
-# large download which can also be resumed on another server.
-- block:
-    - name: "Wait for uploads to finish"
-      ansible.builtin.command: docker exec sia siac renter uploads
-      register: docker_renter_uploads
-      # Wait until 'No files are uploading.' is found in the stdout. If sia is
-      # starting up for some reason or the docker container is restarting which
-      # means sia isn't running, then no uploads are happening so proceed.
-      until: >-
-        docker_renter_uploads.stdout.find("No files are uploading.") != -1 or
-        docker_renter_uploads.stderr.find("490 Module not loaded") != -1 or
-        docker_renter_uploads.stderr.find("restarting") != -1
-      # Retry every 5 seconds for portal_upload_check_wait_secs seconds.
-      vars:
-        delay_secs: 5
-        retries: "{{ (portal_upload_check_wait_secs / delay_secs) | int }}"
-      delay: "{{ delay_secs }}"
-      retries: "{{ retries }}"
-      # Only fail the task if there is an error reported to stderr, unless it
-      # is the Module not loaded error. Otherwise we will continue on after the
-      # retries are complete.
-      failed_when:
-        - docker_renter_uploads.stderr != ''
-        - docker_renter_uploads.stderr.find("490 Module not loaded") == -1
+# Get the ip address for the sia container
+- name: Get sia service IP inside docker compose network
+  command: docker inspect -f "{% raw %}{{ range.NetworkSettings.Networks }}{{ .IPAddress }}{{ end }}{% endraw %}" sia
+  register: sia_ip_result
 
-    - name: "Wait for downloads to finish"
-      ansible.builtin.command: docker exec sia siac renter downloads
-      register: docker_renter_downloads
-      # Wait until 'No files are downloading.' is found in the stdout. If sia
-      # is starting up for some reason or the docker container is restarting
-      # which means sia isn't running, then no uploads are happening so
-      # proceed.
-      until: >-
-        docker_renter_downloads.stdout.find("No files are downloading.") != -1 or
-        docker_renter_downloads.stderr.find("490 Module not loaded") != -1 or
-        docker_renter_downloads.stderr.find("restarting") != -1
-      # Retry every 5 seconds for portal_download_check_wait_secs seconds.
+- block:
+    - name: Get skyd /renter endpoint result
+      command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
+      register: renter_get_result
+
+    - name: Calculate renter memory to check for active registry access, downloads and uploads
       vars:
-        delay_secs: 5
-        retries: "{{ (portal_download_check_wait_secs / delay_secs) | int }}"
-      delay: "{{ delay_secs }}"
-      retries: "{{ retries }}"
-      # Only fail the task if there is an error reported to stderr, unless it
-      # is the Module not loaded error. Otherwise we will continue on after the
-      # retries are complete.
-      failed_when:
-        - docker_renter_downloads.stderr != ''
-        - docker_renter_downloads.stderr.find("490 Module not loaded") == -1
+        # get renter output, convert to json, and get the memorystatus field
+        output: "{{ renter_get_result.stdout | from_json }}"
+        memorystatus: "{{ output.memorystatus }}"
+        # get requested memory amount for registry, download and uploads
+        registry_requested: "{{ memorystatus.registry.requested | int }}"
+        userdownload_requested: "{{ memorystatus.userdownload.requested | int }}"
+        userupload_requested: "{{ memorystatus.userupload.requested | int }}"
+        # check if any memory is being used for registry, download and uploads
+        renter_busy_registry: "{{ registry_requested > 0 }}"
+        renter_busy_downloads: "{{ userdownload_requested > 0 }}"
+        renter_busy_uploads: "{{ userupload_requested > 0 }}"
+      set_fact:
+        # register renter busy status
+        renter_busy: "{{ renter_busy_registry or renter_busy_downloads or renter_busy_uploads }}"
+        renter_idle: "{{ not renter_busy }}"
+      when:
+        - renter_get_result.rc == 0 and renter_get_result.stderr == ""
+
+    - name: "Check if renter is idle"
+      fail:
+        msg: Renter still busy with registry, downloads or uploads.
+      when:
+        - renter_get_result.rc == 0 and renter_get_result.stderr == ""
+        - renter_busy
+
+  retries: "{{ (renter_busy_check_wait_secs / 5) | int }}"
+  delay: 5
 
   # Do not wait if sia container is not running or is restarting
   when:
@@ -90,3 +83,4 @@
     - sia_docker_container_result.container is defined
     - sia_docker_container_result.container.State.Running
     - not sia_docker_container_result.container.State.Restarting
+    - sia_ip_result.rc == 0
