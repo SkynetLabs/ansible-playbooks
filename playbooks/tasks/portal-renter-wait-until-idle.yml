@@ -29,13 +29,13 @@
         output: "{{ renter_get_result.stdout | from_json }}"
         memorystatus: "{{ output.memorystatus }}"
         # get requested memory amount for registry, download and uploads
-        registry_requested: "{{ memorystatus.registry.requested | int }}"
-        userdownload_requested: "{{ memorystatus.userdownload.requested | int }}"
-        userupload_requested: "{{ memorystatus.userupload.requested | int }}"
+        registry_requested: "{{ memorystatus.registry.requested }}"
+        userdownload_requested: "{{ memorystatus.userdownload.requested }}"
+        userupload_requested: "{{ memorystatus.userupload.requested }}"
         # check if any memory is being used for registry, download and uploads
-        renter_busy_registry: "{{ registry_requested > 0 }}"
-        renter_busy_downloads: "{{ userdownload_requested > 0 }}"
-        renter_busy_uploads: "{{ userupload_requested > 0 }}"
+        renter_busy_registry: "{{ registry_requested | int > 0 }}"
+        renter_busy_downloads: "{{ userdownload_requested | int > 0 }}"
+        renter_busy_uploads: "{{ userupload_requested | int > 0 }}"
       set_fact:
         # register renter busy status
         renter_busy: "{{ renter_busy_registry or renter_busy_downloads or renter_busy_uploads }}"
