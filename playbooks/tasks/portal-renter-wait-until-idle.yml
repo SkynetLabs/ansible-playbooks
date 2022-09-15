@@ -50,6 +50,10 @@
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
         - renter_busy
 
+    - name: renter_wait_start_time
+      ansible.builtin.debug:
+        var: renter_wait_start_time
+
     - name: renter_get_result.rc
       ansible.builtin.debug:
         var: renter_get_result.rc
