@@ -38,6 +38,9 @@
         renter_busy_uploads: "{{ userupload_requested | int > 0 }}"
       set_fact:
         # register renter busy status
+        registry_requested: "{{ memorystatus.registry.requested }}"
+        userdownload_requested: "{{ memorystatus.userdownload.requested }}"
+        userupload_requested: "{{ memorystatus.userupload.requested }}"
         renter_busy: "{{ renter_busy_registry or renter_busy_downloads or renter_busy_uploads }}"
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
@@ -68,6 +71,18 @@
     - name: renter_busy
       ansible.builtin.debug:
         var: renter_busy
+
+    - name: registry_requested
+      ansible.builtin.debug:
+        var: registry_requested
+
+    - name: userdownload_requested
+      ansible.builtin.debug:
+        var: userdownload_requested
+
+    - name: userupload_requested
+      ansible.builtin.debug:
+        var: userupload_requested
 
   rescue:
     - name: "Retry renter check"
