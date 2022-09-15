@@ -54,9 +54,9 @@
         renter_requested_download: "{{ (userdownload_requested | int + userdownload_priorityrequested | int) > 0 }}"
         renter_requested_upload: "{{ (userupload_requested | int + userupload_priorityrequested | int) > 0 }}"
         # check if any memory is being used for registry, download and uploads
-        renter_in_use_registry: "{{ (registry_base | int + registry_prioritybase | int - registry_available | int - registry_priorityavailable | int > 0) }}"
-        renter_in_use_download: "{{ (userdownload_base | int + userdownload_prioritybase | int - userdownload_available | int - userdownload_priorityavailable | int > 0) }}"
-        renter_in_use_upload: "{{ (userupload_base | int + userupload_prioritybase | int - userupload_available | int - userupload_priorityavailable | int > 0) }}"
+        renter_in_use_registry: "{{ registry_base != registry_available or registry_prioritybase != registry_priorityavailable }}"
+        renter_in_use_download: "{{ userdownload_base != userdownload_available or userdownload_prioritybase != userdownload_priorityavailable }}"
+        renter_in_use_upload: "{{ userupload_base != userupload_available or userupload_prioritybase != userupload_priorityavailable }}"
       set_fact:
         # register renter busy status
         renter_requested_registry: "{{ renter_requested_registry }}"
@@ -69,7 +69,7 @@
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
 
-    - name: "Check if renter is idle"
+    - name: "Wait if renter is busy"
       fail:
         msg: Renter still busy with registry, downloads or uploads.
       when:
