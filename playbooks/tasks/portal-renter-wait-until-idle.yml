@@ -31,29 +31,6 @@
 
     - name: Calculate renter memory to check for active registry access, downloads and uploads
       vars:
-        # get renter output, convert to json, and get the memorystatus field
-        # output: "{{ renter_get_result.stdout | from_json }}"
-        # assign registry variables
-        # registry_available: "{{ output.memorystatus.registry.available }}"
-        # registry_priorityavailable: "{{ output.memorystatus.registry.priorityavailable }}"
-        # registry_base: "{{ output.memorystatus.registry.base }}"
-        # registry_prioritybase: "{{ output.memorystatus.registry.prioritybase }}"
-        # registry_requested: "{{ output.memorystatus.registry.requested }}"
-        # registry_priorityrequested: "{{ output.memorystatus.registry.priorityrequested }}"
-        # assign download variables
-        # userdownload_available: "{{ output.memorystatus.userdownload.available }}"
-        # userdownload_priorityavailable: "{{ output.memorystatus.userdownload.priorityavailable }}"
-        # userdownload_base: "{{ output.memorystatus.userdownload.base }}"
-        # userdownload_prioritybase: "{{ output.memorystatus.userdownload.prioritybase }}"
-        # userdownload_requested: "{{ output.memorystatus.userdownload.requested }}"
-        # userdownload_priorityrequested: "{{ output.memorystatus.userdownload.priorityrequested }}"
-        # assign upload variables
-        # userupload_available: "{{ output.memorystatus.userupload.available }}"
-        # userupload_priorityavailable: "{{ output.memorystatus.userupload.priorityavailable }}"
-        # userupload_base: "{{ output.memorystatus.userupload.base }}"
-        # userupload_prioritybase: "{{ output.memorystatus.userupload.prioritybase }}"
-        # userupload_requested: "{{ output.memorystatus.userupload.requested }}"
-        # userupload_priorityrequested: "{{ output.memorystatus.userupload.priorityrequested }}"
         # check if any memory is being requested for registry, download and uploads
         renter_requested_registry: "{{ output.memorystatus.registry.requested != 0 or output.memorystatus.registry.priorityrequested != 0 }}"
         renter_requested_download: "{{ output.memorystatus.userdownload.requested != 0 or output.memorystatus.userdownload.priorityrequested != 0 }}"
@@ -64,16 +41,14 @@
         renter_in_use_upload: "{{ output.memorystatus.userupload.base != output.memorystatus.userupload.available or output.memorystatus.userupload.prioritybase != output.memorystatus.userupload.priorityavailable }}"
       set_fact:
         # register renter busy status
-        memorystatus: "{{ output.memorystatus }}"
-        # renter_requested_registry: "{{ renter_requested_registry }}"
-        # renter_requested_download: "{{ renter_requested_download }}"
-        # renter_requested_upload: "{{ renter_requested_upload }}"
-        # renter_in_use_registry: "{{ renter_in_use_registry }}"
-        # renter_in_use_download: "{{ renter_in_use_download }}"
-        # renter_in_use_upload: "{{ renter_in_use_upload }}"
         renter_busy: "{{ renter_requested_registry or renter_requested_download or renter_requested_upload or renter_in_use_registry or renter_in_use_download or renter_in_use_upload }}"
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
+
+    - name: output.memorystatus
+      ansible.builtin.debug:
+        var: output.memorystatus
+      when: renter_busy
 
     - name: "Wait if renter is busy"
       fail:
@@ -81,64 +56,14 @@
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
         - renter_busy
-
-    - name: renter_wait_start_time
-      ansible.builtin.debug:
-        var: renter_wait_start_time
-
-    - name: renter_get_result.rc
-      ansible.builtin.debug:
-        var: renter_get_result.rc
-
-    - name: renter_get_result.stderr
-      ansible.builtin.debug:
-        var: renter_get_result.stderr
-
-    # - name: renter_requested_registry
-    #   ansible.builtin.debug:
-    #     var: renter_requested_registry
-
-    # - name: renter_requested_download
-    #   ansible.builtin.debug:
-    #     var: renter_requested_download
-
-    # - name: renter_requested_upload
-    #   ansible.builtin.debug:
-    #     var: renter_requested_upload
-
-    # - name: renter_in_use_registry
-    #   ansible.builtin.debug:
-    #     var: renter_in_use_registry
-
-    # - name: renter_in_use_download
-    #   ansible.builtin.debug:
-    #     var: renter_in_use_download
-
-    # - name: renter_in_use_upload
-    #   ansible.builtin.debug:
-    #     var: renter_in_use_upload
-
-    - name: aaaaaa
-      ansible.builtin.debug:
-        var: aaaaaa
-
-    - name: bbbbbb
-      ansible.builtin.debug:
-        var: bbbbbb
-
-    - name: renter_busy
-      ansible.builtin.debug:
-        var: renter_busy
-
-    - name: memorystatus
-      ansible.builtin.debug:
-        var: memorystatus
-
   rescue:
+    - name: Set current time
+      set_fact:
+        current_time: "{{ lookup('pipe', 'date +%s') | int }}"
+
     - name: "Retry renter check"
       include_tasks: tasks/portal-renter-wait-until-idle.yml
-      # when:
-      #   - "{{ (lookup('pipe', 'date +%s') | int) - renter_wait_start_time < renter_busy_check_wait_secs }}"
+      when: current_time - renter_wait_start_time < renter_busy_check_wait_secs
 
   # Do not wait if sia container is not running or is restarting
   when:
