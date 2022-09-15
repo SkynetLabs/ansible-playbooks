@@ -39,7 +39,6 @@
       set_fact:
         # register renter busy status
         renter_busy: "{{ renter_busy_registry or renter_busy_downloads or renter_busy_uploads }}"
-        renter_idle: "{{ not renter_busy }}"
       when:
         - renter_get_result.rc == 0 and renter_get_result.stderr == ""
 
