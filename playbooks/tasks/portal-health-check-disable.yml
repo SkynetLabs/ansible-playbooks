@@ -26,5 +26,5 @@
     - health_check_docker_container_result.container is defined
     - health_check_docker_container_result.container.State.Running
 
-# wait until renter is idle
-- include_task: playbooks/tasks/portal-renter-wait-until-idle.yml
+- name: Wait until renter is idle
+  include_task: playbooks/tasks/portal-renter-wait-until-idle.yml
