@@ -60,11 +60,6 @@
       include_tasks: tasks/portal-renter-wait-until-idle.yml
       when: renter_busy_should_retry
 
-    - name: renter_get_json.memorystatus
-      ansible.builtin.debug:
-        var: renter_get_json.memorystatus
-      when: not renter_busy_should_retry
-
   # Do not wait if sia container is not running or is restarting
   when:
     - renter_busy_check_wait_secs > 0
