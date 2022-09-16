@@ -12,3 +12,7 @@ fifteen_minutes_in_secs: 900
 # Constants (workarounds for Jinja templates)
 backslash_char: "\\"
 newline_char: "\n"
+
+# Currency conversion
+hinsc: "1e+24"
+hinks: "1e+27"

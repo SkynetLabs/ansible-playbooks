@@ -1,0 +1,393 @@
+- name: Create report of all servers
+  hosts: webportals
+  remote_user: "{{ webportal_user }}"
+  gather_facts: False
+  any_errors_fatal: True
+
+  tasks:
+    - name: Request /renter
+      ansible.builtin.uri:
+        url: "http://10.10.10.10:9980/renter"
+        http_agent: "Sia-Agent"
+      register: renter_result
+
+    - name: Request /skynet/stats
+      ansible.builtin.uri:
+        url: "http://10.10.10.10:9980/skynet/stats"
+        http_agent: "Sia-Agent"
+      register: stats_result
+
+    - name: Extract variables
+      ansible.builtin.set_fact:
+        # Storage
+        numfiles: "{{ stats_result.json.numfiles }}"
+        storage: "{{ stats_result.json.storage }}"
+
+        # Metrics
+        basesectorupload15mp99ms: "{{ stats_result.json.basesectorupload15mp99ms }}"
+        streambufferread15mp99ms: "{{ stats_result.json.streambufferread15mp99ms }}"
+        registryread15mp99ms: "{{ stats_result.json.registryread15mp99ms }}"
+        registrywrite15mp99ms: "{{ stats_result.json.registrywrite15mp99ms }}"
+
+        # Spending
+        storagespending: "{{ renter_result.json.financialmetrics.storagespending }}"
+        uploadspending: "{{ renter_result.json.financialmetrics.uploadspending }}"
+        downloadspending: "{{ renter_result.json.financialmetrics.downloadspending }}"
+        fundaccountspending: "{{ renter_result.json.financialmetrics.fundaccountspending }}"
+        contractfees: "{{ renter_result.json.financialmetrics.fees.contractfees }}"
+        transactionfees: "{{ renter_result.json.financialmetrics.fees.transactionfees }}"
+        accountbalancecost: "{{ renter_result.json.financialmetrics.maintenancespending.accountbalancecost }}"
+        fundaccountcost: "{{ renter_result.json.financialmetrics.maintenancespending.fundaccountcost }}"
+        updatepricetablecost: "{{ renter_result.json.financialmetrics.maintenancespending.updatepricetablecost }}"
+
+        totalallocated: "{{ renter_result.json.financialmetrics.totalallocated }}"
+        unspent: "{{ renter_result.json.financialmetrics.unspent }}"
+        previousspending: "{{ renter_result.json.financialmetrics.previousspending }}"
+
+    - name: Sum up TotalSpent
+      ansible.builtin.set_fact:
+        totalspent: "{{ storagespending | int + uploadspending | int + downloadspending | int + fundaccountspending | int + contractfees | int + transactionfees | int + accountbalancecost | int + fundaccountcost | int + updatepricetablecost | int }}"
+
+    - name: Sum up UnspentAllocated
+      ansible.builtin.set_fact:
+        unspentallocated: "{{ totalallocated | int - totalspent | int }}"
+
+    - name: Sum up UnspentUnallocated
+      ansible.builtin.set_fact:
+        unspentunallocated: "{{ unspent | int - unspentallocated | int }}"
+
+    - name: Sum up EAs
+      ansible.builtin.set_fact:
+        downloadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='downloadscost') | map('int') | sum }}"
+        uploadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='uploadscost') | map('int') | sum }}"
+        registryreadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='registryreadscost') | map('int') | sum }}"
+        registrywritescost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='registrywritescost') | map('int') | sum }}"
+        repairdownloadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='repairdownloadscost') | map('int') | sum }}"
+        repairuploadscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='repairuploadscost') | map('int') | sum }}"
+        subscriptionscost: "{{ renter_result.json.financialmetrics.ephemeralaccountspending | map(attribute='subscriptionscost') | map('int') | sum }}"
+
+    - name: Print per-server result
+      debug:
+        msg: |
+          Aggregates:
+            NumFiles: {{ numfiles }}
+            Storage:  {{ storage }}
+
+          Medians:
+            BaseSectorUpload(p99): {{ basesectorupload15mp99ms }}
+            StreamBufferRead(p99): {{ streambufferread15mp99ms }}
+            RegistryRead(p99):     {{ registryread15mp99ms }}
+            RegistryWrite(p99):    {{ registrywrite15mp99ms }}
+
+          Averages:
+            ContractSpending:
+              Total Allocated:         {{ totalallocated }}
+              Total Spent:             {{ totalspent }}
+                Storage:               {{ storagespending }}
+                Uploads:               {{ uploadspending }}
+                Downloads:             {{ downloadspending }}
+                FundAccount:           {{ fundaccountspending }}
+                Fees:
+                  Contracts:           {{ contractfees }}
+                  Txns:                {{ transactionfees }}
+                  Maintenance:
+                    GetAccountBalance: {{ accountbalancecost }}
+                    FundAccount:       {{ fundaccountcost }}
+                    UpdatePriceTable:  {{ updatepricetablecost }}
+              Unspent:                 {{ unspent }}
+                Allocated:             {{ unspentallocated }}
+                Unallocated:           {{ unspentunallocated }}
+              PreviousSpending:        {{ previousspending }}
+
+            EphemeralAccountSpending:
+              Downloads:       {{ downloadscost }}
+              Uploads:         {{ uploadscost }} (NOTE: still using legacy uploads)
+              RegistryRead:    {{ registryreadscost }}
+              RegistryWrite:   {{ registrywritescost }}
+              RepairDownload:  {{ repairdownloadscost }}
+              RepairUpload:    {{ repairuploadscost }} (NOTE: still using legacy uploads for repairs)
+              Subscriptions:   {{ subscriptionscost }}
+
+    - name: Sum over all servers
+      set_fact:
+        sumnumfiles: "{{ sumnumfiles | default(0) | int + hostvars[item].numfiles | int }}"
+        sumstorage: "{{ sumstorage | default(0) | int + hostvars[item].storage | int }}"
+        sumstoragespending: "{{ sumstoragespending | default(0) | int + hostvars[item].storagespending | int }}"
+        sumuploadspending: "{{ sumuploadspending | default(0) | int + hostvars[item].uploadspending | int }}"
+        sumdownloadspending: "{{ sumdownloadspending | default(0) | int + hostvars[item].downloadspending | int }}"
+        sumfundaccountspending: "{{ sumfundaccountspending | default(0) | int + hostvars[item].fundaccountspending | int }}"
+        sumcontractfees: "{{ sumcontractfees | default(0) | int + hostvars[item].contractfees | int }}"
+        sumtransactionfees: "{{ sumtransactionfees | default(0) | int + hostvars[item].transactionfees | int }}"
+        sumaccountbalancecost: "{{ sumaccountbalancecost | default(0) | int + hostvars[item].accountbalancecost | int }}"
+        sumfundaccountcost: "{{ sumfundaccountcost | default(0) | int + hostvars[item].fundaccountcost | int }}"
+        sumupdatepricetablecost: "{{ sumupdatepricetablecost | default(0) | int + hostvars[item].updatepricetablecost | int }}"
+        sumtotalallocated: "{{ sumtotalallocated | default(0) | int + hostvars[item].totalallocated | int }}"
+        sumunspent: "{{ sumunspent | default(0) | int + hostvars[item].unspent | int }}"
+        sumpreviousspending: "{{ sumpreviousspending | default(0) | int + hostvars[item].previousspending | int }}"
+        sumtotalspent: "{{ sumtotalspent | default(0) | int + hostvars[item].totalspent | int }}"
+        sumunspentallocated: "{{ sumunspentallocated | default(0) | int + hostvars[item].unspentallocated | int }}"
+        sumunspentunallocated: "{{ sumunspentunallocated | default(0) | int + hostvars[item].unspentunallocated | int }}"
+        sumdownloadscost: "{{ sumdownloadscost | default(0) | int + hostvars[item].downloadscost | int }}"
+        sumuploadscost: "{{ sumuploadscost | default(0) | int + hostvars[item].uploadscost | int }}"
+        sumregistryreadscost: "{{ sumregistryreadscost | default(0) | int + hostvars[item].registryreadscost | int }}"
+        sumregistrywritescost: "{{ sumregistrywritescost | default(0) | int + hostvars[item].registrywritescost | int }}"
+        sumrepairdownloadscost: "{{ sumrepairdownloadscost | default(0) | int + hostvars[item].repairdownloadscost | int }}"
+        sumrepairuploadscost: "{{ sumrepairuploadscost | default(0) | int + hostvars[item].repairuploadscost | int }}"
+        sumsubscriptionscost: "{{ sumsubscriptionscost | default(0) | int + hostvars[item].subscriptionscost | int }}"
+      loop: "{{ ansible_play_hosts }}"
+      run_once: True
+
+    - name: Create lists for p99 values
+      set_fact:
+        # aggregated
+        basesectorupload15mp99mslist: []
+        streambufferread15mp99mslist: []
+        registryread15mp99mslist: []
+        registrywrite15mp99mslist: []
+        # siasky.net
+        siaskynet_basesectorupload15mp99mslist: []
+        siaskynet_streambufferread15mp99mslist: []
+        siaskynet_registryread15mp99mslist: []
+        siaskynet_registrywrite15mp99mslist: []
+        # skynetfree
+        skynetfree_basesectorupload15mp99mslist: []
+        skynetfree_streambufferread15mp99mslist: []
+        skynetfree_registryread15mp99mslist: []
+        skynetfree_registrywrite15mp99mslist: []
+        # skynetpro
+        skynetpro_basesectorupload15mp99mslist: []
+        skynetpro_streambufferread15mp99mslist: []
+        skynetpro_registryread15mp99mslist: []
+        skynetpro_registrywrite15mp99mslist: []
+      run_once: True
+
+    - name: Initialize included servers groups
+      ansible.builtin.set_fact:
+        siaskynet_group: []
+        skynetfree_group: []
+        skynetpro_group: []
+
+    - name: Set included siasky.net servers group
+      ansible.builtin.set_fact:
+        siaskynet_group: "{{ siaskynet_group + [item] }}"
+      loop: "{{ groups.webportals_prod }}"
+      when: item in ansible_play_hosts
+      run_once: True
+
+    - name: Set included skynetfree servers group
+      ansible.builtin.set_fact:
+        skynetfree_group: "{{ skynetfree_group + [item] }}"
+      loop: "{{ groups.skynetfree }}"
+      when: item in ansible_play_hosts
+      run_once: True
+
+    - name: Set included skynetpro servers group
+      ansible.builtin.set_fact:
+        skynetpro_group: "{{ skynetpro_group + [item] }}"
+      loop: "{{ groups.skynetpro }}"
+      when: item in ansible_play_hosts
+      run_once: True
+
+    - name: Set server group counts
+      ansible.builtin.set_fact:
+        all_count: "{{ ansible_play_hosts | length }}"
+        siaskynet_count: "{{ siaskynet_group | length }}"
+        skynetfree_count: "{{ skynetfree_group | length }}"
+        skynetpro_count: "{{ skynetpro_group | length }}"
+
+    - name: Add elements to p99 lists
+      set_fact:
+        basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        streambufferread15mp99mslist: "{{ streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        registryread15mp99mslist: "{{ registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        registrywrite15mp99mslist: "{{ registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ ansible_play_hosts }}"
+      run_once: True
+
+    - name: Add elements to p99 lists (siasky.net)
+      set_fact:
+        siaskynet_basesectorupload15mp99mslist: "{{ siaskynet_basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        siaskynet_streambufferread15mp99mslist: "{{ siaskynet_streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        siaskynet_registryread15mp99mslist: "{{ siaskynet_registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        siaskynet_registrywrite15mp99mslist: "{{ siaskynet_registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ siaskynet_group }}"
+      run_once: True
+
+    - name: Add elements to p99 lists (skynetfree)
+      set_fact:
+        skynetfree_basesectorupload15mp99mslist: "{{ skynetfree_basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        skynetfree_streambufferread15mp99mslist: "{{ skynetfree_streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        skynetfree_registryread15mp99mslist: "{{ skynetfree_registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        skynetfree_registrywrite15mp99mslist: "{{ skynetfree_registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ skynetfree_group }}"
+      run_once: True
+
+    - name: Add elements to p99 lists (skynetpro)
+      set_fact:
+        skynetpro_basesectorupload15mp99mslist: "{{ skynetpro_basesectorupload15mp99mslist + [ hostvars[item].basesectorupload15mp99ms | int ] }}"
+        skynetpro_streambufferread15mp99mslist: "{{ skynetpro_streambufferread15mp99mslist + [ hostvars[item].streambufferread15mp99ms | int ] }}"
+        skynetpro_registryread15mp99mslist: "{{ skynetpro_registryread15mp99mslist + [ hostvars[item].registryread15mp99ms | int ] }}"
+        skynetpro_registrywrite15mp99mslist: "{{ skynetpro_registrywrite15mp99mslist + [ hostvars[item].registrywrite15mp99ms | int ] }}"
+      loop: "{{ skynetpro_group }}"
+      run_once: True
+
+    - name: Sort lists of p99 values
+      set_fact:
+        # aggregated
+        basesectorupload15mp99mslist: "{{ basesectorupload15mp99mslist | sort}}"
+        streambufferread15mp99mslist: "{{ streambufferread15mp99mslist | sort}}"
+        registryread15mp99mslist: "{{ registryread15mp99mslist | sort}}"
+        registrywrite15mp99mslist: "{{ registrywrite15mp99mslist | sort}}"
+        # siasky.net
+        siaskynet_basesectorupload15mp99mslist: "{{ siaskynet_basesectorupload15mp99mslist | sort}}"
+        siaskynet_streambufferread15mp99mslist: "{{ siaskynet_streambufferread15mp99mslist | sort}}"
+        siaskynet_registryread15mp99mslist: "{{ siaskynet_registryread15mp99mslist | sort}}"
+        siaskynet_registrywrite15mp99mslist: "{{ siaskynet_registrywrite15mp99mslist | sort}}"
+        # skynetfree
+        skynetfree_basesectorupload15mp99mslist: "{{ skynetfree_basesectorupload15mp99mslist | sort}}"
+        skynetfree_streambufferread15mp99mslist: "{{ skynetfree_streambufferread15mp99mslist | sort}}"
+        skynetfree_registryread15mp99mslist: "{{ skynetfree_registryread15mp99mslist | sort}}"
+        skynetfree_registrywrite15mp99mslist: "{{ skynetfree_registrywrite15mp99mslist | sort}}"
+        # skynetpro
+        skynetpro_basesectorupload15mp99mslist: "{{ skynetpro_basesectorupload15mp99mslist | sort}}"
+        skynetpro_streambufferread15mp99mslist: "{{ skynetpro_streambufferread15mp99mslist | sort}}"
+        skynetpro_registryread15mp99mslist: "{{ skynetpro_registryread15mp99mslist | sort}}"
+        skynetpro_registrywrite15mp99mslist: "{{ skynetpro_registrywrite15mp99mslist | sort}}"
+      run_once: True
+
+    - name: Aggregate over all servers
+      set_fact:
+        # Medians aggregated
+        medianbasesectorupload15mp99ms: "{{ basesectorupload15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+        medianstreambufferread15mp99ms: "{{ streambufferread15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+        medianregistryread15mp99ms: "{{ registryread15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+        medianregistrywrite15mp99ms: "{{ registrywrite15mp99mslist[(ansible_play_hosts | length / 2) | int] }}"
+
+        # Medians siasky.net
+        siaskynet_medianbasesectorupload15mp99ms: "{{ siaskynet_basesectorupload15mp99mslist[(siaskynet_count | int / 2) | int] }}"
+        siaskynet_medianstreambufferread15mp99ms: "{{ siaskynet_streambufferread15mp99mslist[(siaskynet_count | int / 2) | int] }}"
+        siaskynet_medianregistryread15mp99ms: "{{ siaskynet_registryread15mp99mslist[(siaskynet_count | int / 2) | int] }}"
+        siaskynet_medianregistrywrite15mp99ms: "{{ siaskynet_registrywrite15mp99mslist[(siaskynet_count | int / 2) | int] }}"
+
+        # Medians skynetfree
+        skynetfree_medianbasesectorupload15mp99ms: "{{ skynetfree_basesectorupload15mp99mslist[(skynetfree_count | int / 2) | int] }}"
+        skynetfree_medianstreambufferread15mp99ms: "{{ skynetfree_streambufferread15mp99mslist[(skynetfree_count | int / 2) | int] }}"
+        skynetfree_medianregistryread15mp99ms: "{{ skynetfree_registryread15mp99mslist[(skynetfree_count | int / 2) | int] }}"
+        skynetfree_medianregistrywrite15mp99ms: "{{ skynetfree_registrywrite15mp99mslist[(skynetfree_count | int / 2) | int] }}"
+
+        # Medians skynetpro
+        skynetpro_medianbasesectorupload15mp99ms: "{{ skynetpro_basesectorupload15mp99mslist[(skynetpro_count | int / 2) | int] }}"
+        skynetpro_medianstreambufferread15mp99ms: "{{ skynetpro_streambufferread15mp99mslist[(skynetpro_count | int / 2) | int] }}"
+        skynetpro_medianregistryread15mp99ms: "{{ skynetpro_registryread15mp99mslist[(skynetpro_count | int / 2) | int] }}"
+        skynetpro_medianregistrywrite15mp99ms: "{{ skynetpro_registrywrite15mp99mslist[(skynetpro_count | int / 2) | int] }}"
+
+        # Averages
+        averagestoragespending: "{{ sumstoragespending | int / ansible_play_hosts | length }}"
+        averageuploadspending: "{{ sumuploadspending | int / ansible_play_hosts | length }}"
+        averagedownloadspending: "{{ sumdownloadspending | int / ansible_play_hosts | length }}"
+        averagefundaccountspending: "{{ sumfundaccountspending | int / ansible_play_hosts | length }}"
+        averagecontractfees: "{{ sumcontractfees | int / ansible_play_hosts | length }}"
+        averagetransactionfees: "{{ sumtransactionfees | int / ansible_play_hosts | length }}"
+        averageaccountbalancecost: "{{ sumaccountbalancecost | int / ansible_play_hosts | length }}"
+        averagefundaccountcost: "{{ sumfundaccountcost | int / ansible_play_hosts | length }}"
+        averageupdatepricetablecost: "{{ sumupdatepricetablecost | int / ansible_play_hosts | length }}"
+        averagetotalallocated: "{{ sumtotalallocated | int / ansible_play_hosts | length }}"
+        averageunspent: "{{ sumunspent | int / ansible_play_hosts | length }}"
+        averagepreviousspending: "{{ sumpreviousspending | int / ansible_play_hosts | length }}"
+        averagetotalspent: "{{ sumtotalspent | int / ansible_play_hosts | length }}"
+        averageunspentallocated: "{{ sumunspentallocated | int / ansible_play_hosts | length }}"
+        averageunspentunallocated: "{{ sumunspentunallocated | int / ansible_play_hosts | length }}"
+        averagedownloadscost: "{{ sumdownloadscost | int / ansible_play_hosts | length }}"
+        averageuploadscost: "{{ sumuploadscost | int / ansible_play_hosts | length }}"
+        averageregistryreadscost: "{{ sumregistryreadscost | int / ansible_play_hosts | length }}"
+        averageregistrywritescost: "{{ sumregistrywritescost | int / ansible_play_hosts | length }}"
+        averagerepairdownloadscost: "{{ sumrepairdownloadscost | int / ansible_play_hosts | length }}"
+        averagerepairuploadscost: "{{ sumrepairuploadscost | int / ansible_play_hosts | length }}"
+        averagesubscriptionscost: "{{ sumsubscriptionscost | int / ansible_play_hosts | length }}"
+      run_once: True
+
+    - name: Print final result
+      debug:
+        msg: |
+          TotalNumFiles:              {{ sumnumfiles }}
+          TotalStorage:               {{ sumstorage | int / (1024 * 1024 * 1024 * 1024) }} TB
+          TotalStorageSpending:       {{ sumstoragespending | int / hinks | int }} KS
+          TotalUploadSpending:        {{ (sumuploadspending | int + sumuploadscost | int) / hinks | int }} KS
+          TotalDownloadSpending:      {{ (sumdownloadspending | int + sumdownloadscost | int + sumrepairdownloadscost | int) / hinks | int }} KS
+          TotalRegistryReadSpending:  {{ sumregistryreadscost | int / hinks | int }} KS
+          TotalRegistryWriteSpending: {{ sumregistrywritescost | int / hinsc | int }} SC
+          TotalSubscriptionSpending:  {{ sumsubscriptionscost | int / hinsc | int }} SC
+
+          MedianBaseSectorUpload(p99): {{ medianbasesectorupload15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianbasesectorupload15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianbasesectorupload15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianbasesectorupload15mp99ms }} ms
+          MedianStreamBufferRead(p99): {{ medianstreambufferread15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianstreambufferread15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianstreambufferread15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianstreambufferread15mp99ms }} ms
+          MedianRegistryRead(p99):     {{ medianregistryread15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianregistryread15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianregistryread15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianregistryread15mp99ms }} ms
+          MedianRegistryWrite(p99):    {{ medianregistrywrite15mp99ms }} ms
+            - siasky.net:                {{ siaskynet_medianregistrywrite15mp99ms }} ms
+            - skynetfree:                {{ skynetfree_medianregistrywrite15mp99ms }} ms
+            - skynetpro:                 {{ skynetpro_medianregistrywrite15mp99ms }} ms
+
+          ContractSpending Totals:
+            Total Allocated:         {{ sumtotalallocated | int / hinks | int }} KS
+            Total Spent:             {{ sumtotalspent | int / hinks | int }} KS
+              Storage:               {{ sumstoragespending | int / hinks | int }} KS
+              Uploads:               {{ sumuploadspending | int / hinks | int }} KS
+              Downloads:             {{ sumdownloadspending }} H
+              FundAccount:           {{ sumfundaccountspending | int / hinks | int }} KS
+              Fees:
+                Contracts:           {{ sumcontractfees | int / hinks | int }} KS
+                Txns:                {{ sumtransactionfees | int / hinks | int }} KS
+                Maintenance:
+                  GetAccountBalance: {{ sumaccountbalancecost }} H
+                  FundAccount:       {{ sumfundaccountcost }} H
+                  UpdatePriceTable:  {{ sumupdatepricetablecost }} H
+            Unspent:                 {{ sumunspent | int / hinks | int }} KS
+              Allocated:             {{ sumunspentallocated | int / hinks | int }} KS
+              Unallocated:           {{ sumunspentunallocated | int / hinks | int }} KS
+            PreviousSpending:        {{ sumpreviousspending | int / hinks | int }} KS
+
+          ContractSpending Averages:
+            Average Total Allocated:         {{ averagetotalallocated | int / hinks | int }} KS
+            Average Total Spent:             {{ averagetotalspent | int / hinks | int }} KS
+              Average Storage:               {{ averagestoragespending | int / hinks | int }} KS
+              Average Uploads:               {{ averageuploadspending | int / hinks | int }} KS
+              Average Downloads:             {{ averagedownloadspending }} H
+              Average FundAccount:           {{ averagefundaccountspending | int / hinks | int }} KS
+              Fees:
+                Average Contracts:           {{ averagecontractfees | int / hinks | int }} KS
+                Average Txns:                {{ averagetransactionfees | int / hinks | int }} KS
+                Maintenance:
+                  Average GetAccountBalance: {{ averageaccountbalancecost }} H
+                  Average FundAccount:       {{ averagefundaccountcost }} H
+                  Average UpdatePriceTable:  {{ averageupdatepricetablecost }} H
+            Average Unspent:                 {{ averageunspent | int / hinks | int }} KS
+              Average Allocated:             {{ averageunspentallocated | int / hinks | int }} KS
+              Average Unallocated:           {{ averageunspentunallocated | int / hinks | int }} KS
+            Average PreviousSpending:        {{ averagepreviousspending | int / hinks | int }} KS
+
+          EphemeralAccountSpending Totals:
+            Downloads:       {{ sumdownloadscost | int / hinks | int }} KS
+            Uploads:         {{ sumuploadscost }} H (NOTE: still using legacy uploads)
+            RegistryRead:    {{ sumregistryreadscost | int / hinks | int }} KS
+            RegistryWrite:   {{ sumregistrywritescost | int / hinsc | int }} SC
+            RepairDownload:  {{ sumrepairdownloadscost | int / hinks | int }} KS
+            RepairUpload:    {{ sumrepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
+            Subscriptions:   {{ sumsubscriptionscost | int / hinsc | int }} SC
+
+          EphemeralAccountSpending Averages:
+            Average Downloads:       {{ averagedownloadscost | int / hinks | int }} KS
+            Average Uploads:         {{ averageuploadscost }} H (NOTE: still using legacy uploads)
+            Average RegistryRead:    {{ averageregistryreadscost | int / hinks | int }} KS
+            Average RegistryWrite:   {{ averageregistrywritescost | int / hinsc | int }} SC
+            Average RepairDownload:  {{ averagerepairdownloadscost | int / hinks | int }} KS
+            Average RepairUpload:    {{ averagerepairuploadscost }} H (NOTE: still using legacy uploads for repairs)
+            Average Subscriptions:   {{ averagesubscriptionscost | int / hinsc | int }} SC
+      run_once: True
