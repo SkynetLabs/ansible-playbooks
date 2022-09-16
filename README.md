@@ -137,6 +137,9 @@ number of servers or portals.
 
 #### Execution
 
+For report to make sense, it should be run against the whole cluster(s) using
+`--limit`.
+
 `scripts/portals-report.sh --limit webportals_prod,webportals_pro`  
 
 ### Get Webportal Status
