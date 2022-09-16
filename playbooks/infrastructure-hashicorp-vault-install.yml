@@ -1,0 +1,144 @@
+- name: Install HashiCorp Vault
+  hosts: deploy_machines
+  gather_facts: False
+
+  # Limit concurrency
+  serial: 1
+
+  # Stop on first error, do not execute on the next host
+  any_errors_fatal: True
+
+  tasks:
+    - name: Include loading user credentials from secrets storage
+      include_tasks: tasks/secrets-storage-common-load-user-credentials.yml
+
+    - name: Ensure hashicorp-vault dir and subdirs exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ hashicorp_vault.dir }}"
+        - "{{ hashicorp_vault.dir }}/letsencrypt"
+        - "{{ hashicorp_vault.dir }}/vault"
+        - "{{ hashicorp_vault.dir }}/vault/backups"
+
+    - name: Ensure vault subdirs exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: "100"
+        group: "100"
+        state: directory
+      loop:
+        - "{{ hashicorp_vault.dir }}/vault/config"
+        - "{{ hashicorp_vault.dir }}/vault/file"
+        - "{{ hashicorp_vault.dir }}/vault/logs"
+        - "{{ hashicorp_vault.dir }}/vault/raft"
+      become: True
+
+    - name: Ensure Traefik config is present
+      ansible.builtin.template:
+        src: "templates/hashicorp-vault/traefik.yml.j2"
+        dest: "{{ hashicorp_vault.dir }}/traefik.yml"
+
+    - name: Ensure HashiCorp Vault config is present
+      ansible.builtin.copy:
+        src: "hashicorp-vault/local.json"
+        dest: "{{ hashicorp_vault.dir }}/vault/config/local.json"
+        owner: "100"
+        group: "100"
+        mode: "0644"
+      become: True
+
+    - name: Ensure docker compose file is present
+      ansible.builtin.template:
+        src: "templates/hashicorp-vault/docker-compose.yml.j2"
+        dest: "{{ hashicorp_vault.dir }}/docker-compose.yml"
+
+    - name: Ensure dependencies are installed
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600 # 60 minutes
+        state: latest
+        name:
+          # Dependencies for pip3 docker-compose
+          - python3-pip
+          - libffi-dev
+      become: True
+
+    # Install latest Rust (for Python3 docker-compose SDK)
+    # Debian package rustc is too old.
+
+    - name: Check if Rust is installed
+      ansible.builtin.shell: command -v cargo
+      register: cargo_exists_result
+      ignore_errors: True
+
+    - name: Download Rust installer
+      ansible.builtin.get_url:
+        url: "https://sh.rustup.rs"
+        dest: "/tmp/sh.rustup.rs"
+        mode: "0755"
+        force: True
+      when: cargo_exists_result is failed
+
+    - name: Install rust/cargo (recommended way)
+      ansible.builtin.shell: /tmp/sh.rustup.rs -y
+      when: cargo_exists_result is failed
+
+    - name: Make rustc and cargo available for pip
+      ansible.builtin.file:
+        src: "/home/user/.cargo/bin/{{ item }}"
+        dest: "/usr/local/bin/{{ item }}"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+        state: link
+      become: True
+      loop:
+        - "rustc"
+        - "cargo"
+
+    - name: Ensure docker-compose SDK for Python is installed (for Ansible)
+      ansible.builtin.pip:
+        name:
+          - docker-compose==1.29.2
+
+    - name: Start vault and traefik docker services
+      community.docker.docker_compose:
+        project_src: "{{ hashicorp_vault.dir }}"
+        nocache: True
+        pull: True
+        state: present
+
+    - name: Initialize the Vault
+      ansible.builtin.command: docker exec vault vault operator init
+      register: vault_init_result
+
+    - name: Show init result (root token and unseal keys)
+      debug:
+        msg: |
+          Vault init:
+
+          {{ vault_init_result.stdout }}
+
+    - name: Prompt user to record 5 unseal keys and root token
+      ansible.builtin.pause:
+        prompt: |-
+          You need to record for yourself:
+
+          - 5x unseal keys
+          - 1x root token
+
+          to confirm you have reecorded them type the word: recorded
+      register: recorded_result
+      failed_when: recorded_result.user_input != 'recorded'
+
+    - name: Prompt user to unseal the Vault
+      ansible.builtin.pause:
+        prompt: |-
+          In your browser navigate to https://{{ hashicorp_vault.domain }}
+          and unseal the Vault with any 3 out of 5 unseal keys.
+
+          (Unsealing needs to be done after every Vault service restart.)
+
+          Then press enter.

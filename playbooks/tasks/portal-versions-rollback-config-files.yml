@@ -1,43 +1,10 @@
 ---
 # Rollback portal config files
 
-# Get list of docker-compose files we want to rollback
-
-- name: Create rollback list with mandatory docker-compose files
-  set_fact:
-    webportal_docker_compose_files_to_rolback: "{{ webportal_docker_compose_files_mandatory }}"
-
-- name: Get list of all devops/logs files with the wanted timestamp
-  ansible.builtin.find:
-    file_type: file
-    recurse: False
-    paths: "{{ logs_dir }}"
-    patterns: "{{ log_filename_prefix }}.*"
-  register: devops_logs_timestamped_files
-
-- name: Add used docker-compose files to the rollback list
-  set_fact:
-    webportal_docker_compose_files_to_rolback: "{{ webportal_docker_compose_files_to_rolback + ([item | replace(logs_dir + '/' + log_filename_prefix + '.', '')] | intersect(webportal_docker_compose_files_optional)) }}"
-  loop: "{{ devops_logs_timestamped_files.files | map(attribute='path') }}"
-
 - name: Rollback portal config files
   ansible.builtin.copy:
     src: "{{ logs_dir }}/{{ log_filename_prefix }}.{{ item }}"
     dest: "{{ webportal_dir }}/{{ item }}"
     remote_src: True
     mode: preserve
-  loop: "{{ webportal_docker_compose_files_to_rolback + webportal_other_config_files }}"
-
-# TODO: need to verify if difference() is potentially buggy here.
-#
-# See comment in solution
-# https://stackoverflow.com/questions/40115323/calculate-set-difference-using-jinja2-in-ansible
-- name: Get list of docker-compose files that are present but were not rolled back
-  set_fact:
-    webportal_docker_compose_files_to_delete: "{{ (webportal_docker_compose_files_mandatory + webportal_docker_compose_files_optional) | difference(webportal_docker_compose_files_to_rolback) }}"
-
-- name: Remove extra docker-compose files
-  ansible.builtin.file:
-    path: "{{ webportal_dir }}/{{ item }}"
-    state: absent
-  loop: "{{ webportal_docker_compose_files_to_delete }}"
+  loop: "{{ webportal_config_files }}"

@@ -1,19 +1,10 @@
 ---
 # Stop portal docker services
 
-- name: Include getting present docker-compose files
-  include_tasks: tasks/portal-docker-compose-files-get-present.yml
-
-- name: Stop portal docker services
-  community.docker.docker_compose:
-    project_src: "{{ webportal_dir }}"
-    files: "{{ webportal_docker_compose_files_present }}"
-    state: absent
-    remove_orphans: True
-    # Increase timeout for mongo primary node to step down
-    timeout: 30
+- name: Stop docker services
+  ansible.builtin.command: "chdir={{ webportal_dir }} ./dc down --remove-orphans"
   become: True
-  become_user: "user"
+  become_user: "{{ webportal_user }}"
   # Ignore errors e.g. when portal repo (docker compose files) is present, but
   # .env file was not yet generated (some values in docker compose files are
   # not valid)
