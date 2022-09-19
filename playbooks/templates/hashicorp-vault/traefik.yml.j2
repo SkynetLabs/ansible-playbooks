@@ -1,0 +1,40 @@
+################################################################
+# API and dashboard configuration
+################################################################
+api:
+  # Dashboard
+  #
+  #
+  dashboard: {{ traefik.api.dashboard }}
+  insecure: {{ traefik.api.insecure }}
+################################################################
+# Docker configuration backend
+################################################################
+providers:
+  docker:
+    exposedByDefault: false
+################################################################
+# Traefik Logging
+################################################################
+log:
+  level: INFO
+
+################################################################
+# Entrypoint
+################################################################
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+################################################################
+# Challenge HTTP
+################################################################
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: {{ traefik.ssl.email }} 
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web

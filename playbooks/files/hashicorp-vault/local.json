@@ -1,0 +1,19 @@
+{
+    "backend": {
+        "raft": {
+            "path": "/vault/raft",
+            "node_id": "raft_node_1"
+        }
+    },
+    "cluster_addr": "http://127.0.0.1:8201",
+    "default_lease_ttl": "168h",
+    "max_lease_ttl": "720h",
+    "listener": {
+        "tcp": {
+            "address": "0.0.0.0:8200",
+            "tls_disable": 1
+        }
+    },
+    "ui": true,
+    "api_addr": "http://127.0.0.1:8888"
+}

@@ -1,0 +1,13 @@
+---
+
+hashicorp_vault:
+  dir: "/home/{{ ansible_user }}/hashicorp-vault"
+  domain: "" # Set your domain here
+
+# Traefik settings
+traefik:
+  api:
+    dashboard: false # default: false
+    insecure: false # default: false
+  ssl:
+    email: "" # Set your email here
