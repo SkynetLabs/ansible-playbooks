@@ -7,45 +7,49 @@
       set_fact:
         renter_get_json: "{{ renter_get_result.stdout | from_json }}"
 
+    - name: Get memorystatus data
+      set_fact:
+        memorystatus: "{{ renter_get_json.memorystatus }}"
+
     - name: Calculate renter memory to check for active registry access, downloads and uploads
       vars:
         # check if any memory is being requested for registry, download and uploads
         renter_requested_registry: >-
           {{
-            renter_get_json.memorystatus.registry.requested != 0
+            memorystatus.registry.requested != 0
             or
-            renter_get_json.memorystatus.registry.priorityrequested != 0
+            memorystatus.registry.priorityrequested != 0
           }}
         renter_requested_download: >-
           {{
-            renter_get_json.memorystatus.userdownload.requested != 0
+            memorystatus.userdownload.requested != 0
             or
-            renter_get_json.memorystatus.userdownload.priorityrequested != 0
+            memorystatus.userdownload.priorityrequested != 0
           }}
         renter_requested_upload: >-
           {{
-            renter_get_json.memorystatus.userupload.requested != 0
+            memorystatus.userupload.requested != 0
             or
-            renter_get_json.memorystatus.userupload.priorityrequested != 0
+            memorystatus.userupload.priorityrequested != 0
           }}
         # check if any memory is being used for registry, download and uploads
         renter_in_use_registry: >-
           {{
-            renter_get_json.memorystatus.registry.base != renter_get_json.memorystatus.registry.available
+            memorystatus.registry.base != memorystatus.registry.available
             or
-            renter_get_json.memorystatus.registry.prioritybase != renter_get_json.memorystatus.registry.priorityavailable
+            memorystatus.registry.prioritybase != memorystatus.registry.priorityavailable
           }}
         renter_in_use_download: >-
           {{
-            renter_get_json.memorystatus.userdownload.base != renter_get_json.memorystatus.userdownload.available
+            memorystatus.userdownload.base != memorystatus.userdownload.available
             or
-            renter_get_json.memorystatus.userdownload.prioritybase != renter_get_json.memorystatus.userdownload.priorityavailable
+            memorystatus.userdownload.prioritybase != memorystatus.userdownload.priorityavailable
           }}
         renter_in_use_upload: >-
           {{
-            renter_get_json.memorystatus.userupload.base != renter_get_json.memorystatus.userupload.available
+            memorystatus.userupload.base != memorystatus.userupload.available
             or
-            renter_get_json.memorystatus.userupload.prioritybase != renter_get_json.memorystatus.userupload.priorityavailable
+            memorystatus.userupload.prioritybase != memorystatus.userupload.priorityavailable
           }}
       set_fact:
         # register renter busy status
