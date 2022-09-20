@@ -1,0 +1,33 @@
+# Wait 5 minutes for any small uploads and downloads to finish. After 5 minutes,
+# it is likely that it is a large upload in which case it is safe to take the
+# server down as the large upload will continue on another server. Or it is a
+# large download which can also be resumed on another server.
+
+# Check if sia container is running.
+- name: Check sia container is running
+  community.docker.docker_container_info:
+    name: sia
+  register: sia_docker_container_result
+
+- block:
+    # Start time must be set before iterations freshly and not be part of
+    # iterations using e.g. `is defined` because the caller task could be
+    # called multiple times during some playbooks (e.g. during portal-setup-
+    # following with deploy) and the second call (deploy) would not wait.
+    - name: Set renter wait start time
+      ansible.builtin.set_fact:
+        renter_wait_start_time: "{{ lookup('pipe', 'date +%s') }}"
+
+    - name: Get sia service IP inside docker compose network
+      command: docker inspect -f "{% raw %}{{ range.NetworkSettings.Networks }}{{ .IPAddress }}{{ end }}{% endraw %}" sia
+      register: sia_ip_result
+
+    - name: Include waiting for renter idle subtask
+      include_tasks: tasks/portal-renter-wait-until-idle-subtask.yml
+
+  # Do not wait if sia container is not running or is restarting
+  when:
+    - sia_docker_container_result.exists
+    - sia_docker_container_result.container is defined
+    - sia_docker_container_result.container.State.Running
+    - not sia_docker_container_result.container.State.Restarting

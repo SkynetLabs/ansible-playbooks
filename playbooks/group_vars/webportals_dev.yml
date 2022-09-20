@@ -1,8 +1,7 @@
 # Config override for dev servers (hosts in webportals_dev group)
 
-# Download/upload waits
-# How long to wait for active downloads/uploads to finish (in seconds) before
-# shutting down the docker services after disabling the health checks.
-# On dev servers we don't wait for active downloads/uploads to finish.
-portal_download_check_wait_secs: 0
-portal_upload_check_wait_secs: 0
+# Registry access, downloads and uploads waits
+# How long to wait for active registry access, downloads and uploads to finish (in seconds)
+# before shutting down the docker services after disabling the health checks.
+# Note: on dev servers we don't wait for active registry access, downloads and uploads to finish.
+renter_busy_check_wait_secs: 0

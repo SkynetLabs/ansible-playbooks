@@ -309,11 +309,10 @@ oathkeeper_docker_image: "oryd/oathkeeper:v0.39"
 local_temp_skynetlabs_git_repos: "/tmp/SkynetLabs-ansible/git-repos"
 local_temp_skynetlabs_git_repos_skynet_js: "{{ local_temp_skynetlabs_git_repos }}/skynet-js"
 
-# Download/upload waits
-# How long to wait for active downloads/uploads to finish (in seconds) before
-# shutting down the docker services after disabling the health checks.
-portal_download_check_wait_secs: 300
-portal_upload_check_wait_secs: 300
+# Registry access, downloads and uploads waits
+# How long to wait for active registry access, downloads and uploads to finish (in seconds)
+# before shutting down the docker services after disabling the health checks.
+renter_busy_check_wait_secs: 300
 
 # Health checks
 portal_health_check_disable_delay_secs: 0

@@ -1,0 +1,83 @@
+- name: Get skyd /renter endpoint result
+  command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" --silent --show-error -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
+  register: renter_get_result
+
+- block:
+    - name: Parse skyd /renter endpoint result as json
+      set_fact:
+        renter_get_json: "{{ renter_get_result.stdout | from_json }}"
+
+    - name: Get memorystatus data
+      set_fact:
+        memorystatus: "{{ renter_get_json.memorystatus }}"
+
+    - name: Calculate renter memory to check for active registry access, downloads and uploads
+      vars:
+        # check if any memory is being requested for registry, download and uploads
+        renter_requested_registry: >-
+          {{
+            memorystatus.registry.requested != 0
+            or
+            memorystatus.registry.priorityrequested != 0
+          }}
+        renter_requested_download: >-
+          {{
+            memorystatus.userdownload.requested != 0
+            or
+            memorystatus.userdownload.priorityrequested != 0
+          }}
+        renter_requested_upload: >-
+          {{
+            memorystatus.userupload.requested != 0
+            or
+            memorystatus.userupload.priorityrequested != 0
+          }}
+        # check if any memory is being used for registry, download and uploads
+        renter_in_use_registry: >-
+          {{
+            memorystatus.registry.base != memorystatus.registry.available
+            or
+            memorystatus.registry.prioritybase != memorystatus.registry.priorityavailable
+          }}
+        renter_in_use_download: >-
+          {{
+            memorystatus.userdownload.base != memorystatus.userdownload.available
+            or
+            memorystatus.userdownload.prioritybase != memorystatus.userdownload.priorityavailable
+          }}
+        renter_in_use_upload: >-
+          {{
+            memorystatus.userupload.base != memorystatus.userupload.available
+            or
+            memorystatus.userupload.prioritybase != memorystatus.userupload.priorityavailable
+          }}
+      set_fact:
+        # register renter busy status
+        renter_busy: >-
+          {{
+            renter_requested_registry
+            or
+            renter_requested_download
+            or
+            renter_requested_upload
+            or
+            renter_in_use_registry
+            or
+            renter_in_use_download
+            or
+            renter_in_use_upload
+          }}
+  when: renter_get_result.rc == 0 and renter_get_result.stderr == ""
+
+- name: "Check if ansible should still wait for renter to get idle"
+  set_fact:
+    renter_busy_should_retry: >-
+      {{
+        (lookup('pipe', 'date +%s') | int) - (renter_wait_start_time | int) < renter_busy_check_wait_secs
+        and
+        renter_busy | default(True)
+      }}
+
+- name: "Retry renter busy check"
+  include_tasks: tasks/portal-renter-wait-until-idle-subtask.yml
+  when: renter_busy_should_retry
