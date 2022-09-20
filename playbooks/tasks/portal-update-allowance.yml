@@ -21,6 +21,18 @@
   command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
   register: renter_get_result
 
+- name: Parse the Renter's information as json
+  set_fact:
+    # Parse the RenterGET json object from stdout response
+    renter_json: "{{ renter_get_result.stdout | from_json }}"
+
+- name: Get Allowance Funds and Financial Metrics from the Renter's information
+  set_fact:
+    # Grab the allowance funds
+    allowance_funds: "{{ renter_json.settings.allowance.funds }}"
+    # Grab the financial metrics and the maintenance spending
+    financial_metrics: "{{ renter_json.financialmetrics }}"
+
 # This tasks calculates the unspent unallocated based on the calculation in the
 # ContractorSpending SpendingBreakdown method from skyd
 # https://gitlab.com/SkynetLabs/skyd/-/blob/master/skymodules/renter.go
@@ -29,14 +41,8 @@
   vars:
     # This is the lower threshold, types.NewCurrency64(10e3)
     unspent_unallocated_lower_threshold: 10000
-    # Parse the RenterGET json object from stdout response
-    renter_json: "{{ renter_get_result.stdout | from_json }}"
-    # Grab the allowance funds
-    allowance_funds: "{{ renter_json.settings.allowance.funds }}"
     # Calculate what 20% of the allowance funds are
     twenty_percent_allowance: "{{ allowance_funds|int / 5 }}"
-    # Grab the financial metrics and the maintenance spending
-    financial_metrics: "{{ renter_json.financialmetrics }}"
     maintenance_spending: "{{ financial_metrics.maintenancespending }}"
     # Calculate the total spent
     total_spent: >-
