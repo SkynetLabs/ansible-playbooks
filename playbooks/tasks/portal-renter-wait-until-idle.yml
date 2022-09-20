@@ -3,62 +3,31 @@
 # server down as the large upload will continue on another server. Or it is a
 # large download which can also be resumed on another server.
 
+# xxxqqq
+- pause:
+    prompt: "XXX check renter wait"
+
 # Check if sia container is running.
 - name: Check sia container is running
   community.docker.docker_container_info:
     name: sia
   register: sia_docker_container_result
 
-# Get the ip address for the sia container
-- name: Get sia service IP inside docker compose network
-  command: docker inspect -f "{% raw %}{{ range.NetworkSettings.Networks }}{{ .IPAddress }}{{ end }}{% endraw %}" sia
-  register: sia_ip_result
-
 - block:
+    # Start time must be set before iterations freshly and not be part of
+    # iterations using e.g. `is defined` because the caller task could be
+    # called multiple times during some playbooks (e.g. during portal-setup-
+    # following with deploy) and the second call (deploy) would not wait.
     - name: Set renter wait start time
-      set_fact:
-        renter_wait_start_time: "{{ (lookup('pipe', 'date +%s') | int) if renter_wait_start_time is not defined else renter_wait_start_time }}"
+      ansible.builtin.set_fact:
+        renter_wait_start_time: "{{ lookup('pipe', 'date +%s') }}"
 
-    - name: Get skyd /renter endpoint result
-      command: docker run --rm --network="container:sia" "{{ curl_docker_image }}" --silent --show-error -A "Sia-Agent" "http://{{ sia_ip_result.stdout }}:9980/renter"
-      register: renter_get_result
+    - name: Get sia service IP inside docker compose network
+      command: docker inspect -f "{% raw %}{{ range.NetworkSettings.Networks }}{{ .IPAddress }}{{ end }}{% endraw %}" sia
+      register: sia_ip_result
 
-    - name: Parse skyd /renter endpoint result as json
-      set_fact:
-        renter_get_json: "{{ renter_get_result.stdout | from_json }}"
-      when:
-        - renter_get_result.rc == 0 and renter_get_result.stderr == ""
-
-    - name: Calculate renter memory to check for active registry access, downloads and uploads
-      vars:
-        # check if any memory is being requested for registry, download and uploads
-        renter_requested_registry: "{{ renter_get_json.memorystatus.registry.requested != 0 or renter_get_json.memorystatus.registry.priorityrequested != 0 }}"
-        renter_requested_download: "{{ renter_get_json.memorystatus.userdownload.requested != 0 or renter_get_json.memorystatus.userdownload.priorityrequested != 0 }}"
-        renter_requested_upload: "{{ renter_get_json.memorystatus.userupload.requested != 0 or renter_get_json.memorystatus.userupload.priorityrequested != 0 }}"
-        # check if any memory is being used for registry, download and uploads
-        renter_in_use_registry: "{{ renter_get_json.memorystatus.registry.base != renter_get_json.memorystatus.registry.available or renter_get_json.memorystatus.registry.prioritybase != renter_get_json.memorystatus.registry.priorityavailable }}"
-        renter_in_use_download: "{{ renter_get_json.memorystatus.userdownload.base != renter_get_json.memorystatus.userdownload.available or renter_get_json.memorystatus.userdownload.prioritybase != renter_get_json.memorystatus.userdownload.priorityavailable }}"
-        renter_in_use_upload: "{{ renter_get_json.memorystatus.userupload.base != renter_get_json.memorystatus.userupload.available or renter_get_json.memorystatus.userupload.prioritybase != renter_get_json.memorystatus.userupload.priorityavailable }}"
-      set_fact:
-        # register renter busy status
-        renter_busy: "{{ renter_requested_registry or renter_requested_download or renter_requested_upload or renter_in_use_registry or renter_in_use_download or renter_in_use_upload }}"
-      when:
-        - renter_get_result.rc == 0 and renter_get_result.stderr == ""
-
-    - name: "Wait if renter is busy"
-      fail:
-        msg: Renter still busy with registry, downloads or uploads.
-      when:
-        - renter_get_result.rc == 0 and renter_get_result.stderr == ""
-        - renter_busy
-  rescue:
-    - name: "Check if ansible should still wait for renter to get idle"
-      set_fact:
-        renter_busy_should_retry: "{{ (lookup('pipe', 'date +%s') | int) - (renter_wait_start_time | int) < renter_busy_check_wait_secs }}"
-
-    - name: "Retry renter busy check"
-      include_tasks: tasks/portal-renter-wait-until-idle.yml
-      when: renter_busy_should_retry
+    - name: Include waiting for renter idle subtask
+      include_tasks: tasks/portal-renter-wait-until-idle-subtask.yml
 
   # Do not wait if sia container is not running or is restarting
   when:
@@ -66,4 +35,3 @@
     - sia_docker_container_result.container is defined
     - sia_docker_container_result.container.State.Running
     - not sia_docker_container_result.container.State.Restarting
-    - sia_ip_result.rc == 0
