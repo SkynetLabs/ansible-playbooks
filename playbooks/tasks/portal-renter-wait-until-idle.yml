@@ -3,10 +3,6 @@
 # server down as the large upload will continue on another server. Or it is a
 # large download which can also be resumed on another server.
 
-# xxxqqq
-- pause:
-    prompt: "XXX check renter wait"
-
 # Check if sia container is running.
 - name: Check sia container is running
   community.docker.docker_container_info:

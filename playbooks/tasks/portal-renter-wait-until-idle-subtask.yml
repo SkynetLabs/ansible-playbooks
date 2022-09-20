@@ -74,37 +74,6 @@
         renter_busy | default(True)
       }}
 
-- debug:
-    msg: |
-      renter_requested_registry:
-      - renter_get_json.memorystatus.registry.requested: {{ renter_get_json.memorystatus.registry.requested }}
-      - renter_get_json.memorystatus.registry.priorityrequested: {{ renter_get_json.memorystatus.registry.priorityrequested }}
-      
-      renter_requested_download:
-      - renter_get_json.memorystatus.userdownload.requested: {{ renter_get_json.memorystatus.userdownload.requested }}
-      - renter_get_json.memorystatus.userdownload.priorityrequested: {{ renter_get_json.memorystatus.userdownload.priorityrequested }}
-
-      renter_requested_upload:
-      - renter_get_json.memorystatus.userupload.requested: {{ renter_get_json.memorystatus.userupload.requested }}
-      - renter_get_json.memorystatus.userupload.priorityrequested: {{ renter_get_json.memorystatus.userupload.priorityrequested }}
-
-      renter_in_use_registry:
-      - {{ renter_get_json.memorystatus.registry.base != renter_get_json.memorystatus.registry.available }}
-      - {{ renter_get_json.memorystatus.registry.prioritybase != renter_get_json.memorystatus.registry.priorityavailable }}
-
-      renter_in_use_download:
-      - {{ renter_get_json.memorystatus.userdownload.base != renter_get_json.memorystatus.userdownload.available }}
-      - {{ renter_get_json.memorystatus.userdownload.prioritybase != renter_get_json.memorystatus.userdownload.priorityavailable }}
-
-      renter_in_use_upload:
-      - {{ renter_get_json.memorystatus.userupload.base != renter_get_json.memorystatus.userupload.available }}
-      - {{ renter_get_json.memorystatus.userupload.prioritybase != renter_get_json.memorystatus.userupload.priorityavailable }}
-
-      renter_busy: {{ renter_busy | default('idk') }}
-      time: {{ (lookup('pipe', 'date +%s') | int) - (renter_wait_start_time | int) < renter_busy_check_wait_secs }}
-      renter_busy_should_retry: {{ renter_busy_should_retry }}
-
-
 - name: "Retry renter busy check"
   include_tasks: tasks/portal-renter-wait-until-idle-subtask.yml
   when: renter_busy_should_retry
