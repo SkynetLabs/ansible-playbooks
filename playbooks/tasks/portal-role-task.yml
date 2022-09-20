@@ -365,9 +365,11 @@
 - block:
     - name: Remove all skynet-webportal logrotate configs
       command: rm -f /etc/logrotate.d/skynet-webportal-*
-
+      become: True
+      
     - name: Copy over new skynet-webportal logrotate configs
       command: cp {{ webportal_logrotated_dir }}/* /etc/logrotate.d/
+      become: True
       ignore_errors: True # ignore error when copying over empty or non existing directory
 
 # Pull cypress image to avoid lazily pulling it on the fly when the abuse
