@@ -366,7 +366,7 @@
     - name: Remove all skynet-webportal logrotate configs
       command: rm -f /etc/logrotate.d/skynet-webportal-*
       become: True
-      
+
     - name: Copy over new skynet-webportal logrotate configs
       command: cp {{ webportal_logrotated_dir }}/* /etc/logrotate.d/
       become: True
