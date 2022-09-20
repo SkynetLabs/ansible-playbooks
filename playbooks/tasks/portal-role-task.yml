@@ -361,6 +361,15 @@
 
   when: webportal_setup_health_checks
 
+# Setup logrotate for webportal logs
+- block:
+    - name: Remove all skynet-webportal logrotate configs
+      command: rm -f /etc/logrotate.d/skynet-webportal-*
+
+    - name: Copy over new skynet-webportal logrotate configs
+      command: cp {{ webportal_logrotated_dir }}/* /etc/logrotate.d/
+      ignore_errors: True # ignore error when copying over empty or non existing directory
+
 # Pull cypress image to avoid lazily pulling it on the fly when the abuse
 # scanner needs it
 - name: Pull cypress docker image

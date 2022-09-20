@@ -194,6 +194,7 @@ webportal_dir: "{{ webportal_user_home_dir }}/skynet-webportal"
 webportal_docker_dir: "{{ webportal_dir }}/docker"
 webportal_docker_data_dir: "{{ webportal_docker_dir }}/data"
 webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
+webportal_logrotated_dir: "{{ webportal_dir }}/setup-scripts/logrotate.d"
 elasticsearch_data_data_dir: "{{ webportal_docker_data_dir }}/elasticsearch/data"
 
 # Accounts Paths
