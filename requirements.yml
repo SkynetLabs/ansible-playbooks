@@ -3,11 +3,11 @@
 roles:
   # Role for securing the servers
   - name: geerlingguy.security
-    version: 2.0.1
+    version: 2.2.0
 
   # Role for installing Docker and docker-compose on servers
   - name: geerlingguy.docker
-    version: 4.1.1
+    version: 5.2.4
 
   # Role for setting up Skynet Webportal
   - name: skynetlabs.skynet_webportal
@@ -18,16 +18,16 @@ roles:
 collections:
   # Required for controling Docker containers and docker-compose
   - name: community.docker
-    version: 1.7.0
+    version: 3.1.0
 
   # Required for LastPass lookups (community.general.lastpass)
   - name: community.general
-    version: 3.2.0
+    version: 5.6.0
 
   # Required for HashiCorp Vault lookups
   - name: community.hashi_vault
-    version: 3.0.0
+    version: 3.3.0
 
   # Required e.g. for adding SSH keys (ansible.posix.authorized_key)
   - name: ansible.posix
-    version: 1.3.0
+    version: 1.4.0
