@@ -368,7 +368,7 @@
       become: True
 
     - name: Copy over new skynet-webportal logrotate configs
-      command: cp -a {{ webportal_logrotated_dir }}/. /etc/logrotate.d/
+      command: cp -r {{ webportal_logrotated_dir }}/. /etc/logrotate.d/
       become: True
       ignore_errors: True # ignore error when copying over empty or non existing directory
 
