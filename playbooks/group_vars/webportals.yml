@@ -197,6 +197,9 @@ webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
 webportal_logrotated_dir: "{{ webportal_dir }}/setup-scripts/logrotate.d"
 elasticsearch_data_data_dir: "{{ webportal_docker_data_dir }}/elasticsearch/data"
 
+# Sia Paths
+sia_data_dir: "{{ webportal_docker_data_dir }}/sia"
+
 # Accounts Paths
 accounts_conf_dir: "{{ webportal_docker_dir }}/accounts/conf"
 accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
