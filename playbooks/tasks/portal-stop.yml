@@ -11,17 +11,18 @@
   shell: docker exec sia siac renter workers hsj -v | grep insufficient | wc -l
   register: insufficient_balance_workers
 
-- name: DEBUG - Check for renter accounting issues
-  ansible.builtin.debug:
-    var: insufficient_balance_workers
-
 - name: Include stopping portal docker services
   include_tasks: tasks/portal-docker-services-stop.yml
 
-- name: Reset accounts.dat when insufficient balance workers point to renter accounting issues
-  ansible.builtin.file:
-    path: "{{ sia_data_dir }}/renter/accounts.dat"
-    state: absent
+- name: Delete accounts.dat when insufficient balance workers point to renter accounting issues
+  community.docker.docker_container:
+    name: clean-accounting-data
+    image: alpine:3.15.0
+    volumes:
+      - "{{ sia_data_dir }}/renter:/sia-renter"
+    command: "rm /sia-renter/accounts.dat"
+    detach: False
+    auto_remove: True
   when: insufficient_balance_workers.rc == 0 and insufficient_balance_workers.stdout | int > 100
 
 # Below are optional tasks to include via portal-version.yml file
