@@ -3,11 +3,6 @@
 
 # Note: This task should be performed while sia is stopped
 
-- name: Pull Alpine image
-  community.docker.docker_image:
-    name: alpine:3.15.0
-    source: pull
-
 - name: Print timestamp before cleaning renter.log
   debug:
     msg: "{{ inventory_hostname + ' renter.log cleaning start: ' + lookup('pipe','date +%Y-%m-%dT%H:%M:%S') + ' UTC' }}"
@@ -20,7 +15,7 @@
 - name: Clean renter.log file
   community.docker.docker_container:
     name: clean-renter-logs
-    image: alpine:3.15.0
+    image: "{{ alpine_image }}"
     volumes:
       - "{{ sia_data_dir }}/renter:/sia-renter"
     command: "sed -i '/{{ item }}/d' /sia-renter/renter.log"

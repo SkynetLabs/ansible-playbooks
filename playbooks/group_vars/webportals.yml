@@ -300,6 +300,9 @@ webportal_config_files:
   - "docker-compose.override.yml"
   - ".env"
 
+# generic vars
+alpine_image: alpine:3.16.2
+
 # skynet-js vars
 skynet_js_org_and_repo: "SkynetLabs/skynet-js"
 skynet_js_repo_url: "https://github.com/{{ skynet_js_org_and_repo }}.git"
