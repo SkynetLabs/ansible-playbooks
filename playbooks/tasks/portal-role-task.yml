@@ -363,14 +363,28 @@
 
 # Setup logrotate for webportal logs
 - block:
-    - name: Remove all skynet-webportal logrotate configs
-      command: rm -f /etc/logrotate.d/skynet-webportal-*
+    - name: List all existing skynet-webportal logrotate configs
+      ansible.builtin.find:
+        paths: /etc/logrotate.d/
+        patterns: "skynet-webportal-*"
+      register: existing_logrotate
+
+    - name: Remove all existing skynet-webportal logrotate configs
+      file:
+        state: absent
+        path: "{{ item.path }}"
+      loop: "{{ existing_logrotate.files }}"
       become: True
+
+    - name: Check webportal logrotate config directory
+      stat:
+        path: "{{ webportal_logrotated_dir }}"
+      register: logrotate_webportal_dir
 
     - name: Copy over new skynet-webportal logrotate configs
       command: cp -r {{ webportal_logrotated_dir }}/. /etc/logrotate.d/
       become: True
-      ignore_errors: True # ignore error when copying over empty or non existing directory
+      when: logrotate_webportal_dir.stat.exists and logrotate_webportal_dir.stat.isdir
 
 # Pull cypress image to avoid lazily pulling it on the fly when the abuse
 # scanner needs it
