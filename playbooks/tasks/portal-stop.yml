@@ -7,8 +7,25 @@
 - name: Include disabling portal health check
   include_tasks: tasks/portal-health-check-disable.yml
 
+# NOTE: this is a first part of temporary fix for renter accounting issues - before skyd is stopped
+- name: Calculate the number of workers on cooldown due to "ephemeral account balance was insufficient" error
+  shell: docker exec sia siac renter workers hsj -v | grep insufficient | wc -l
+  register: insufficient_balance_workers
+
 - name: Include stopping portal docker services
   include_tasks: tasks/portal-docker-services-stop.yml
+
+# NOTE: this is a second part of temporary fix for renter accounting issues - after skyd is stopped
+- name: Delete accounts.dat when number of workers on cooldown due to accounting error is too high
+  community.docker.docker_container:
+    name: delete-accounting-data
+    image: "{{ alpine_image }}"
+    volumes:
+      - "{{ sia_data_dir }}/renter:/sia-renter"
+    command: "rm /sia-renter/accounts.dat"
+    detach: False
+    auto_remove: True
+  when: insufficient_balance_workers.rc == 0 and insufficient_balance_workers.stdout | int > 100 # arbitrary number
 
 # Below are optional tasks to include via portal-version.yml file
 - name: Include cleaning sia renter.log file

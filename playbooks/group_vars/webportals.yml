@@ -197,6 +197,9 @@ webportal_cron_file: "{{ webportal_dir }}/setup-scripts/support/crontab"
 webportal_logrotated_dir: "{{ webportal_dir }}/setup-scripts/logrotate.d"
 elasticsearch_data_data_dir: "{{ webportal_docker_data_dir }}/elasticsearch/data"
 
+# Sia Paths
+sia_data_dir: "{{ webportal_docker_data_dir }}/sia"
+
 # Accounts Paths
 accounts_conf_dir: "{{ webportal_docker_dir }}/accounts/conf"
 accounts_jwks_path: "{{ accounts_conf_dir }}/jwks.json"
@@ -296,6 +299,9 @@ webportal_setup_health_checks: True
 webportal_config_files:
   - "docker-compose.override.yml"
   - ".env"
+
+# generic vars
+alpine_image: alpine:3.16.2
 
 # skynet-js vars
 skynet_js_org_and_repo: "SkynetLabs/skynet-js"
