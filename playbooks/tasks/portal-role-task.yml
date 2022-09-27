@@ -373,7 +373,7 @@
       file:
         state: absent
         path: "{{ item.path }}"
-      with_items: "{{ existing_logrotate.files }}"
+      loop: "{{ existing_logrotate.files }}"
       become: True
 
     - name: Check webportal logrotate config directory
