@@ -293,6 +293,18 @@ webportal_common_config_defaults:
 # TODO: default to: False
 webportal_setup_health_checks: True
 
+# Define custom nameservers to be used to optionally override hosting provider
+# defaults.
+# NOTE: Be sure to check with server provider if it ok to just override
+# nameservers in /etc/resolve.conf. To override default nameservers define a
+# following var for a host or a group in your inventory hosts.ini:
+# etc_resolve_conf_override="{{ etc_resolve_conf_custom_nameservers }}"
+
+etc_resolve_conf_custom_nameservers: |
+  # Custom nameservers override
+  nameserver 1.1.1.1
+  nameserver 8.8.8.8
+
 # =============================================================================
 # Portal deploy settings (on running server)
 

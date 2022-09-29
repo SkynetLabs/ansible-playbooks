@@ -73,3 +73,14 @@
     replace: '# \1'
     backup: yes
   become: True
+
+# Override default DNS nameservers
+
+# E.g. Novogara server provider has default DNS provider set to local 'unbound'
+# DNS caching resolver, but it doesn't seem to be configured correctly and it
+# creates issues resolving some dnslink domains (e.g. sia-storage.net). So we
+# override server provider resolver config with our custom nameservers config.
+
+- name: Include setting custom DNS nameservers
+  include_tasks: tasks/dns-resolver-set-nameservers.yml
+  when: etc_resolve_conf_override is defined
