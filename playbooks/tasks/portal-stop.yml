@@ -25,7 +25,7 @@
     command: "rm /sia-renter/accounts.dat"
     detach: False
     auto_remove: True
-  when: insufficient_balance_workers.rc == 0 and insufficient_balance_workers.stdout | int > 100 # arbitrary number
+  when: insufficient_balance_workers.rc == 0 and insufficient_balance_workers.stdout | int > 50 # arbitrary number
 
 # Below are optional tasks to include via portal-version.yml file
 - name: Include cleaning sia renter.log file
